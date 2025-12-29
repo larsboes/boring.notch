@@ -100,8 +100,12 @@ class BoringViewCoordinator: ObservableObject {
     @Published var optionKeyPressed: Bool = true
     private var accessibilityObserver: Any?
     private var hudReplacementCancellable: AnyCancellable?
+    private var musicSneakPeekCancellable: AnyCancellable?
 
     private init() {
+        // Subscribe to MusicManager's sneak peek requests
+        // This replaces the direct coupling where MusicManager called coordinator methods
+        setupMusicSneakPeekSubscription()
         // Perform migration from name-based to UUID-based storage
         if preferredScreenUUID == nil, let legacyName = legacyPreferredScreenName {
             // Try to find screen by name and migrate to UUID
@@ -296,5 +300,24 @@ class BoringViewCoordinator: ObservableObject {
     
     func showEmpty() {
         currentView = .home
+    }
+
+    // MARK: - Music Manager Integration
+
+    /// Subscribe to MusicManager's sneak peek requests.
+    /// This maintains separation of concerns: MusicManager publishes requests,
+    /// coordinator handles the UI updates.
+    private func setupMusicSneakPeekSubscription() {
+        musicSneakPeekCancellable = MusicManager.shared.$sneakPeekRequest
+            .compactMap { $0 }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] request in
+                guard let self = self else { return }
+                if request.style == .standard {
+                    self.toggleSneakPeek(status: true, type: request.type)
+                } else {
+                    self.toggleExpandingView(status: true, type: request.type)
+                }
+            }
     }
 }

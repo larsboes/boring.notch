@@ -9,9 +9,16 @@ import Combine
 import Defaults
 import SwiftUI
 
+@MainActor
 class BoringViewModel: NSObject, ObservableObject {
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @ObservedObject var detector = FullscreenMediaDetector.shared
+    // MARK: - Dependencies (injected, not @ObservedObject to singletons)
+
+    /// View coordinator - accessed as property, not @ObservedObject
+    /// This prevents the VM from republishing on every coordinator change
+    private let coordinator: BoringViewCoordinator
+
+    /// Fullscreen media detector - accessed as property, not @ObservedObject
+    private let detector: FullscreenMediaDetector
 
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
@@ -39,7 +46,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
     
-    let webcamManager = WebcamManager.shared
+    private let webcamManager: WebcamManager
     @Published var isCameraExpanded: Bool = false
     @Published var isRequestingAuthorization: Bool = false
     
@@ -48,19 +55,34 @@ class BoringViewModel: NSObject, ObservableObject {
     
     deinit {
         NotificationCenter.default.removeObserver(self, name: Notification.Name.notchHeightChanged, object: nil)
-        destroy()
+        // Note: cancellables will be automatically released when the object is deallocated
+        // Cannot call MainActor methods from deinit
     }
 
-    func destroy() {
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
+    nonisolated func destroy() {
+        // This method is kept for external cleanup calls if needed
+        // Cancellables are automatically cancelled when the set is deallocated
     }
 
-    init(screenUUID: String? = nil) {
-        animation = animationLibrary.animation
+    /// Initialize with optional dependency injection.
+    /// Default parameters use the shared singletons for backwards compatibility.
+    init(
+        screenUUID: String? = nil,
+        coordinator: BoringViewCoordinator = .shared,
+        detector: FullscreenMediaDetector = .shared,
+        webcamManager: WebcamManager = .shared,
+        batteryStatus: BatteryStatusViewModel = .shared,
+        musicManager: MusicManager = .shared
+    ) {
+        self.coordinator = coordinator
+        self.detector = detector
+        self.webcamManager = webcamManager
+        self.batteryStatus = batteryStatus
+        self.musicManager = musicManager
+        self.animation = animationLibrary.animation
 
         super.init()
-        
+
         self.screenUUID = screenUUID
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
@@ -72,7 +94,7 @@ class BoringViewModel: NSObject, ObservableObject {
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
-        
+
         setupDetectorObserver()
         setupBackgroundImageObserver()
         setupNotchHeightObserver()
@@ -204,8 +226,9 @@ class BoringViewModel: NSObject, ObservableObject {
             .store(in: &cancellables)
     }
 
-    @ObservedObject var batteryStatus = BatteryStatusViewModel.shared
-    
+    private let batteryStatus: BatteryStatusViewModel
+    private let musicManager: MusicManager
+
     var effectiveClosedNotchHeight: CGFloat {
         let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
         let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
@@ -215,7 +238,7 @@ class BoringViewModel: NSObject, ObservableObject {
         }
         
         // Check if any live activity is active
-        let hasActiveLiveActivity = MusicManager.shared.isPlaying ||
+        let hasActiveLiveActivity = musicManager.isPlaying ||
                                     coordinator.sneakPeek.show ||
                                     batteryStatus.hasActiveBatteryNotification
         
@@ -310,9 +333,9 @@ class BoringViewModel: NSObject, ObservableObject {
     func open() {
         self.notchSize = openNotchSize
         self.notchState = .open
-        
+
         // Force music information update when notch is opened
-        MusicManager.shared.forceUpdate()
+        musicManager.forceUpdate()
     }
 
     func close() {

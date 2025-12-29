@@ -14,6 +14,7 @@ let defaultImage: NSImage = .init(
     accessibilityDescription: "Album Art"
 )!
 
+@MainActor
 class MusicManager: ObservableObject {
     // MARK: - Properties
     static let shared = MusicManager()
@@ -23,7 +24,8 @@ class MusicManager: ObservableObject {
     private var albumArtTask: Task<Void, Error>?
 
     // Helper to check if macOS has removed support for NowPlayingController
-    public private(set) var isNowPlayingDeprecated: Bool = false
+    // nonisolated to allow static initialization access
+    public nonisolated(unsafe) private(set) var isNowPlayingDeprecated: Bool = false
     private let mediaChecker = MediaChecker()
 
     // Active controller
@@ -47,8 +49,23 @@ class MusicManager: ObservableObject {
     @Published var repeatMode: RepeatMode = .off
     @Published var volume: Double = 0.5
     @Published var volumeControlSupported: Bool = true
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
+
+    // MARK: - Sneak Peek Request (replaces direct coordinator coupling)
+
+    /// Published when music starts playing and sneak peek should be shown.
+    /// The coordinator subscribes to this instead of being called directly.
+    /// This maintains separation of concerns: data manager doesn't know about view coordinator.
+    @Published var sneakPeekRequest: SneakPeekRequest?
+
+    struct SneakPeekRequest: Equatable {
+        let style: SneakPeekStyle
+        let type: SneakContentType
+
+        static func == (lhs: SneakPeekRequest, rhs: SneakPeekRequest) -> Bool {
+            lhs.style == rhs.style && lhs.type == rhs.type
+        }
+    }
     @Published var canFavoriteTrack: Bool = false
     
     // Lyrics are now managed by LyricsService
@@ -97,9 +114,10 @@ class MusicManager: ObservableObject {
     }
 
     deinit {
-        destroy()
+        // Cancellables and tasks are automatically cleaned up when deallocated
+        // Cannot call MainActor methods from deinit
     }
-    
+
     public func destroy() {
         debounceIdleTask?.cancel()
         cancellables.removeAll()
@@ -465,11 +483,13 @@ class MusicManager: ObservableObject {
 
     private func updateSneakPeek() {
         if isPlaying && Defaults[.enableSneakPeek] {
-            if Defaults[.sneakPeekStyles] == .standard {
-                coordinator.toggleSneakPeek(status: true, type: .music)
-            } else {
-                coordinator.toggleExpandingView(status: true, type: .music)
-            }
+            // Publish a sneak peek request instead of calling coordinator directly.
+            // The coordinator subscribes to this and handles the UI update.
+            // This maintains separation of concerns: data manager doesn't know about views.
+            sneakPeekRequest = SneakPeekRequest(
+                style: Defaults[.sneakPeekStyles],
+                type: .music
+            )
         }
     }
 

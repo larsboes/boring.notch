@@ -245,6 +245,7 @@ extension Defaults.Keys {
     static let hideNonNotchedFromMissionControl = Key<Bool>("hideNonNotchedFromMissionControl", default: true)
     
     // Helper to determine the default media controller based on NowPlaying deprecation status
+    // Note: isNowPlayingDeprecated is nonisolated(unsafe) to allow static initialization
     static var defaultMediaController: MediaControllerType {
         if MusicManager.shared.isNowPlayingDeprecated {
             return .appleMusic

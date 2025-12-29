@@ -36,11 +36,35 @@ After merging all feature PRs, the codebase was re-analyzed. **Key findings:**
 - SkyLight window - Lock screen support
 - StandardAnimations enum - ✅ Good centralization
 
-**Compile Errors to Fix:**
-1. `EmptyState.swift:15` - `MinimalFaceFeatures(height:width:)` doesn't exist → use `MinimalFaceFeatures()`
-2. `BoringNotchXPCHelperProtocol.swift` - Missing `getBluetoothDeviceMinorClass` method signature
+**Compile Errors:** ✅ All fixed in commit `ea06480`
 
 **Verdict:** Architecture got slightly worse (+11.5% singletons), but StandardAnimations is a positive step.
+
+**Phase 1 Foundation Created (2025-12-29):**
+- ✅ `Core/DependencyContainer.swift` - Centralized singleton facade
+- ✅ `Core/NotchSettings.swift` - Settings protocol abstraction for testability
+- ✅ `Core/NotchStateMachine.swift` - Extracted state determination logic
+
+**Phase 2 Decoupling Completed (2025-12-29):**
+- ✅ `BoringViewModel.swift` - Replaced `@ObservedObject` singletons with DI pattern
+- ✅ `MusicManager.swift` - Removed coordinator coupling, uses Publisher pattern
+- ✅ `BoringViewCoordinator.swift` - Subscribes to MusicManager.sneakPeekRequest
+
+**Phase 3 God Object Splitting (2025-12-29):**
+- ✅ `Core/WindowCoordinator.swift` - Window creation, positioning, multi-display support
+- ✅ `Core/KeyboardShortcutCoordinator.swift` - Keyboard shortcut registration and handling
+- ✅ `Core/DragDetectionCoordinator.swift` - Drag detection for notch region
+- ✅ `Core/NotchContentRouter.swift` - Content routing based on NotchStateMachine
+- ✅ `boringNotchApp.swift` - AppDelegate now delegates to coordinators
+
+**Phase 4 Testing Infrastructure (2025-12-29):**
+- ✅ `boringNotchTests/NotchStateMachineTests.swift` - Comprehensive unit tests for state machine
+- 📋 Test target needs to be added manually in Xcode (File > New > Target > Unit Testing Bundle)
+
+**Integration Notes:**
+- All Core files added to Xcode project and compiling
+- NotchContentRouter has placeholder for MusicLiveActivity (to be extracted from ContentView in future)
+- AppDelegate reduced from 600+ lines to ~300 lines by delegation to coordinators
 
 ---
 
@@ -565,15 +589,41 @@ After refactoring, the codebase should:
 - Nested if-else chains for state determination
 - **NEW:** Adding new `.shared` singletons for new features
 
-### Immediate Fixes Required
-
-1. **EmptyState.swift:15** - Change `MinimalFaceFeatures(height: 70, width: 80)` to `MinimalFaceFeatures()`
-2. **BoringNotchXPCHelperProtocol.swift** - Add missing method:
-   ```swift
-   func getBluetoothDeviceMinorClass(with deviceName: String, with reply: @escaping (String?) -> Void)
-   ```
-
 ---
 
 *Document created: 2025-12-29*
-*Last updated: 2025-12-29 (Post-merge analysis)*
+*Last updated: 2025-12-29 (Phases 1-4 completed)*
+
+---
+
+## Implementation Summary
+
+### Files Created (Phase 1-4)
+
+| File | Purpose | Lines |
+|------|---------|-------|
+| `Core/DependencyContainer.swift` | Centralized singleton facade | 83 |
+| `Core/NotchSettings.swift` | Settings protocol + mock | 131 |
+| `Core/NotchStateMachine.swift` | State determination logic | 210 |
+| `Core/WindowCoordinator.swift` | Window management | 278 |
+| `Core/KeyboardShortcutCoordinator.swift` | Keyboard shortcuts | 108 |
+| `Core/DragDetectionCoordinator.swift` | Drag detection | 116 |
+| `Core/NotchContentRouter.swift` | Content routing view | 277 |
+| `boringNotchTests/NotchStateMachineTests.swift` | Unit tests | 230 |
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| `BoringViewModel.swift` | DI pattern, removed @ObservedObject singletons |
+| `MusicManager.swift` | Publisher pattern for sneakPeekRequest |
+| `BoringViewCoordinator.swift` | Subscribes to MusicManager publisher |
+| `boringNotchApp.swift` | Delegates to coordinators |
+| `Constants.swift` | Fixed static initialization issue |
+
+### Remaining Work
+
+1. **Add test target in Xcode** - File > New > Target > Unit Testing Bundle
+2. **Extract MusicLiveActivity** - Currently in ContentView, needs to be standalone
+3. **Wire NotchContentRouter** - Replace ContentView's if-else chains
+4. **Continue ContentView refactoring** - Still 700+ lines
