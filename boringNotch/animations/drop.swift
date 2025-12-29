@@ -24,6 +24,11 @@ public class BoringAnimations {
         }
     }
     
-    // TODO: Move all animations to this file
+    // Shared interactive spring for movement/resizing to avoid conflicting animations
+    static let interactiveSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
     
+    static let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
+    static let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
+    
+    static let helloAnimation = Animation.easeInOut(duration: 4.0)
 }

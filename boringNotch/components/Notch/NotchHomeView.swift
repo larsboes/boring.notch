@@ -19,7 +19,7 @@ struct MusicPlayerView: View {
     var body: some View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
-            MusicControlsView().drawingGroup().compositingGroup()
+            MusicControlsView()
         }
     }
 }
@@ -431,7 +431,7 @@ struct NotchHomeView: View {
                 mainContent
             }
         }
-        // simplified: use a straightforward opacity transition
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .transition(.opacity)
     }
 
