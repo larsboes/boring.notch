@@ -38,6 +38,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Weather") {
                     Label("Weather", systemImage: "cloud.sun.fill")
                 }
+                NavigationLink(value: "Notifications") {
+                    Label("Notifications", systemImage: "bell.badge")
+                }
                 NavigationLink(value: "HUD") {
                     Label("HUDs", systemImage: "dial.medium.fill")
                 }
@@ -74,6 +77,8 @@ struct SettingsView: View {
                     CalendarSettings()
                 case "Weather":
                     WeatherSettings()
+                case "Notifications":
+                    NotificationsSettingsView()
                 case "HUD":
                     HUD()
                 case "Battery":

@@ -163,6 +163,19 @@ extension Defaults.Keys {
     static let highBatteryNotificationLevel = Key<Int>("highBatteryNotificationLevel", default: 0)
     static let highBatteryNotificationSound = Key<String>("highBatteryNotificationSound", default: "Disabled")
     
+    // MARK: Notifications
+    static let showShelfNotifications = Key<Bool>("showShelfNotifications", default: true)
+    static let showSystemNotifications = Key<Bool>("showSystemNotifications", default: true)
+    static let showInfoNotifications = Key<Bool>("showInfoNotifications", default: true)
+    static let notificationDeliveryStyle = Key<NotificationDeliveryStyle>(
+        "notificationDeliveryStyle",
+        default: .banner
+    )
+    static let notificationSoundEnabled = Key<Bool>("notificationSoundEnabled", default: true)
+    static let respectDoNotDisturb = Key<Bool>("respectDoNotDisturb", default: true)
+    static let notificationRetentionDays = Key<Int>("notificationRetentionDays", default: 7)
+    static let storedNotifications = Key<[NotchNotification]>("storedNotifications", default: [])
+    
     // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
     static let enableSafariDownloads = Key<Bool>("enableSafariDownloads", default: true)
