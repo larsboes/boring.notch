@@ -248,6 +248,18 @@ struct GeneralSettings: View {
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
             }
+            
+            Slider(value: Binding(
+                get: { Defaults[.sneakPeakDuration] },
+                set: { Defaults[.sneakPeakDuration] = $0 }
+            ), in: 0.5...5, step: 0.5) {
+                HStack {
+                    Text("Sneak peak duration")
+                    Spacer()
+                    Text("\(Defaults[.sneakPeakDuration], specifier: "%.1f")s")
+                        .foregroundStyle(.secondary)
+                }
+            }
         } header: {
             Text("Notch behavior")
         }

@@ -12,6 +12,13 @@
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
 		1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100292D2E86940F00035A57 /* QuickShareService.swift */; };
 		1113ABC52E80E27000EC13B2 /* ShelfItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113ABC32E80E27000EC13B2 /* ShelfItemView.swift */; };
+		110029312E86940F00035A57 /* ScreenRecordingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029302E86940F00035A57 /* ScreenRecordingManager.swift */; };
+		110029332E86940F00035A57 /* NotchMoodView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029322E86940F00035A57 /* NotchMoodView.swift */; };
+		110029352E86940F00035A57 /* NotchFaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029342E86940F00035A57 /* NotchFaceManager.swift */; };
+		110029392E86940F00035A57 /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029382E86940F00035A57 /* ClipboardManager.swift */; };
+		1100293B2E86940F00035A57 /* NotesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100293A2E86940F00035A57 /* NotesManager.swift */; };
+		1100293D2E86940F00035A57 /* ClipboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100293C2E86940F00035A57 /* ClipboardView.swift */; };
+		1100293F2E86940F00035A57 /* NotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100293E2E86940F00035A57 /* NotesView.swift */; };
 		1113ABC62E80E27000EC13B2 /* ShelfPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113ABBE2E80E27000EC13B2 /* ShelfPersistenceService.swift */; };
 		1113ABC82E80E27000EC13B2 /* ShelfItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113ABB72E80E27000EC13B2 /* ShelfItem.swift */; };
 		1113ABCA2E80E27000EC13B2 /* ShelfSelectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113ABC02E80E27000EC13B2 /* ShelfSelectionModel.swift */; };
@@ -206,6 +213,13 @@
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
 		1100292D2E86940F00035A57 /* QuickShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickShareService.swift; sourceTree = "<group>"; };
+		110029302E86940F00035A57 /* ScreenRecordingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenRecordingManager.swift; sourceTree = "<group>"; };
+		110029322E86940F00035A57 /* NotchMoodView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchMoodView.swift; sourceTree = "<group>"; };
+		110029342E86940F00035A57 /* NotchFaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchFaceManager.swift; sourceTree = "<group>"; };
+		110029382E86940F00035A57 /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
+		1100293A2E86940F00035A57 /* NotesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesManager.swift; sourceTree = "<group>"; };
+		1100293C2E86940F00035A57 /* ClipboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardView.swift; sourceTree = "<group>"; };
+		1100293E2E86940F00035A57 /* NotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesView.swift; sourceTree = "<group>"; };
 		1113ABB72E80E27000EC13B2 /* ShelfItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfItem.swift; sourceTree = "<group>"; };
 		1113ABBA2E80E27000EC13B2 /* QuickLookService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookService.swift; sourceTree = "<group>"; };
 		1113ABBC2E80E27000EC13B2 /* ShelfActionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfActionService.swift; sourceTree = "<group>"; };
@@ -435,6 +449,9 @@
 		1113ABC42E80E27000EC13B2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				110029322E86940F00035A57 /* NotchMoodView.swift */,
+				1100293C2E86940F00035A57 /* ClipboardView.swift */,
+				1100293E2E86940F00035A57 /* NotesView.swift */,
 				11F747CD2EC75CEA00F841DB /* DragPreviewView.swift */,
 				110029292E8691B400035A57 /* FileShareView.swift */,
 				1113ABC32E80E27000EC13B2 /* ShelfItemView.swift */,
@@ -586,6 +603,10 @@
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
 				B1F0A0012E60000100000001 /* BrightnessManager.swift */,
 				59D8C23B2E589FAA00147B33 /* VolumeManager.swift */,
+				110029302E86940F00035A57 /* ScreenRecordingManager.swift */,
+				110029342E86940F00035A57 /* NotchFaceManager.swift */,
+				110029382E86940F00035A57 /* ClipboardManager.swift */,
+				1100293A2E86940F00035A57 /* NotesManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -889,6 +910,7 @@
 				11F748722EC9DA9300F841DB /* Lottie */,
 				111BE95C2ECD71E10079DD4E /* AsyncXPCConnection */,
 				111BEA502ECFBF7F0079DD4E /* MacroVisionKit */,
+				110029372E86940F00035A57 /* SQLite */,
 			);
 			productName = dynamicNotch;
 			productReference = 14CEF4122C5CAED300855D72 /* boringNotch.app */;
@@ -934,6 +956,7 @@
 				11F748712EC9DA9300F841DB /* XCRemoteSwiftPackageReference "lottie-spm" */,
 				111BE95B2ECD71E10079DD4E /* XCRemoteSwiftPackageReference "AsyncXPCConnection" */,
 				111BEA6D2ED166E20079DD4E /* XCRemoteSwiftPackageReference "MacroVisionKit" */,
+				110029362E86940F00035A57 /* XCRemoteSwiftPackageReference "SQLite.swift" */,
 			);
 			productRefGroup = 14CEF4132C5CAED300855D72 /* Products */;
 			projectDirPath = "";
@@ -1021,6 +1044,13 @@
 				1113ABCB2E80E27000EC13B2 /* QuickLookService.swift in Sources */,
 				1113ABCC2E80E27000EC13B2 /* ShelfDropService.swift in Sources */,
 				1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */,
+				110029312E86940F00035A57 /* ScreenRecordingManager.swift in Sources */,
+				110029332E86940F00035A57 /* NotchMoodView.swift in Sources */,
+				110029352E86940F00035A57 /* NotchFaceManager.swift in Sources */,
+				110029392E86940F00035A57 /* ClipboardManager.swift in Sources */,
+				1100293B2E86940F00035A57 /* NotesManager.swift in Sources */,
+				1100293D2E86940F00035A57 /* ClipboardView.swift in Sources */,
+				1100293F2E86940F00035A57 /* NotesView.swift in Sources */,
 				1113ABCE2E80E27000EC13B2 /* ShelfActionService.swift in Sources */,
 				1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */,
 				5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */,
@@ -1550,6 +1580,14 @@
 				minimumVersion = 9.0.2;
 			};
 		};
+		110029362E86940F00035A57 /* XCRemoteSwiftPackageReference "SQLite.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stephencelis/SQLite.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1605,6 +1643,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
+		};
+		110029372E86940F00035A57 /* SQLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 110029362E86940F00035A57 /* XCRemoteSwiftPackageReference "SQLite.swift" */;
+			productName = SQLite;
 		};
 		B19016212CC15B3D00E3F12E /* Defaults */ = {
 			isa = XCSwiftPackageProductDependency;

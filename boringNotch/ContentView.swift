@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var screenRecording = ScreenRecordingManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -327,6 +328,9 @@ struct ContentView: View {
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
+                      } else if vm.notchState == .closed && screenRecording.isRecording && !vm.hideOnClosed {
+                          ScreenRecordingLiveActivity()
+                              .frame(alignment: .center)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
@@ -388,6 +392,10 @@ struct ContentView: View {
                         ShelfView()
                     case .notifications:
                         NotificationsView()
+                    case .clipboard:
+                        ClipboardView()
+                    case .notes:
+                        NotesView()
                     }
                 }
                 .frame(maxHeight: .infinity)
@@ -536,6 +544,23 @@ struct ContentView: View {
             height: displayClosedNotchHeight,
             alignment: .center
         )
+    }
+
+    @ViewBuilder
+    func ScreenRecordingLiveActivity() -> some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(Color.red)
+                .frame(width: 8, height: 8)
+                .opacity(screenRecording.isRecording ? 1 : 0)
+                .animation(.easeInOut(duration: 0.5).repeatForever(), value: screenRecording.isRecording)
+            
+            Text("Recording")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 12)
+        .frame(height: displayClosedNotchHeight)
     }
 
     @ViewBuilder

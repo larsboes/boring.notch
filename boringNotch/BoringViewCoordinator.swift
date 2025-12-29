@@ -209,7 +209,7 @@ class BoringViewCoordinator: ObservableObject {
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
         icon: String = ""
     ) {
-        sneakPeekDuration = duration
+        sneakPeekDuration = duration == 1.5 ? Defaults[.sneakPeakDuration] : duration
         if type != .music {
             // close()
             if !Defaults[.hudReplacement] {
@@ -230,7 +230,7 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
-    private var sneakPeekDuration: TimeInterval = 1.5
+    private var sneakPeekDuration: TimeInterval = Defaults[.sneakPeakDuration]
     private var sneakPeekTask: Task<Void, Never>?
 
     // Helper function to manage sneakPeek timer using Swift Concurrency
@@ -243,7 +243,7 @@ class BoringViewCoordinator: ObservableObject {
             await MainActor.run {
                 withAnimation {
                     self.toggleSneakPeek(status: false, type: .music)
-                    self.sneakPeekDuration = 1.5
+                    self.sneakPeekDuration = Defaults[.sneakPeakDuration]
                 }
             }
         }

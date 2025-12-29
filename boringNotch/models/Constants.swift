@@ -159,6 +159,8 @@ extension Defaults.Keys {
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
+    static let sneakPeakDuration = Key<Double>("sneakPeakDuration", default: 1.5)
+    static let selectedMood = Key<Mood>("selectedMood", default: .neutral)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
@@ -252,4 +254,8 @@ extension Defaults.Keys {
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
+}
+
+enum Mood: String, Codable, CaseIterable, Defaults.Serializable {
+    case happy, neutral, sad, surprised, angry, sleepy
 }
