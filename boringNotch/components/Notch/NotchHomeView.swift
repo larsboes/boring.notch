@@ -499,7 +499,9 @@ struct NotchHomeView: View {
     private var mainContent: some View {
         HStack(alignment: .top, spacing: additionalItemsCount >= 2 ? 10 : 15) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
+                .opacity(vm.notchState == .open ? 1 : 0)
                 .blur(radius: vm.notchState == .closed ? 30 : 0)
+                .animation(StandardAnimations.staggered(index: 0), value: vm.notchState)
 
             if shouldShowCalendar {
                 CalendarView()
@@ -508,16 +510,20 @@ struct NotchHomeView: View {
                         vm.isHoveringCalendar = isHovering
                     }
                     .environmentObject(vm)
-                    .transition(.opacity)
+                    .opacity(vm.notchState == .open ? 1 : 0)
                     .blur(radius: vm.notchState == .closed ? 30 : 0)
+                    .animation(StandardAnimations.staggered(index: 1), value: vm.notchState)
+                    .transition(.opacity)
             }
-            
+
             if shouldShowWeather {
                 WeatherView()
                     .frame(width: itemWidth)
                     .environmentObject(vm)
-                    .transition(.opacity)
+                    .opacity(vm.notchState == .open ? 1 : 0)
                     .blur(radius: vm.notchState == .closed ? 30 : 0)
+                    .animation(StandardAnimations.staggered(index: 2), value: vm.notchState)
+                    .transition(.opacity)
             }
 
             if shouldShowCamera {
@@ -525,7 +531,7 @@ struct NotchHomeView: View {
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     // Do not blur the camera view to prevent "Unable to render flattened version" errors
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                    .animation(StandardAnimations.staggered(index: 3), value: vm.notchState)
             }
         }
         .padding(.horizontal, 4)

@@ -147,7 +147,8 @@ struct ContentView: View {
                                     shape: Rectangle(),
                                     configuration: liquidGlassStyle.configuration,
                                     isActive: true,
-                                    tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil
+                                    tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil,
+                                    isExpanded: isDisplayStateOpen
                                 )
                             } else {
                                 Color.black
@@ -197,8 +198,8 @@ struct ContentView: View {
                 mainLayout
                     .frame(height: isDisplayStateOpen ? vm.notchSize.height : nil)
                     .conditionalModifier(true) { view in
-
-                        return view
+                        view
+                            .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchSize)
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
                             .animation(.smooth, value: gestureProgress)
                     }
@@ -386,7 +387,8 @@ struct ContentView: View {
                         shape: Rectangle(),
                         configuration: liquidGlassStyle.configuration,
                         isActive: true,
-                        tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil
+                        tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil,
+                        isExpanded: isDisplayStateOpen
                     )
                     
                     // Optional background image on top of glass

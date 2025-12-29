@@ -100,10 +100,22 @@ struct LiquidGlassBackground<S: Shape>: View {
     let shape: S
     var configuration: LiquidGlassConfiguration = .default
     var isActive: Bool = true
-    
+
     /// Optional tint color sampled from content (e.g., album art)
     var tintColor: Color?
-    
+
+    /// Whether the notch is expanded (open state)
+    var isExpanded: Bool = false
+
+    /// Animated transition progress (0 = closed, 1 = open)
+    @State private var transitionProgress: CGFloat = 0
+
+    /// Computed opacity multiplier based on transition progress
+    /// Border and glow are more visible when expanded
+    private var opacityMultiplier: CGFloat {
+        0.6 + 0.4 * transitionProgress
+    }
+
     var body: some View {
         if isActive {
             ZStack {
@@ -114,13 +126,13 @@ struct LiquidGlassBackground<S: Shape>: View {
                     isActive: true
                 )
                 .clipShape(shape)
-                
+
                 // Layer 2: Ambient light base (Vision Pro-style ambient lighting)
                 shape
                     .fill(
                         RadialGradient(
                             colors: [
-                                .white.opacity(configuration.ambientLightOpacity),
+                                .white.opacity(configuration.ambientLightOpacity * opacityMultiplier),
                                 .clear
                             ],
                             center: .topLeading,
@@ -128,19 +140,19 @@ struct LiquidGlassBackground<S: Shape>: View {
                             endRadius: 200
                         )
                     )
-                
+
                 // Layer 3: Dark tint for contrast and depth (reduced for better content visibility)
                 shape
                     .fill(Color.black.opacity(0.15))
-                
+
                 // Layer 4: Optional color tint from content (enhanced for Vision Pro)
                 if let tint = tintColor {
                     shape
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    tint.opacity(configuration.tintOpacity * 1.5),
-                                    tint.opacity(configuration.tintOpacity * 0.5),
+                                    tint.opacity(configuration.tintOpacity * 1.5 * opacityMultiplier),
+                                    tint.opacity(configuration.tintOpacity * 0.5 * opacityMultiplier),
                                     .clear
                                 ],
                                 center: .center,
@@ -150,14 +162,14 @@ struct LiquidGlassBackground<S: Shape>: View {
                         )
                         .blendMode(.plusLighter)
                 }
-                
+
                 // Layer 5: Inner highlight/glow (top-left light source simulation - Vision Pro style)
                 shape
                     .fill(
                         LinearGradient(
                             colors: [
-                                .white.opacity(configuration.innerGlowOpacity * 1.2),
-                                .white.opacity(configuration.innerGlowOpacity * 0.6),
+                                .white.opacity(configuration.innerGlowOpacity * 1.2 * opacityMultiplier),
+                                .white.opacity(configuration.innerGlowOpacity * 0.6 * opacityMultiplier),
                                 .clear
                             ],
                             startPoint: .topLeading,
@@ -165,16 +177,16 @@ struct LiquidGlassBackground<S: Shape>: View {
                         )
                     )
                     .blendMode(.plusLighter)
-                
+
                 // Layer 6: Specular highlight (enhanced for Vision Pro depth)
                 if configuration.showSpecularHighlight {
                     shape
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    .white.opacity(0.2),
-                                    .white.opacity(0.08),
-                                    .white.opacity(0.03),
+                                    .white.opacity(0.2 * opacityMultiplier),
+                                    .white.opacity(0.08 * opacityMultiplier),
+                                    .white.opacity(0.03 * opacityMultiplier),
                                     .clear
                                 ],
                                 startPoint: .top,
@@ -190,16 +202,16 @@ struct LiquidGlassBackground<S: Shape>: View {
                         )
                         .blendMode(.plusLighter)
                 }
-                
+
                 // Layer 7: Edge glow for Vision Pro-style luminous edges
                 shape
                     .stroke(
                         LinearGradient(
                             colors: [
-                                .white.opacity(configuration.edgeGlowOpacity),
-                                .white.opacity(configuration.edgeGlowOpacity * 0.4),
-                                .white.opacity(configuration.edgeGlowOpacity * 0.6),
-                                .white.opacity(configuration.edgeGlowOpacity * 0.3)
+                                .white.opacity(configuration.edgeGlowOpacity * opacityMultiplier),
+                                .white.opacity(configuration.edgeGlowOpacity * 0.4 * opacityMultiplier),
+                                .white.opacity(configuration.edgeGlowOpacity * 0.6 * opacityMultiplier),
+                                .white.opacity(configuration.edgeGlowOpacity * 0.3 * opacityMultiplier)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -207,22 +219,30 @@ struct LiquidGlassBackground<S: Shape>: View {
                         lineWidth: configuration.borderWidth
                     )
                     .blur(radius: 0.5)
-                
+
                 // Layer 8: Luminous border (refined for Vision Pro)
                 shape
                     .stroke(
                         LinearGradient(
                             colors: [
-                                .white.opacity(configuration.borderOpacity),
-                                .white.opacity(configuration.borderOpacity * 0.4),
-                                .white.opacity(configuration.borderOpacity * 0.6),
-                                .white.opacity(configuration.borderOpacity * 0.3)
+                                .white.opacity(configuration.borderOpacity * opacityMultiplier),
+                                .white.opacity(configuration.borderOpacity * 0.4 * opacityMultiplier),
+                                .white.opacity(configuration.borderOpacity * 0.6 * opacityMultiplier),
+                                .white.opacity(configuration.borderOpacity * 0.3 * opacityMultiplier)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
                         lineWidth: configuration.borderWidth
                     )
+            }
+            .onChange(of: isExpanded) { _, newValue in
+                withAnimation(newValue ? StandardAnimations.open : StandardAnimations.close) {
+                    transitionProgress = newValue ? 1.0 : 0.0
+                }
+            }
+            .onAppear {
+                transitionProgress = isExpanded ? 1.0 : 0.0
             }
         } else {
             // Fallback to solid black when glass effect is disabled

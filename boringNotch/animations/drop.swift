@@ -12,27 +12,58 @@ import SwiftUI
 /// Centralized animation definitions for consistent UI behavior across the app.
 enum StandardAnimations {
     /// Interactive spring for responsive UI (used for notch interactions)
-    static let interactive = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
-    
+    /// Tuned for snappier feedback during gestures and hover
+    static let interactive = Animation.interactiveSpring(
+        response: 0.32,        // Faster response for immediate feedback
+        dampingFraction: 0.82, // Slightly higher damping to reduce oscillation
+        blendDuration: 0
+    )
+
     /// Spring animation for opening the notch
-    static let open = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
-    
+    /// Subtle bounce for a polished feel
+    static let open = Animation.spring(
+        response: 0.38,        // Faster than before
+        dampingFraction: 0.78, // Lower damping for subtle bounce
+        blendDuration: 0.1     // Smooth blend at start
+    )
+
     /// Spring animation for closing the notch
-    static let close = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
-    
+    /// Quick and decisive with slight softness
+    static let close = Animation.spring(
+        response: 0.35,        // Faster close
+        dampingFraction: 0.92, // High damping but not fully critical
+        blendDuration: 0.08
+    )
+
     /// Bouncy spring for playful animations
     @available(macOS 14.0, *)
     static var bouncy: Animation {
         Animation.spring(.bouncy(duration: 0.4))
     }
-    
+
     /// Smooth animation for general transitions
     static let smooth = Animation.smooth
-    
+
     /// Timing curve fallback for older macOS versions
     static let timingCurve = Animation.timingCurve(0.16, 1, 0.3, 1, duration: 0.7)
-    
+
     static let hello = Animation.easeInOut(duration: 4.0)
+
+    // MARK: - Content Transitions
+
+    /// Animation for content appearing (fade in with scale)
+    static let contentAppear = Animation.easeOut(duration: 0.22)
+
+    /// Animation for content disappearing (quick fade out)
+    static let contentDisappear = Animation.easeIn(duration: 0.15)
+
+    /// Staggered animation for sequential content reveals
+    /// - Parameter index: The index of the element in the sequence
+    /// - Returns: Animation with appropriate delay for staggered effect
+    static func staggered(index: Int) -> Animation {
+        Animation.spring(response: 0.3, dampingFraction: 0.85)
+            .delay(Double(index) * 0.04)
+    }
 }
 
 public class BoringAnimations {
