@@ -20,6 +20,7 @@ class MusicManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceIdleTask: Task<Void, Never>?
+    private var albumArtTask: Task<Void, Error>?
 
     // Helper to check if macOS has removed support for NowPlayingController
     public private(set) var isNowPlayingDeprecated: Bool = false
@@ -211,23 +212,52 @@ class MusicManager: ObservableObject {
         if hasContentChange {
             self.triggerFlipAnimation()
 
-            if artworkChanged, let artwork = state.artwork {
-                self.updateArtwork(artwork)
-            } else if state.artwork == nil {
-                // Try to use app icon if no artwork but track changed
-                if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
-                    self.usingAppIconForArtwork = true
-                    self.updateAlbumArt(newAlbumArt: appIconImage)
-                }
-            }
-            self.artworkData = state.artwork
-
             if artworkChanged || state.artwork == nil {
                 // Update last artwork change values
                 self.lastArtworkTitle = state.title
                 self.lastArtworkArtist = state.artist
                 self.lastArtworkAlbum = state.album
                 self.lastArtworkBundleIdentifier = state.bundleIdentifier
+            }
+
+            // Prepare new artwork
+            var newAlbumArt: NSImage = defaultImage
+            var usingAppIcon = false
+            
+            if artworkChanged, let artwork = state.artwork, let artworkImage = NSImage(data: artwork) {
+                newAlbumArt = artworkImage
+            } else if let appIcon = AppIconAsNSImage(for: state.bundleIdentifier) {
+                newAlbumArt = appIcon
+                usingAppIcon = true
+            }
+            
+            // Update metadata immediately
+            self.songTitle = state.title
+            self.artistName = state.artist
+            self.album = state.album
+            
+            // Trigger flip animation
+            self.triggerFlipAnimation()
+            
+            // Debounced artwork update
+            albumArtTask?.cancel()
+            albumArtTask = Task(priority: .userInitiated) { [weak self] in
+                if usingAppIcon {
+                    // Add delay for app icon fallback to prevent flickering if real artwork loads shortly after
+                    try? await Task.sleep(for: .milliseconds(400))
+                }
+                
+                guard let self = self, !Task.isCancelled else { return }
+                
+                await MainActor.run {
+                    self.albumArt = newAlbumArt
+                    self.usingAppIconForArtwork = usingAppIcon
+                    self.artworkData = state.artwork
+                    
+                    if Defaults[.coloredSpectrogram] {
+                        self.calculateAverageColor()
+                    }
+                }
             }
 
             // Only update sneak peek if there's actual content and something changed
