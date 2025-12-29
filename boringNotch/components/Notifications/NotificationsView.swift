@@ -36,7 +36,7 @@ struct NotificationsView: View {
                         manager.markAllAsRead()
                     }
                 }) {
-                    Text("모두 읽음") // "Read All"
+                    Text("Mark All Read")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -62,7 +62,7 @@ struct NotificationsView: View {
             Image(systemName: "bell.slash")
                 .font(.system(size: 32))
                 .foregroundStyle(.secondary)
-            Text("알림이 비활성화되어 있어요. 설정에서 켜주세요.") // "Notifications are disabled. Please enable in settings."
+            Text("Notifications are disabled. Please enable in Settings.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -84,7 +84,7 @@ struct NotificationsView: View {
             Image(systemName: "bell.badge")
                 .font(.system(size: 32))
                 .foregroundStyle(.secondary.opacity(0.5))
-            Text("배터리와 시스템 이벤트를 한 곳에서 확인하세요.") // "Check battery and system events in one place."
+            Text("Check battery and system events in one place.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -100,11 +100,11 @@ struct NotificationsView: View {
                     NotificationRow(notification: notification)
                         .transition(.scale.combined(with: .opacity))
                         .contextMenu {
-                            Button("비우기") { // "Clear" / "Delete"
+                            Button("Clear") {
                                 manager.removeNotification(notification)
                             }
                             if !notification.isRead {
-                                Button("읽음 처리") { // "Mark as Read"
+                                Button("Mark as Read") {
                                     manager.markAsRead(notification)
                                 }
                             }

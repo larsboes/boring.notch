@@ -4525,6 +4525,9 @@
         }
       }
     },
+    "Check battery and system events in one place." : {
+
+    },
     "Check for Updates…" : {
       "localizations" : {
         "ar" : {
@@ -5124,6 +5127,9 @@
           }
         }
       }
+    },
+    "Clear" : {
+
     },
     "Clear slot" : {
       "localizations" : {
@@ -12119,6 +12125,9 @@
         }
       }
     },
+    "Mark All Read" : {
+
+    },
     "Mark as complete" : {
       "localizations" : {
         "ar" : {
@@ -12318,6 +12327,9 @@
           }
         }
       }
+    },
+    "Mark as Read" : {
+
     },
     "Match menu bar height" : {
       "localizations" : {
@@ -15040,6 +15052,9 @@
 
     },
     "Notifications" : {
+
+    },
+    "Notifications are disabled. Please enable in Settings." : {
 
     },
     "Open Calendar Settings" : {
@@ -23099,21 +23114,6 @@
           }
         }
       }
-    },
-    "모두 읽음" : {
-
-    },
-    "배터리와 시스템 이벤트를 한 곳에서 확인하세요." : {
-
-    },
-    "비우기" : {
-
-    },
-    "알림이 비활성화되어 있어요. 설정에서 켜주세요." : {
-
-    },
-    "읽음 처리" : {
-
     }
   },
   "version" : "1.0"

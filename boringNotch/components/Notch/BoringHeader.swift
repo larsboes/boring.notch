@@ -37,6 +37,12 @@ struct BoringHeader: View {
                     .mask {
                         NotchShape()
                     }
+            } else if vm.notchState == .open {
+                // Invisible spacer to maintain layout when Liquid Glass is enabled
+                Rectangle()
+                    .fill(.clear)
+                    .frame(width: vm.closedNotchSize.width)
+                    .allowsHitTesting(false)
             }
 
             HStack(spacing: 4) {
