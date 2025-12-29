@@ -31,6 +31,8 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
+    
+    @Published var backgroundImage: NSImage? = nil
 
     @Published var screenUUID: String?
 
@@ -41,7 +43,11 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var isCameraExpanded: Bool = false
     @Published var isRequestingAuthorization: Bool = false
     
+    var inactiveNotchSize: CGSize = .zero
+    private var inactiveHeightUpdateTask: DispatchWorkItem?
+    
     deinit {
+        NotificationCenter.default.removeObserver(self, name: Notification.Name.notchHeightChanged, object: nil)
         destroy()
     }
 
@@ -58,6 +64,7 @@ class BoringViewModel: NSObject, ObservableObject {
         self.screenUUID = screenUUID
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
+        inactiveNotchSize = getInactiveNotchSize(screenUUID: screenUUID)
 
         Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
             .map { shelf, drag, general in
@@ -67,6 +74,101 @@ class BoringViewModel: NSObject, ObservableObject {
             .store(in: &cancellables)
         
         setupDetectorObserver()
+        setupBackgroundImageObserver()
+        setupNotchHeightObserver()
+    }
+    
+    private func setupNotchHeightObserver() {
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.notchHeightChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            self.updateNotchSize()
+        }
+    }
+    
+    private func updateNotchSize() {
+        let newClosedSize = getClosedNotchSize(screenUUID: self.screenUUID)
+        let newInactiveSize = getInactiveNotchSize(screenUUID: self.screenUUID)
+        
+        withAnimation(.smooth(duration: 0.3)) {
+            self.closedNotchSize = newClosedSize
+            self.inactiveNotchSize = newInactiveSize
+            
+            if self.notchState == .closed {
+                self.notchSize = newClosedSize
+            }
+        }
+    }
+    
+    private func setupBackgroundImageObserver() {
+        Defaults.publisher(.backgroundImageURL)
+            .map(\.newValue)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] url in
+                self?.loadBackgroundImage(from: url)
+            }
+            .store(in: &cancellables)
+        
+        if let url = Defaults[.backgroundImageURL] {
+            loadBackgroundImage(from: url)
+        }
+    }
+    
+    private func loadBackgroundImage(from url: URL?) {
+        guard let url = url else {
+            backgroundImage = nil
+            return
+        }
+        
+        let image = NSImage(contentsOf: url)
+        backgroundImage = image
+    }
+    
+    static func copyBackgroundImageToAppStorage(sourceURL: URL) -> URL? {
+        let fm = FileManager.default
+        
+        guard let supportDir = try? fm.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        ) else {
+            return nil
+        }
+        
+        let targetDir = supportDir
+            .appendingPathComponent("boringNotch", isDirectory: true)
+            .appendingPathComponent("Background", isDirectory: true)
+        
+        do {
+            try fm.createDirectory(at: targetDir, withIntermediateDirectories: true)
+        } catch {
+            return nil
+        }
+        
+        let fileExtension = sourceURL.pathExtension.isEmpty ? "png" : sourceURL.pathExtension
+        let destinationURL = targetDir.appendingPathComponent("background.\(fileExtension)")
+        
+        if fm.fileExists(atPath: destinationURL.path) {
+            try? fm.removeItem(at: destinationURL)
+        }
+        
+        do {
+            let didStartAccessing = sourceURL.isFileURL ? sourceURL.startAccessingSecurityScopedResource() : false
+            defer {
+                if didStartAccessing {
+                    sourceURL.stopAccessingSecurityScopedResource()
+                }
+            }
+            
+            try fm.copyItem(at: sourceURL, to: destinationURL)
+            return destinationURL
+        } catch {
+            return nil
+        }
     }
     
     private func setupDetectorObserver() {
@@ -102,11 +204,27 @@ class BoringViewModel: NSObject, ObservableObject {
             .store(in: &cancellables)
     }
 
-    // Computed property for effective notch height
+    @ObservedObject var batteryStatus = BatteryStatusViewModel.shared
+    
     var effectiveClosedNotchHeight: CGFloat {
         let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
         let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
-        return noNotchAndFullscreen ? 0 : closedNotchSize.height
+        
+        if noNotchAndFullscreen {
+            return 0
+        }
+        
+        // Check if any live activity is active
+        let hasActiveLiveActivity = MusicManager.shared.isPlaying ||
+                                    coordinator.sneakPeek.show ||
+                                    batteryStatus.hasActiveBatteryNotification
+        
+        // Use inactive height when there's no live activity
+        if hasActiveLiveActivity {
+            return closedNotchSize.height
+        } else {
+            return inactiveNotchSize.height
+        }
     }
 
     var chinHeight: CGFloat {

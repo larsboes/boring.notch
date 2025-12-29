@@ -254,14 +254,17 @@ struct BoringBatteryView: View {
 }
 
 #Preview {
-    BoringBatteryView(
-        batteryWidth: 30,
-        isCharging: false,
-        isInLowPowerMode: false,
-        isPluggedIn: true,
-        levelBattery: 80,
-        maxCapacity: 100,
     Group {
+        BoringBatteryView(
+            batteryWidth: 30,
+            isCharging: false,
+            isInLowPowerMode: false,
+            isPluggedIn: true,
+            levelBattery: 80,
+            maxCapacity: 100,
+            timeToFullCharge: 10,
+            isForNotification: false
+        ).frame(width: 200, height: 200)
         BoringBatteryView(
             batteryWidth: 30,
             isCharging: false,

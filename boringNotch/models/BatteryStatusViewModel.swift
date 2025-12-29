@@ -21,6 +21,7 @@ class BatteryStatusViewModel: ObservableObject {
     @Published private(set) var isInitial: Bool = false
     @Published private(set) var timeToFullCharge: Int = 0
     @Published private(set) var statusText: String = ""
+    @Published var hasActiveBatteryNotification: Bool = false
 
     private let managerBattery = BatteryActivityManager.shared
     private var managerBatteryId: Int?
@@ -133,7 +134,14 @@ class BatteryStatusViewModel: ObservableObject {
                 } else if notificationType == "High Battery" {
                     soundToPlay = Defaults[.highBatteryNotificationSound]
                 }
+                
+                self.hasActiveBatteryNotification = true
                 self.coordinator.toggleExpandingView(status: true, type: .battery)
+                
+                // Auto-hide after a delay
+                try? await Task.sleep(for: .seconds(5))
+                self.hasActiveBatteryNotification = false
+                
             } else if Defaults[.showPowerStatusNotifications] {
                 // Standard power status notification
                 soundToPlay = Defaults[.powerStatusNotificationSound]

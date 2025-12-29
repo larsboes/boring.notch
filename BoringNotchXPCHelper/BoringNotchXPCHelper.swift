@@ -175,6 +175,33 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         return nil
     }
 
+    @objc func getBluetoothDeviceMinorClass(with deviceName: String, with reply: @escaping (String?) -> Void) {
+        var iterator: io_iterator_t = 0
+        let matchingDict = IOServiceMatching("IOBluetoothDevice")
+        let result = IOServiceGetMatchingServices(kIOMainPortDefault, matchingDict, &iterator)
+        
+        guard result == kIOReturnSuccess else {
+            reply(nil)
+            return
+        }
+        
+        defer { IOObjectRelease(iterator) }
+        
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            defer { IOObjectRelease(service) }
+            
+            if let name = IORegistryEntryCreateCFProperty(service, "DeviceName" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? String,
+               name == deviceName {
+                if let minorClass = IORegistryEntryCreateCFProperty(service, "DeviceMinorClass" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? NSNumber {
+                    reply(minorClass.stringValue)
+                    return
+                }
+            }
+        }
+        
+        reply(nil)
+    }
+
     // MARK: - Helper handle for private framework
     private enum DisplayServicesHandle {
         static let handle: UnsafeMutableRawPointer? = {
