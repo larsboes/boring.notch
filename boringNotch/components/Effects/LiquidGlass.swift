@@ -43,6 +43,9 @@ struct LiquidGlassConfiguration {
     /// Edge glow intensity for more pronounced borders
     var edgeGlowOpacity: CGFloat = 0.3
     
+    /// Blur radius for Metal blur effect
+    var blurRadius: Float = 20.0
+    
     /// Default configuration
     static let `default` = LiquidGlassConfiguration()
     
@@ -104,16 +107,50 @@ struct LiquidGlassBackground<S: Shape>: View {
     /// Optional tint color sampled from content (e.g., album art)
     var tintColor: Color?
     
+    /// Whether the notch is expanded (open state)
+    var isExpanded: Bool = false
+    
+    /// Screen to capture for Metal blur
+    var screen: NSScreen?
+    
+    /// Window to exclude from capture (the notch window itself)
+    var excludingWindow: NSWindow?
+    
+    /// Capture region in screen coordinates
+    var captureRect: CGRect = .zero
+    
+    /// Whether Metal blur is available
+    @ObservedObject private var liquidGlassManager = LiquidGlassManager.shared
+    
+    /// Whether to use Metal blur (permission granted, active, and NOT expanded)
+    /// Note: Metal blur is disabled in expanded state to avoid capturing hardware notch
+    private var useMetalBlur: Bool {
+        liquidGlassManager.hasPermission && screen != nil && !captureRect.isEmpty && !isExpanded
+    }
+    
     var body: some View {
         if isActive {
             ZStack {
-                // Layer 1: Base blur effect (Vision Pro-style material)
-                GlassEffectView(
-                    material: configuration.material,
-                    blendingMode: configuration.blendingMode,
-                    isActive: true
-                )
-                .clipShape(shape)
+                // Layer 1: Base blur effect
+                // Use Metal blur if available, fallback to NSVisualEffectView
+                if useMetalBlur {
+                    MetalBlurView(
+                        blurRadius: configuration.blurRadius,
+                        screen: screen,
+                        excludingWindow: excludingWindow,
+                        captureRect: captureRect,
+                        isActive: isActive
+                    )
+                    .clipShape(shape)
+                } else {
+                    // Fallback: NSVisualEffectView-based blur
+                    GlassEffectView(
+                        material: configuration.material,
+                        blendingMode: configuration.blendingMode,
+                        isActive: true
+                    )
+                    .clipShape(shape)
+                }
                 
                 // Layer 2: Ambient light base (Vision Pro-style ambient lighting)
                 shape
@@ -129,9 +166,9 @@ struct LiquidGlassBackground<S: Shape>: View {
                         )
                     )
                 
-                // Layer 3: Dark tint for contrast and depth (reduced for better content visibility)
+                // Layer 3: Dark tint for contrast and depth (lighter in fallback mode)
                 shape
-                    .fill(Color.black.opacity(0.15))
+                    .fill(Color.black.opacity(useMetalBlur ? 0.12 : 0.05))
                 
                 // Layer 4: Optional color tint from content (enhanced for Vision Pro)
                 if let tint = tintColor {

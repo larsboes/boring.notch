@@ -3519,6 +3519,9 @@
     "Bluetooth" : {
 
     },
+    "Blur Intensity" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
         "ar" : {
@@ -10065,6 +10068,12 @@
           }
         }
       }
+    },
+    "Grant Permission" : {
+
+    },
+    "Granted" : {
+
     },
     "Hide all-day events" : {
       "localizations" : {
@@ -17731,6 +17740,9 @@
           }
         }
       }
+    },
+    "Screen Recording" : {
+
     },
     "Search SF Symbols" : {
 

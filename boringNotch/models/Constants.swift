@@ -142,6 +142,7 @@ extension Defaults.Keys {
     // MARK: Liquid Glass Effect
     static let liquidGlassEffect = Key<Bool>("liquidGlassEffect", default: false)
     static let liquidGlassStyle = Key<LiquidGlassStyle>("liquidGlassStyle", default: .default)
+    static let liquidGlassBlurRadius = Key<Double>("liquidGlassBlurRadius", default: 20.0)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)

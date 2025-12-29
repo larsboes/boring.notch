@@ -70,6 +70,38 @@ struct Appearance: View {
                             Text(style.rawValue).tag(style)
                         }
                     }
+                    
+                    LabeledContent {
+                        Slider(value: .init(
+                            get: { Defaults[.liquidGlassBlurRadius] },
+                            set: { 
+                                Defaults[.liquidGlassBlurRadius] = $0
+                                LiquidGlassManager.shared.blurRadius = Float($0)
+                            }
+                        ), in: 5...50, step: 5)
+                        .frame(width: 150)
+                    } label: {
+                        Text("Blur Intensity")
+                    }
+                    
+                    // Permission status indicator
+                    LabeledContent {
+                        if LiquidGlassManager.shared.hasPermission {
+                            Label("Granted", systemImage: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.caption)
+                        } else {
+                            Button("Grant Permission") {
+                                Task {
+                                    await LiquidGlassManager.shared.requestPermission()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                        }
+                    } label: {
+                        Text("Screen Recording")
+                    }
                 }
                 Defaults.Toggle(key: .enableShadow) {
                     Text("Enable shadow")

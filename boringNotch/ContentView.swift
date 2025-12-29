@@ -143,12 +143,25 @@ struct ContentView: View {
                     .background {
                         ZStack {
                             if liquidGlassEffect {
+                                // Get the current screen and window for Metal blur
+                                let currentScreen = vm.screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
+                                let notchWindow = NSApp.windows.first { $0.contentView?.subviews.first(where: { $0 is NSHostingView<ContentView> }) != nil }
+                                let captureRect = currentScreen.map { screen in
+                                    LiquidGlassManager.captureRect(
+                                        for: screen,
+                                        notchSize: isDisplayStateOpen ? vm.notchSize : vm.closedNotchSize
+                                    )
+                                } ?? .zero
+                                
                                 LiquidGlassBackground(
                                     shape: Rectangle(),
                                     configuration: liquidGlassStyle.configuration,
                                     isActive: true,
                                     tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil,
-                                    isExpanded: isDisplayStateOpen
+                                    isExpanded: isDisplayStateOpen,
+                                    screen: currentScreen,
+                                    excludingWindow: notchWindow,
+                                    captureRect: captureRect
                                 )
                             } else {
                                 Color.black

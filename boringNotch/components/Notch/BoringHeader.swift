@@ -28,7 +28,9 @@ struct BoringHeader: View {
             .blur(radius: vm.notchState == .closed ? 20 : 0)
             .zIndex(2)
 
-            if vm.notchState == .open {
+            // Only show black notch overlay when Liquid Glass effect is DISABLED
+            // When Liquid Glass is enabled, this black shape conflicts with the glass appearance
+            if vm.notchState == .open && !Defaults[.liquidGlassEffect] {
                 Rectangle()
                     .fill(NSScreen.screen(withUUID: coordinator.selectedScreenUUID)?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
                     .frame(width: vm.closedNotchSize.width)
