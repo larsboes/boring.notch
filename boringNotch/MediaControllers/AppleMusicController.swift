@@ -41,11 +41,11 @@ class AppleMusicController: MediaControllerProtocol {
     }
     
     private func setupPlaybackStateChangeObserver() {
-        notificationTask = Task { @Sendable [weak self] in
+        notificationTask = Task { [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.apple.Music.playerInfo")
             )
-            
+
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
             }

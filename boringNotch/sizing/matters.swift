@@ -13,9 +13,17 @@ let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let shadowPadding: CGFloat = 20
-let openNotchSize: CGSize = .init(width: 740, height: 190)
+let openNotchSize: CGSize = .init(width: 740, height: 210)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
-let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
+struct CornerRadiusInsets {
+    var opened: (top: CGFloat, bottom: CGFloat)
+    var closed: (top: CGFloat, bottom: CGFloat)
+}
+
+let cornerRadiusInsets = CornerRadiusInsets(
+    opened: (top: 19, bottom: 24),
+    closed: (top: 6, bottom: 14)
+)
 
 enum MusicPlayerImageSizes {
     static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)
@@ -92,16 +100,23 @@ enum MusicPlayerImageSizes {
     if let screen = selectedScreen {
         // Calculate and set the exact width of the notch
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
-           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width
+           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width,
+           topLeftNotchpadding > 100, topRightNotchpadding > 100 // Ensure reasonable padding
         {
             notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
+        } else {
+            // Fallback for screens where auxiliary area is not reported correctly
+            // or for screens without a notch
+            notchWidth = 185
         }
         
         // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
             // This is a display WITH a notch - use notch height settings
-            if Defaults[.useInactiveNotchHeight] && !hasLiveActivity {
-                notchHeight = Defaults[.inactiveNotchHeight]
+            if !hasLiveActivity {
+                // When idle, strictly match the physical notch height if possible
+                // This fixes the "never as tiny as normal" issue
+                notchHeight = screen.safeAreaInsets.top
             } else {
                 notchHeight = Defaults[.notchHeight]
                 if Defaults[.notchHeightMode] == .matchRealNotchSize {

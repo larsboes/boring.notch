@@ -94,7 +94,10 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         // Update weather every 30 minutes
         updateTimer?.invalidate()
         updateTimer = Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { [weak self] _ in
-            self?.fetchWeather()
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.fetchWeather()
+            }
         }
     }
     
@@ -158,10 +161,8 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
-    nonisolated deinit {
-        Task { @MainActor in
-            stopUpdatingWeather()
-        }
+    deinit {
+        updateTimer?.invalidate()
     }
 }
 

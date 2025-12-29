@@ -167,6 +167,14 @@ class BoringViewCoordinator: ObservableObject {
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
+            
+            // Failsafe: Ensure hello animation doesn't run forever
+            if helloAnimationRunning {
+                try? await Task.sleep(for: .seconds(10))
+                if helloAnimationRunning {
+                    helloAnimationRunning = false
+                }
+            }
 
             if Defaults[.hudReplacement] {
                 let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()

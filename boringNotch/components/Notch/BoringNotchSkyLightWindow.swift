@@ -113,7 +113,7 @@ class BoringNotchSkyLightWindow: NSPanel {
         if Defaults[.hideFromScreenRecording] {
             sharingType = .none
         } else {
-            sharingType = .readWrite
+            sharingType = .readOnly
         }
     }
     

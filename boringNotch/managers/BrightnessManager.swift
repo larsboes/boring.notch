@@ -5,6 +5,7 @@
 
 import AppKit
 
+@MainActor
 final class BrightnessManager: ObservableObject {
 	static let shared = BrightnessManager()
 
@@ -20,15 +21,15 @@ final class BrightnessManager: ObservableObject {
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
 	func refresh() {
-		Task { @MainActor in
+		Task {
 			if let current = await client.currentScreenBrightness() {
 				publish(brightness: current, touchDate: false)
 			}
 		}
 	}
 
-	@MainActor func setRelative(delta: Float) {
-		Task { @MainActor in
+	func setRelative(delta: Float) {
+		Task {
 			let starting = await client.currentScreenBrightness() ?? rawBrightness
 			let target = max(0, min(1, starting + delta))
 			let ok = await client.setScreenBrightness(target)
@@ -43,7 +44,7 @@ final class BrightnessManager: ObservableObject {
 
 	func setAbsolute(value: Float) {
 		let clamped = max(0, min(1, value))
-		Task { @MainActor in
+		Task {
 			let ok = await client.setScreenBrightness(clamped)
 			if ok {
 				publish(brightness: clamped, touchDate: true)
@@ -54,12 +55,10 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	private func publish(brightness: Float, touchDate: Bool) {
-		DispatchQueue.main.async {
-			if self.rawBrightness != brightness || touchDate {
-				if touchDate { self.lastChangeAt = Date() }
-				self.rawBrightness = brightness
-				self.animatedBrightness = brightness
-			}
+		if self.rawBrightness != brightness || touchDate {
+			if touchDate { self.lastChangeAt = Date() }
+			self.rawBrightness = brightness
+			self.animatedBrightness = brightness
 		}
 	}
 }
@@ -67,6 +66,7 @@ final class BrightnessManager: ObservableObject {
 // (DisplayServices helpers moved into XPC helper)
 
 // MARK: - Keyboard Backlight Controller
+@MainActor
 final class KeyboardBacklightManager: ObservableObject {
 	static let shared = KeyboardBacklightManager()
 
@@ -81,15 +81,15 @@ final class KeyboardBacklightManager: ObservableObject {
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
 	func refresh() {
-		Task { @MainActor in
+		Task {
 			if let current = await client.currentKeyboardBrightness() {
 				publish(brightness: current, touchDate: false)
 			}
 		}
 	}
 
-	@MainActor func setRelative(delta: Float) {
-		Task { @MainActor in
+	func setRelative(delta: Float) {
+		Task {
 			let starting = await client.currentKeyboardBrightness() ?? rawBrightness
 			let target = max(0, min(1, starting + delta))
 			let ok = await client.setKeyboardBrightness(target)
@@ -108,7 +108,7 @@ final class KeyboardBacklightManager: ObservableObject {
 
 	func setAbsolute(value: Float) {
 		let clamped = max(0, min(1, value))
-		Task { @MainActor in
+		Task {
 			let ok = await client.setKeyboardBrightness(clamped)
 			if ok {
 				publish(brightness: clamped, touchDate: true)
@@ -119,11 +119,9 @@ final class KeyboardBacklightManager: ObservableObject {
 	}
 
 	private func publish(brightness: Float, touchDate: Bool) {
-		DispatchQueue.main.async {
-			if self.rawBrightness != brightness || touchDate {
-				if touchDate { self.lastChangeAt = Date() }
-				self.rawBrightness = brightness
-			}
+		if self.rawBrightness != brightness || touchDate {
+			if touchDate { self.lastChangeAt = Date() }
+			self.rawBrightness = brightness
 		}
 	}
 }

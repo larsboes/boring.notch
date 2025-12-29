@@ -138,6 +138,10 @@ extension Defaults.Keys {
     static let enableShadow = Key<Bool>("enableShadow", default: true)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
     static let backgroundImageURL = Key<URL?>("backgroundImageURL", default: nil)
+    
+    // MARK: Liquid Glass Effect
+    static let liquidGlassEffect = Key<Bool>("liquidGlassEffect", default: false)
+    static let liquidGlassStyle = Key<LiquidGlassStyle>("liquidGlassStyle", default: .default)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
@@ -247,7 +251,7 @@ extension Defaults.Keys {
     // Helper to determine the default media controller based on NowPlaying deprecation status
     // Note: isNowPlayingDeprecated is nonisolated(unsafe) to allow static initialization
     static var defaultMediaController: MediaControllerType {
-        if MusicManager.shared.isNowPlayingDeprecated {
+        if MusicManager.isNowPlayingDeprecatedStatic {
             return .appleMusic
         } else {
             return .nowPlaying
@@ -259,4 +263,23 @@ extension Defaults.Keys {
 
 enum Mood: String, Codable, CaseIterable, Defaults.Serializable {
     case happy, neutral, sad, surprised, angry, sleepy
+}
+
+// Liquid glass style presets
+enum LiquidGlassStyle: String, CaseIterable, Identifiable, Codable, Defaults.Serializable {
+    case `default` = "Default"
+    case subtle = "Subtle"
+    case vibrant = "Vibrant"
+    
+    var id: String { rawValue }
+    
+    /// Returns the configuration for this style
+    /// Note: LiquidGlassConfiguration is defined in LiquidGlass.swift
+    var configuration: LiquidGlassConfiguration {
+        switch self {
+        case .default: return .default
+        case .subtle: return .subtle
+        case .vibrant: return .vibrant
+        }
+    }
 }

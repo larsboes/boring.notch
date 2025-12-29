@@ -6,7 +6,7 @@
 //
 
 
-import AppKit
+@preconcurrency import AppKit
 import Foundation
 import UniformTypeIdentifiers
 
@@ -25,12 +25,20 @@ extension NSItemProvider {
         return nil
     }
     
+    /// Helper struct to silence Sendable warnings for NSItemProvider
+    private struct UncheckedSendableProvider: @unchecked Sendable {
+        let provider: NSItemProvider
+    }
+
     /// Loads raw data for the given type identifier
     func loadData() async -> Data? {
         NSLog(String(describing: self.registeredTypeIdentifiers))
         guard hasItemConformingToTypeIdentifier(UTType.data.identifier) else { return nil }
+        
+        let sendableSelf = UncheckedSendableProvider(provider: self)
+        
         return await withCheckedContinuation { (cont: CheckedContinuation<Data?, Never>) in
-            loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { item, error in
+            sendableSelf.provider.loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { @Sendable item, error in
                 if let error = error {
                     print("Error loading data for type \(UTType.data.identifier): \(error.localizedDescription)")
                     cont.resume(returning: nil)
@@ -41,7 +49,6 @@ extension NSItemProvider {
                         cont.resume(returning: nil)
                         return
                     }
-                    self.suggestedName = self.suggestedName ?? url.lastPathComponent
                     
                     let fileManager = FileManager.default
                     let folderURL = url.deletingLastPathComponent()
@@ -101,8 +108,9 @@ extension NSItemProvider {
 
     /// Loads a file URL from the provider for the given type identifier.
     func loadFileURL(typeIdentifier: String) async -> URL? {
-        await withCheckedContinuation { (cont: CheckedContinuation<URL?, Never>) in
-            self.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { item, error in
+        let sendableSelf = UncheckedSendableProvider(provider: self)
+        return await withCheckedContinuation { (cont: CheckedContinuation<URL?, Never>) in
+            sendableSelf.provider.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { @Sendable item, error in
                 if let error = error {
                     print("❌ Error loading item for type \(typeIdentifier): \(error.localizedDescription)")
                     cont.resume(returning: nil)
@@ -141,8 +149,9 @@ extension NSItemProvider {
 
     /// Loads a URL from the provider for the given type identifier.
     func loadURL(typeIdentifier: String) async -> URL? {
-        await withCheckedContinuation { (cont: CheckedContinuation<URL?, Never>) in
-            self.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { item, error in
+        let sendableSelf = UncheckedSendableProvider(provider: self)
+        return await withCheckedContinuation { (cont: CheckedContinuation<URL?, Never>) in
+            sendableSelf.provider.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { @Sendable item, error in
                 if error != nil {
                     cont.resume(returning: nil)
                     return
@@ -178,8 +187,9 @@ extension NSItemProvider {
 
     /// Loads text from the provider for the given type identifier.
     func loadText(typeIdentifier: String) async -> String? {
-        await withCheckedContinuation { (cont: CheckedContinuation<String?, Never>) in
-            self.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { item, error in
+        let sendableSelf = UncheckedSendableProvider(provider: self)
+        return await withCheckedContinuation { (cont: CheckedContinuation<String?, Never>) in
+            sendableSelf.provider.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { @Sendable item, error in
                 if error != nil {
                     cont.resume(returning: nil)
                     return

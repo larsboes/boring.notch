@@ -112,7 +112,7 @@ struct OnboardingView: View {
                         privacyNote: "Your location is only used to fetch weather data and is never shared or stored.",
                         onAllow: {
                             Task {
-                                await requestWeatherPermission()
+                                requestWeatherPermission()
                                 withAnimation(.easeInOut(duration: 0.6)) {
                                     step = .accessibilityPermission
                                 }
@@ -180,11 +180,11 @@ struct OnboardingView: View {
         _ = try? await calendarService.requestAccess(to: .reminder)
     }
     
-    func requestWeatherPermission() async {
-        await WeatherManager.shared.checkLocationAuthorization()
+    func requestWeatherPermission() {
+        WeatherManager.shared.checkLocationAuthorization()
     }
     
     func requestAccessibilityPermission() async {
-        await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+        _ = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
     }
 }

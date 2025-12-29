@@ -66,19 +66,20 @@ class BoringViewModel: NSObject, ObservableObject {
 
     /// Initialize with optional dependency injection.
     /// Default parameters use the shared singletons for backwards compatibility.
+    @MainActor
     init(
         screenUUID: String? = nil,
-        coordinator: BoringViewCoordinator = .shared,
-        detector: FullscreenMediaDetector = .shared,
-        webcamManager: WebcamManager = .shared,
-        batteryStatus: BatteryStatusViewModel = .shared,
-        musicManager: MusicManager = .shared
+        coordinator: BoringViewCoordinator? = nil,
+        detector: FullscreenMediaDetector? = nil,
+        webcamManager: WebcamManager? = nil,
+        batteryStatus: BatteryStatusViewModel? = nil,
+        musicManager: MusicManager? = nil
     ) {
-        self.coordinator = coordinator
-        self.detector = detector
-        self.webcamManager = webcamManager
-        self.batteryStatus = batteryStatus
-        self.musicManager = musicManager
+        self.coordinator = coordinator ?? .shared
+        self.detector = detector ?? .shared
+        self.webcamManager = webcamManager ?? .shared
+        self.batteryStatus = batteryStatus ?? .shared
+        self.musicManager = musicManager ?? .shared
         self.animation = animationLibrary.animation
 
         super.init()
@@ -106,8 +107,9 @@ class BoringViewModel: NSObject, ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            guard let self = self else { return }
-            self.updateNotchSize()
+            Task { @MainActor in
+                self?.updateNotchSize()
+            }
         }
     }
     

@@ -23,7 +23,7 @@ final class KeyboardShortcutCoordinator {
     // MARK: - Initialization
 
     init(
-        coordinator: BoringViewCoordinator = .shared,
+        coordinator: BoringViewCoordinator,
         windowCoordinator: WindowCoordinator
     ) {
         self.coordinator = coordinator

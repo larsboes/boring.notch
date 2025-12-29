@@ -26,6 +26,7 @@ class MusicManager: ObservableObject {
     // Helper to check if macOS has removed support for NowPlayingController
     // nonisolated to allow static initialization access
     public nonisolated(unsafe) private(set) var isNowPlayingDeprecated: Bool = false
+    static nonisolated(unsafe) var isNowPlayingDeprecatedStatic: Bool = false
     private let mediaChecker = MediaChecker()
 
     // Active controller
@@ -102,6 +103,7 @@ class MusicManager: ObservableObject {
         Task { @MainActor in
             do {
                 self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
+                MusicManager.isNowPlayingDeprecatedStatic = self.isNowPlayingDeprecated
                 print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
             } catch {
                 print("Failed to check deprecation status: \(error). Defaulting to false.")

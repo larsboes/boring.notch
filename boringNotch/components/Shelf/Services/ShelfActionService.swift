@@ -15,7 +15,7 @@ enum ShelfActionService {
     static func open(_ item: ShelfItem) {
         switch item.kind {
         case .file(let bookmarkData):
-            Bookmark(data: bookmarkData).withAccess { url in
+            _ = Bookmark(data: bookmarkData).withAccess { url in
                 NSWorkspace.shared.open(url)
             }
         case .link(let url):

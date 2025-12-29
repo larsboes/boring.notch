@@ -1907,6 +1907,9 @@
     "Add Note" : {
 
     },
+    "Add to Favorites" : {
+
+    },
     "Additional features" : {
       "localizations" : {
         "ar" : {
@@ -3509,6 +3512,9 @@
           }
         }
       }
+    },
+    "Beta" : {
+
     },
     "Bluetooth" : {
 
@@ -8344,6 +8350,9 @@
     "Enable location access" : {
 
     },
+    "Enable shadow" : {
+
+    },
     "Enable shelf" : {
       "localizations" : {
         "ar" : {
@@ -9850,6 +9859,12 @@
           }
         }
       }
+    },
+    "Glass Effect" : {
+
+    },
+    "Glass Style" : {
+
     },
     "Got it!" : {
       "localizations" : {
@@ -11672,6 +11687,9 @@
           }
         }
       }
+    },
+    "Liquid Glass Effect" : {
+
     },
     "Loading weather..." : {
 
@@ -16833,6 +16851,9 @@
         }
       }
     },
+    "Remove from Favorites" : {
+
+    },
     "Remove from shelf after dragging" : {
       "localizations" : {
         "ar" : {
@@ -19826,6 +19847,12 @@
       }
     },
     "Show weather" : {
+
+    },
+    "Shuffle Off" : {
+
+    },
+    "Shuffle On" : {
 
     },
     "Slider color" : {

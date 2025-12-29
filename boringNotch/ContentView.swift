@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var stateMachine = NotchStateMachine.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -34,12 +35,24 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.liquidGlassEffect) var liquidGlassEffect
+    @Default(.liquidGlassStyle) var liquidGlassStyle
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
+
+    // MARK: - Display State Helpers
+
+    /// Check if the display state is open (use this instead of vm.notchState for consistency)
+    private var isDisplayStateOpen: Bool {
+        if case .open = stateMachine.displayState {
+            return true
+        }
+        return false
+    }
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
@@ -51,7 +64,7 @@ struct ContentView: View {
     
     private var topCornerRadius: CGFloat {
         // If the notch is open, return the opened radius.
-        if vm.notchState == .open {
+        if isDisplayStateOpen {
             return cornerRadiusInsets.opened.top
         }
 
@@ -68,7 +81,7 @@ struct ContentView: View {
         let baseClosedBottom = cornerRadiusInsets.closed.bottom
         let bottomCorner: CGFloat
 
-        if vm.notchState == .open {
+        if isDisplayStateOpen {
             bottomCorner = cornerRadiusInsets.opened.bottom
         } else if let scaleFactor = cornerRadiusScaleFactor {
             bottomCorner = max(0, baseClosedBottom * scaleFactor)
@@ -124,12 +137,21 @@ struct ContentView: View {
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
-                        vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
+                        isDisplayStateOpen ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
                     )
-                    .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
+                    .padding([.horizontal, .bottom], isDisplayStateOpen ? 12 : 0)
                     .background {
                         ZStack {
-                            Color.black
+                            if liquidGlassEffect {
+                                LiquidGlassBackground(
+                                    shape: Rectangle(),
+                                    configuration: liquidGlassStyle.configuration,
+                                    isActive: true,
+                                    tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil
+                                )
+                            } else {
+                                Color.black
+                            }
                             
                             if (isHovering || vm.notchState == .open), let hoverImage = vm.backgroundImage {
                                 Image(nsImage: hoverImage)
@@ -140,22 +162,40 @@ struct ContentView: View {
                         }
                     }
                     .clipShape(currentNotchShape)
-                          .overlay(alignment: .top) {
-                              displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
-                        : Rectangle()
-                            .fill(.black)
-                            .frame(height: 1)
-                            .padding(.horizontal, topCornerRadius)
+                    .overlay {
+                        // Luminous border for liquid glass effect (works in both states)
+                        if liquidGlassEffect {
+                            currentNotchShape
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * (isDisplayStateOpen ? 1.0 : 0.6)),
+                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * 0.3 * (isDisplayStateOpen ? 1.0 : 0.6)),
+                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * 0.5 * (isDisplayStateOpen ? 1.0 : 0.6))
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: liquidGlassStyle.configuration.borderWidth
+                                )
+                        }
+                    }
+                    .overlay(alignment: .top) {
+                        displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
+                            : Rectangle()
+                                .fill(liquidGlassEffect ? .clear : .black)
+                                .frame(height: 1)
+                                .padding(.horizontal, topCornerRadius)
                     }
                     .shadow(
-                        color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
+                        color: ((isDisplayStateOpen || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: 6
                     )
                     // Removed conditional bottom padding when using custom 0 notch to keep layout stable
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .frame(height: isDisplayStateOpen ? vm.notchSize.height : nil)
                     .conditionalModifier(true) { view in
 
                         return view
@@ -281,42 +321,26 @@ struct ContentView: View {
 
     @ViewBuilder
     func NotchLayout() -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading) {
-                if coordinator.helloAnimationRunning {
-                    Spacer()
-                    HelloAnimation(onFinish: {
-                        vm.closeHello()
-                    }).frame(
-                        width: getClosedNotchSize().width,
-                        height: 80
-                    )
-                    .padding(.top, 40)
-                    Spacer()
-                } else {
-                    NotchContentRouter(
-                        displayState: NotchStateMachine.shared.displayState,
-                        albumArtNamespace: albumArtNamespace,
-                        coordinator: coordinator,
-                        musicManager: musicManager,
-                        batteryModel: batteryModel,
-                        closedNotchHeight: displayClosedNotchHeight,
-                        cornerRadiusScaleFactor: cornerRadiusScaleFactor,
-                        cornerRadiusInsets: cornerRadiusInsets
-                    )
-                    .onAppear {
-                        updateStateMachine()
-                    }
-                    .onChange(of: coordinator.helloAnimationRunning) { updateStateMachine() }
-                    .onChange(of: vm.notchState) { updateStateMachine() }
-                    .onChange(of: coordinator.currentView) { updateStateMachine() }
-                    .onChange(of: coordinator.sneakPeek.show) { updateStateMachine() }
-                    .onChange(of: coordinator.expandingView.show) { updateStateMachine() }
-                    .onChange(of: musicManager.isPlaying) { updateStateMachine() }
-                    .onChange(of: musicManager.isPlayerIdle) { updateStateMachine() }
-                }
-            }
+        NotchContentRouter(
+            displayState: stateMachine.displayState,
+            albumArtNamespace: albumArtNamespace,
+            coordinator: coordinator,
+            musicManager: musicManager,
+            batteryModel: batteryModel,
+            closedNotchHeight: displayClosedNotchHeight,
+            cornerRadiusScaleFactor: cornerRadiusScaleFactor,
+            cornerRadiusInsets: cornerRadiusInsets
+        )
+        .onAppear {
+            updateStateMachine()
         }
+        .onChange(of: coordinator.helloAnimationRunning) { updateStateMachine() }
+        .onChange(of: vm.notchState) { updateStateMachine() }
+        .onChange(of: coordinator.currentView) { updateStateMachine() }
+        .onChange(of: coordinator.sneakPeek.show) { updateStateMachine() }
+        .onChange(of: coordinator.expandingView.show) { updateStateMachine() }
+        .onChange(of: musicManager.isPlaying) { updateStateMachine() }
+        .onChange(of: musicManager.isPlayerIdle) { updateStateMachine() }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
     }
 
@@ -329,6 +353,9 @@ struct ContentView: View {
             hideOnClosed: vm.hideOnClosed
         )
         NotchStateMachine.shared.update(with: input)
+
+        // DEBUG: Trace state changes
+        print("DEBUG: notchState=\(vm.notchState), currentView=\(coordinator.currentView), displayState=\(NotchStateMachine.shared.displayState)")
     }
 
     @ViewBuilder
@@ -344,6 +371,46 @@ struct ContentView: View {
         }
         } else {
             EmptyView()
+        }
+    }
+    
+    // MARK: - Notch Background
+    
+    @ViewBuilder
+    private var notchBackground: some View {
+        Group {
+            if liquidGlassEffect {
+                // Liquid glass effect with optional background image overlay
+                ZStack {
+                    LiquidGlassBackground(
+                        shape: Rectangle(),
+                        configuration: liquidGlassStyle.configuration,
+                        isActive: true,
+                        tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil
+                    )
+                    
+                    // Optional background image on top of glass
+                    if (isHovering || vm.notchState == .open), let hoverImage = vm.backgroundImage {
+                        Image(nsImage: hoverImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .opacity(0.25)
+                    }
+                }
+            } else {
+                // Classic solid black background
+                ZStack {
+                    Color.black
+                        .ignoresSafeArea()
+                    
+                    if (isHovering || vm.notchState == .open), let hoverImage = vm.backgroundImage {
+                        Image(nsImage: hoverImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .clipped()
+                    }
+                }
+            }
         }
     }
 
@@ -379,7 +446,8 @@ struct ContentView: View {
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
-                          !self.coordinator.sneakPeek.show else { return }
+                          !self.coordinator.sneakPeek.show,
+                          !self.coordinator.helloAnimationRunning else { return }
                     
                     self.doOpen()
                 }

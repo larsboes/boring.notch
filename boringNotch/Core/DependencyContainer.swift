@@ -67,6 +67,7 @@ final class DependencyContainer {
 
 /// Protocol defining all available dependencies.
 /// Implement this with mock instances for unit testing.
+@MainActor
 protocol DependencyProviding {
     var viewCoordinator: BoringViewCoordinator { get }
     var musicManager: MusicManager { get }
@@ -80,4 +81,4 @@ protocol DependencyProviding {
     var fullscreenMediaDetector: FullscreenMediaDetector { get }
 }
 
-extension DependencyContainer: DependencyProviding {}
+

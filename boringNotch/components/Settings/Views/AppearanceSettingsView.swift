@@ -16,6 +16,8 @@ struct Appearance: View {
     @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
     @Default(.backgroundImageURL) var backgroundImageURL: URL?
+    @Default(.liquidGlassEffect) var liquidGlassEffect
+    @Default(.liquidGlassStyle) var liquidGlassStyle
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -49,6 +51,33 @@ struct Appearance: View {
                 Text("Media")
             }
 
+            Section {
+                Defaults.Toggle(key: .liquidGlassEffect) {
+                    HStack {
+                        Text("Liquid Glass Effect")
+                        Text("Beta")
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.2))
+                            .foregroundColor(.blue)
+                            .cornerRadius(4)
+                    }
+                }
+                if liquidGlassEffect {
+                    Picker("Glass Style", selection: $liquidGlassStyle) {
+                        ForEach(LiquidGlassStyle.allCases) { style in
+                            Text(style.rawValue).tag(style)
+                        }
+                    }
+                }
+                Defaults.Toggle(key: .enableShadow) {
+                    Text("Enable shadow")
+                }
+            } header: {
+                Text("Glass Effect")
+            }
+            
             Section {
                 ZStack {
                     if let imageURL = backgroundImageURL,

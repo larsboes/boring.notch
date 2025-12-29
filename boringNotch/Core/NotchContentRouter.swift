@@ -93,8 +93,8 @@ struct NotchContentRouter: View {
     @ViewBuilder
     private var idleContent: some View {
         Rectangle()
-            .fill(.clear)
-            .frame(width: vm.closedNotchSize.width - 20, height: closedNotchHeight)
+            .fill(Color.clear)
+            .frame(width: vm.closedNotchSize.width, height: closedNotchHeight)
     }
 
     @ViewBuilder
@@ -103,11 +103,11 @@ struct NotchContentRouter: View {
             HStack {
                 Text(batteryModel.statusText)
                     .font(.subheadline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.white)
             }
 
             Rectangle()
-                .fill(.black)
+                .fill(Color.black)
                 .frame(width: vm.closedNotchSize.width + 10)
 
             HStack {
@@ -153,7 +153,7 @@ struct NotchContentRouter: View {
                     )
                 }
             }
-            .foregroundStyle(.gray)
+            .foregroundStyle(Color.gray)
             .padding(.bottom, 10)
         } else if type != .music && type != .battery {
             SystemEventIndicatorModifier(
@@ -182,23 +182,34 @@ struct NotchContentRouter: View {
     @ViewBuilder
     private func openContent(_ view: NotchViews) -> some View {
         VStack(spacing: 0) {
+            // Header should just clear the physical notch
             BoringHeader()
-                .frame(height: max(24, closedNotchHeight))
+                .frame(height: max(
+                    54, // Increased from 44 to prevent cutoff
+                    (NSScreen.screen(withUUID: coordinator.selectedScreenUUID)?.safeAreaInsets.top
+                        ?? NSScreen.main?.safeAreaInsets.top
+                        ?? 0) + 10 // Add some breathing room
+                ))
 
             switch view {
             case .home:
                 NotchHomeView(albumArtNamespace: albumArtNamespace)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             case .shelf:
                 ShelfView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .notifications:
                 NotificationsView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .clipboard:
                 ClipboardView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .notes:
                 NotesView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Sneak Peek / Expanding
@@ -226,7 +237,7 @@ struct BoringFaceAnimation: View {
         HStack {
             HStack {
                 Rectangle()
-                    .fill(.clear)
+                    .fill(Color.clear)
                     .frame(
                         width: max(0, height - 12),
                         height: max(0, height - 12)
@@ -241,12 +252,12 @@ struct BoringFaceAnimation: View {
             .padding(.leading, 4)
 
             Rectangle()
-                .fill(.clear)
+                .fill(Color.clear)
                 .frame(width: getClosedNotchSize().width)
 
             HStack {
                 Rectangle()
-                    .fill(.clear)
+                    .fill(Color.clear)
                     .frame(
                         width: max(0, height - 12),
                         height: max(0, height - 12)
@@ -264,6 +275,91 @@ struct BoringFaceAnimation: View {
     }
 }
 
+// MARK: - Music Live Activity Component
+
+struct MusicLiveActivity: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @EnvironmentObject var vm: BoringViewModel
+    
+    let albumArtNamespace: Namespace.ID
+    var gestureProgress: CGFloat = 0
+    var displayClosedNotchHeight: CGFloat
+    var cornerRadiusScaleFactor: CGFloat?
+    var cornerRadiusInsets: CornerRadiusInsets
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
+            let baseArtSize = displayClosedNotchHeight - 12
+            let scaledArtSize: CGFloat = {
+                if let scale = cornerRadiusScaleFactor {
+                    return displayClosedNotchHeight - 12 * scale
+                }
+                return baseArtSize
+            }()
+
+            let closedCornerRadius: CGFloat = {
+                let base = MusicPlayerImageSizes.cornerRadiusInset.closed
+                if let scale = cornerRadiusScaleFactor {
+                    return max(0, base * scale)
+                }
+                return base
+            }()
+
+            GeometryReader { geo in
+                Image(nsImage: musicManager.albumArt)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.width)
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: closedCornerRadius
+                        )
+                    )
+                    .clipped()
+                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+            }
+            .frame(
+                width: scaledArtSize,
+                height: scaledArtSize
+            )
+
+            // Fixed-width middle section matching physical notch width
+            Rectangle()
+                .fill(Color.clear)
+                .frame(width: vm.closedNotchSize.width)
+
+            HStack {
+                AudioSpectrumView(
+                    isPlaying: musicManager.isPlaying,
+                    tintColor: Defaults[.coloredSpectrogram]
+                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                    : Color.gray
+                )
+                .frame(width: 16, height: 12)
+            }
+            .frame(
+                width: max(
+                    0,
+                    displayClosedNotchHeight - 12
+                        + gestureProgress / 2
+                ),
+                height: max(
+                    0,
+                    displayClosedNotchHeight - 12
+                ),
+                alignment: .center
+            )
+            .padding(.trailing, 10)
+        }
+        .frame(
+            height: displayClosedNotchHeight,
+            alignment: .center
+        )
+    }
+}
+
 // MARK: - Preview Provider
 
 #if DEBUG
@@ -272,12 +368,14 @@ struct NotchContentRouter_Previews: PreviewProvider {
 
     static var previews: some View {
         NotchContentRouter(
-            displayState: .closed(content: .idle),
+            displayState: NotchDisplayState.closed(content: NotchDisplayState.ClosedContent.idle),
             albumArtNamespace: namespace,
-            coordinator: .shared,
-            musicManager: .shared,
-            batteryModel: .shared,
-            closedNotchHeight: 32
+            coordinator: BoringViewCoordinator.shared,
+            musicManager: MusicManager.shared,
+            batteryModel: BatteryStatusViewModel.shared,
+            closedNotchHeight: CGFloat(32),
+            cornerRadiusScaleFactor: nil,
+            cornerRadiusInsets: cornerRadiusInsets
         )
     }
 }

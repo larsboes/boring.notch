@@ -12,6 +12,29 @@ import KeyboardShortcuts
 import Sparkle
 import SwiftUI
 
+/// Sparkle user driver delegate to handle gentle reminders for background updates
+final class SparkleUserDriverDelegate: NSObject, SPUStandardUserDriverDelegate {
+    var supportsGentleScheduledUpdateReminders: Bool {
+        return true
+    }
+
+    func standardUserDriverWillHandleShowingUpdate(
+        _ handleShowingUpdate: Bool,
+        forUpdate update: SUAppcastItem,
+        state: SPUUserUpdateState
+    ) {
+        // No-op: Let Sparkle handle showing updates normally
+    }
+
+    func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {
+        // No-op: User has acknowledged the update
+    }
+
+    func standardUserDriverWillFinishUpdateSession() {
+        // No-op: Update session is finishing
+    }
+}
+
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -19,10 +42,11 @@ struct DynamicNotchApp: App {
     @Environment(\.openWindow) var openWindow
 
     let updaterController: SPUStandardUpdaterController
+    private let userDriverDelegate = SparkleUserDriverDelegate()
 
     init() {
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: userDriverDelegate)
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
@@ -47,6 +71,7 @@ struct DynamicNotchApp: App {
     }
 }
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Coordinators (Phase 3 refactoring)
 
@@ -195,8 +220,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            guard let self = self, let window = self.window else { return }
+
             Task { @MainActor in
+                guard let self = self, let window = self.window else { return }
                 window.alphaValue = self.coordinator.selectedScreenUUID == self.coordinator.preferredScreenUUID ? 1 : 0
             }
         })
@@ -262,7 +288,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
             }
-            playWelcomeSound()
         } else if MusicManager.shared.isNowPlayingDeprecated
             && Defaults[.mediaController] == .nowPlaying
         {
@@ -270,6 +295,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showOnboardingWindow(step: .musicPermission)
             }
         }
+        
+        // Play sound on every launch as requested
+        playWelcomeSound()
 
         previousScreens = NSScreen.screens
     }
@@ -297,7 +325,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             currentScreens.count != previousScreens?.count
             || Set(currentScreens.compactMap { $0.displayUUID })
                 != Set(previousScreens?.compactMap { $0.displayUUID } ?? [])
-            || Set(currentScreens.map { $0.frame }) != Set(previousScreens?.map { $0.frame } ?? [])
+            || Set(currentScreens.map { $0.frame.debugDescription }) != Set(previousScreens?.map { $0.frame.debugDescription } ?? [])
 
         previousScreens = currentScreens
 
@@ -371,3 +399,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         onboardingWindowController?.window?.orderFrontRegardless()
     }
 }
+

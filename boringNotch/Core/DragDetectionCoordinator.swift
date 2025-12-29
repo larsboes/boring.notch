@@ -28,7 +28,7 @@ final class DragDetectionCoordinator {
 
     init(
         windowCoordinator: WindowCoordinator,
-        coordinator: BoringViewCoordinator = .shared
+        coordinator: BoringViewCoordinator
     ) {
         self.windowCoordinator = windowCoordinator
         self.coordinator = coordinator

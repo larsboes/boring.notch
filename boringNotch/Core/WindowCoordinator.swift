@@ -45,7 +45,7 @@ final class WindowCoordinator {
 
     init(
         primaryViewModel: BoringViewModel,
-        coordinator: BoringViewCoordinator = .shared
+        coordinator: BoringViewCoordinator
     ) {
         self.primaryViewModel = primaryViewModel
         self.coordinator = coordinator
