@@ -45,4 +45,3 @@ enum ShelfActionService {
         ShelfStateViewModel.shared.remove(item)
     }
 }
-

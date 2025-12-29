@@ -129,7 +129,6 @@ class CalendarManager: ObservableObject {
         }
     }
         
-
     func updateSelectedCalendars() {
         // Populate selectedCalendarIDs based on Defaults calendar selection state
         switch Defaults[.calendarSelectionState] {

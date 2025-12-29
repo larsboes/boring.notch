@@ -167,8 +167,6 @@ struct Appearance: View {
                 Text("Notch Background")
             }
 
-
-
             Section {
                 Defaults.Toggle(key: .showMirror) {
                     Text("Enable boring mirror")

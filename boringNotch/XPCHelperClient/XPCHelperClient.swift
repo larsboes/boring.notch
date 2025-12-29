@@ -234,4 +234,3 @@ final class XPCHelperClient: NSObject {
         }
     }
 }
-

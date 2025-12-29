@@ -80,5 +80,3 @@ protocol DependencyProviding {
     var notchFaceManager: NotchFaceManager { get }
     var fullscreenMediaDetector: FullscreenMediaDetector { get }
 }
-
-

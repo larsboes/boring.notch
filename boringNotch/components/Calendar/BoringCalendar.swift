@@ -169,7 +169,6 @@ struct EventListView: View {
     @Default(.autoScrollToNextEvent) private var autoScrollToNextEvent
     @Default(.showFullEventTitles) private var showFullEventTitles
 
-
     static func filteredEvents(events: [EventModel]) -> [EventModel] {
         events.filter { event in
             if event.type.isReminder {

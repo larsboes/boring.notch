@@ -49,7 +49,7 @@ enum ShelfItemKind: Codable, Equatable, Sendable {
 }
 
 @MainActor
-struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
+struct ShelfItem: Identifiable, Codable, Equatable {
     let id: UUID
     let kind: ShelfItemKind
     let isTemporary: Bool
@@ -144,7 +144,6 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
         return NSImage()
     }
     
-
     func cleanupStoredData() {
         guard case let .file(bookmarkData) = kind,
               let url = Bookmark(data: bookmarkData).resolvedURL else { return }
@@ -219,5 +218,3 @@ private extension ShelfItemKind {
         }
     }
 }
-
-

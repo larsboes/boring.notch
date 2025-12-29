@@ -320,7 +320,6 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             ShelfSelectionModel.shared.beginDrag()
         }
         
-        
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
             ShelfSelectionModel.shared.endDrag()
 

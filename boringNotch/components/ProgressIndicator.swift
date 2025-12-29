@@ -1,4 +1,4 @@
-    //
+//
     //  ProgressIndicator.swift
     //  boringNotch
     //
@@ -38,7 +38,6 @@ enum ProgressIndicatorType {
     case circle
     case text
 }
-
 
     // based on type .circle or .text
 struct ProgressIndicator: View {

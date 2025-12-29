@@ -41,7 +41,7 @@ class MusicManager: ObservableObject {
     @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
-    @Published var bundleIdentifier: String? = nil
+    @Published var bundleIdentifier: String?
     @Published var songDuration: TimeInterval = 0
     @Published var elapsedTime: TimeInterval = 0
     @Published var timestampDate: Date = .init()
@@ -76,13 +76,13 @@ class MusicManager: ObservableObject {
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
     @Published var isFavoriteTrack: Bool = false
 
-    private var artworkData: Data? = nil
+    private var artworkData: Data?
 
     // Store last values at the time artwork was changed
     private var lastArtworkTitle: String = "I'm Handsome"
     private var lastArtworkArtist: String = "Me"
     private var lastArtworkAlbum: String = "Self Love"
-    private var lastArtworkBundleIdentifier: String? = nil
+    private var lastArtworkBundleIdentifier: String?
 
     @Published var isFlipping: Bool = false
     private var flipWorkItem: DispatchWorkItem?
@@ -594,7 +594,6 @@ class MusicManager: ObservableObject {
             }
         }
     }
-    
     
     func syncVolumeFromActiveApp() async {
         // Check if bundle identifier is valid and if the app is actually running

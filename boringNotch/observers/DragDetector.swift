@@ -19,7 +19,6 @@ final class DragDetector {
     var onDragExitsNotchRegion: VoidCallback?
     var onDragMove: PositionCallback?
 
-
     private var mouseDownMonitor: Any?
     private var mouseDraggedMonitor: Any?
     private var mouseUpMonitor: Any?

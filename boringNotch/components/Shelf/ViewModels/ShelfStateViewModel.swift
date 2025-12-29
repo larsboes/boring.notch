@@ -36,7 +36,6 @@ final class ShelfStateViewModel: ObservableObject {
         }
     }
 
-
     func add(_ newItems: [ShelfItem]) {
         guard !newItems.isEmpty else { return }
         var merged = items
@@ -60,10 +59,9 @@ final class ShelfStateViewModel: ObservableObject {
     func updateBookmark(for item: ShelfItem, bookmark: Data) {
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         if case .file = items[idx].kind {
-            items[idx] = ShelfItem(kind: .file(bookmark: bookmark), isTemporary:  items[idx].isTemporary)
+            items[idx] = ShelfItem(kind: .file(bookmark: bookmark), isTemporary: items[idx].isTemporary)
         }
     }
-
 
     func load(_ providers: [NSItemProvider]) {
         guard !providers.isEmpty else { return }
@@ -97,7 +95,6 @@ final class ShelfStateViewModel: ObservableObject {
             await MainActor.run { self.items = keep }
         }
     }
-
 
     /// Resolves the file URL for an item and updates the bookmark if stale.
     /// Use this for user-initiated actions where bookmark refresh is desired.

@@ -426,7 +426,6 @@ struct VolumeControlView: View {
         }
     }
     
-    
     private var volumeIcon: String {
         if !musicManager.volumeControlSupported {
             return "speaker.slash"

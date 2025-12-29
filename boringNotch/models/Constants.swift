@@ -20,7 +20,6 @@ let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as
 let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
 let spacing: CGFloat = 16
 
-
 struct BluetoothDeviceIconMapping: Codable, Defaults.Serializable {
     let UUID: UUID
     let deviceName: String
@@ -125,12 +124,12 @@ extension Defaults.Keys {
     )
     static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
-    //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
+    // static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
     
     // MARK: Appearance
-    //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
+    // static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)

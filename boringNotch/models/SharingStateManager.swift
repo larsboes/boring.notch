@@ -9,7 +9,6 @@ import AppKit
 import Combine
 import Foundation
 
-
 @MainActor
 final class SharingStateManager: ObservableObject {
 	static let shared = SharingStateManager()
@@ -151,4 +150,3 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 		finishIfNeeded()
 	}
 }
-

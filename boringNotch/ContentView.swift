@@ -99,18 +99,15 @@ struct ContentView: View {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
         if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-        {
+            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
             chinWidth = 640
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
-        {
+            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
-            && !vm.hideOnClosed
-        {
+            && !vm.hideOnClosed {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         }
 
@@ -167,7 +164,7 @@ struct ContentView: View {
                                 Color.black
                             }
                             
-                            if (isHovering || vm.notchState == .open), let hoverImage = vm.backgroundImage {
+                            if isHovering || vm.notchState == .open, let hoverImage = vm.backgroundImage {
                                 Image(nsImage: hoverImage)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
@@ -405,7 +402,7 @@ struct ContentView: View {
                     )
                     
                     // Optional background image on top of glass
-                    if (isHovering || vm.notchState == .open), let hoverImage = vm.backgroundImage {
+                    if isHovering || vm.notchState == .open, let hoverImage = vm.backgroundImage {
                         Image(nsImage: hoverImage)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -418,7 +415,7 @@ struct ContentView: View {
                     Color.black
                         .ignoresSafeArea()
                     
-                    if (isHovering || vm.notchState == .open), let hoverImage = vm.backgroundImage {
+                    if isHovering || vm.notchState == .open, let hoverImage = vm.backgroundImage {
                         Image(nsImage: hoverImage)
                             .resizable()
                             .aspectRatio(contentMode: .fill)

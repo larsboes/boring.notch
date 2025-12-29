@@ -190,8 +190,7 @@ class BoringViewCoordinator: ObservableObject {
     @objc func sneakPeekEvent(_ notification: Notification) {
         let decoder = JSONDecoder()
         if let decodedData = try? decoder.decode(
-            SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data)
-        {
+            SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data) {
             let contentType =
                 decodedData.type == "brightness"
                 ? SneakContentType.brightness

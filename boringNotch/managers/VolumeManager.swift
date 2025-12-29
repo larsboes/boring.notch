@@ -153,12 +153,10 @@ final class VolumeManager: NSObject, ObservableObject {
         if AudioObjectHasProperty(deviceID, &muteAddr) {
             var sizeNeeded: UInt32 = 0
             if AudioObjectGetPropertyDataSize(deviceID, &muteAddr, 0, nil, &sizeNeeded) == noErr,
-                sizeNeeded == UInt32(MemoryLayout<UInt32>.size)
-            {
+                sizeNeeded == UInt32(MemoryLayout<UInt32>.size) {
                 var muted: UInt32 = 0
                 var mSize = sizeNeeded
-                if AudioObjectGetPropertyData(deviceID, &muteAddr, 0, nil, &mSize, &muted) == noErr
-                {
+                if AudioObjectGetPropertyData(deviceID, &muteAddr, 0, nil, &mSize, &muted) == noErr {
                     let newMuted = muted != 0
                     DispatchQueue.main.async {
                         if self.isMuted != newMuted { self.lastChangeAt = Date() }
@@ -239,8 +237,7 @@ final class VolumeManager: NSObject, ObservableObject {
 
         var written = false
         if writeValidatedScalar(
-            deviceID: deviceID, element: kAudioObjectPropertyElementMain, value: newVal)
-        {
+            deviceID: deviceID, element: kAudioObjectPropertyElementMain, value: newVal) {
             written = true
         } else {
             var any = false
@@ -346,8 +343,7 @@ final class VolumeManager: NSObject, ObservableObject {
     }
 
     private func writeValidatedScalar(deviceID: AudioObjectID, element: UInt32, value: Float32)
-        -> Bool
-    {
+        -> Bool {
         var addr = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyVolumeScalar,
             mScope: kAudioDevicePropertyScopeOutput,
@@ -374,5 +370,3 @@ final class VolumeManager: NSObject, ObservableObject {
 extension Array where Element == Float32 {
     fileprivate var average: Float32? { isEmpty ? nil : reduce(0, +) / Float32(count) }
 }
-
-

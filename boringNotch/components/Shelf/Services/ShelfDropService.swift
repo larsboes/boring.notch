@@ -76,4 +76,3 @@ struct ShelfDropService {
         return (try? Bookmark(url: url))?.data
     }
 }
-

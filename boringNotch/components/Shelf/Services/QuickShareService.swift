@@ -72,7 +72,7 @@ class QuickShareService: ObservableObject {
         let finder = ShareServiceFinder()
 
         let testItems: [Any] = [
-            URL(string:"http://example.com")!,
+            URL(string: "http://example.com")!,
             "Test" as NSString
         ]
 

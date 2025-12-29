@@ -289,8 +289,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showOnboardingWindow()
             }
         } else if MusicManager.shared.isNowPlayingDeprecated
-            && Defaults[.mediaController] == .nowPlaying
-        {
+            && Defaults[.mediaController] == .nowPlaying {
             DispatchQueue.main.async {
                 self.showOnboardingWindow(step: .musicPermission)
             }
@@ -399,4 +398,3 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         onboardingWindowController?.window?.orderFrontRegardless()
     }
 }
-

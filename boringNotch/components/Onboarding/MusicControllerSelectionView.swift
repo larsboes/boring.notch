@@ -8,7 +8,6 @@
 import SwiftUI
 import Defaults
 
-
 struct MusicControllerSelectionView: View {
     let onContinue: () -> Void
 
@@ -51,7 +50,7 @@ struct MusicControllerSelectionView: View {
                 }
                 .padding()
             }
-            //Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
+            // Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
             .scrollDisabled(availableMediaControllers.count <= 4)
 
 //            Spacer()
@@ -117,7 +116,6 @@ struct ControllerOptionView: View {
         .contentShape(Rectangle())
     }
 }
-
 
 extension MediaControllerType {
     var description: String {

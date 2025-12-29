@@ -5,7 +5,6 @@
 //  Created by Alexander on 2025-09-24.
 //
 
-
 @preconcurrency import AppKit
 import Foundation
 import UniformTypeIdentifiers
@@ -16,7 +15,6 @@ extension NSItemProvider {
         return await loadFileURL(typeIdentifier: UTType.item.identifier)
     }
 
-    
     /// Detects if this is a file dragged from the filesystem
     func extractFileURL() async -> URL? {
         if hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
@@ -85,7 +83,7 @@ extension NSItemProvider {
     func extractURL() async -> URL? {
         if self.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
             if let url = await loadURL(typeIdentifier: UTType.url.identifier) {
-                //Validate URL
+                // Validate URL
                 guard url.scheme != nil else { return nil }
                 return url
             }

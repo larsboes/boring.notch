@@ -1,4 +1,4 @@
-    //
+//
     //  SystemEventIndicatorModifier.swift
     //  boringNotch
     //
@@ -25,7 +25,7 @@ struct SystemEventIndicatorModifier: View {
     
     var body: some View {
         HStack(spacing: 14) {
-            switch (eventType) {
+            switch eventType {
                 case .volume:
                     if icon.isEmpty {
                         Image(systemName: SpeakerSymbol(value))
@@ -58,7 +58,7 @@ struct SystemEventIndicatorModifier: View {
                 default:
                     EmptyView()
             }
-            if (eventType != .mic) {
+            if eventType != .mic {
                 DraggableProgressBar(value: $value)
                 if Defaults[.showClosedNotchHUDPercentage] {
                     Text("\(Int(value * 100))%")
@@ -80,7 +80,7 @@ struct SystemEventIndicatorModifier: View {
     }
     
     func SpeakerSymbol(_ value: CGFloat) -> String {
-        switch(value) {
+        switch value {
             case 0:
                 return "speaker.slash"
             case 0...0.3:
@@ -98,7 +98,7 @@ struct SystemEventIndicatorModifier: View {
 struct DraggableProgressBar: View {
     @EnvironmentObject var vm: BoringViewModel
     @Binding var value: CGFloat
-    var onChange: ((CGFloat) -> Void)? = nil
+    var onChange: ((CGFloat) -> Void)?
     
     @State private var isDragging = false
     @State private var dragOffset: CGFloat = 0

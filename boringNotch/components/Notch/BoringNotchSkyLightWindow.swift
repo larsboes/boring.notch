@@ -97,7 +97,7 @@ class BoringNotchSkyLightWindow: NSPanel {
             .fullScreenAuxiliary,
             .stationary,
             .canJoinAllSpaces,
-            .ignoresCycle,
+            .ignoresCycle
         ]
         
         let hasNotch = (self.screen?.safeAreaInsets.top ?? 0) > 0

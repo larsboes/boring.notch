@@ -52,7 +52,7 @@ class BluetoothManager: NSObject, ObservableObject {
             if isDeviceIgnored(name) { continue }
             
             // Get battery level if available
-            var batteryLevel: Int? = nil
+            var batteryLevel: Int?
             
             // Try different methods to get battery level
             // Method 1: Apple's private API for battery level (often works for Apple devices)
@@ -112,8 +112,7 @@ class BluetoothManager: NSObject, ObservableObject {
         
         // --- Input ---
         if name.contains("keyboard") { return "keyboard.fill" }
-        if name.contains("mouse") && name.contains("magic") { return "magicmouse.fill" }
-        else if name.contains("mouse") { return "computermouse.fill" }
+        if name.contains("mouse") && name.contains("magic") { return "magicmouse.fill" } else if name.contains("mouse") { return "computermouse.fill" }
         if name.contains("trackpad") { return "trackpad.fill" }
         
         // --- Gamepads ---

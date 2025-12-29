@@ -16,7 +16,7 @@ struct Advanced: View {
     @Default(.hideFromScreenRecording) var hideFromScreenRecording
     
     @State private var customAccentColor: Color = .accentColor
-    @State private var selectedPresetColor: PresetAccentColor? = nil
+    @State private var selectedPresetColor: PresetAccentColor?
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     

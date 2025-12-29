@@ -77,7 +77,6 @@ struct FluidSlider: View {
         }
     }
     
-    
     private var animation: Animation {
         .spring(response: 0.5, dampingFraction: 0.6, blendDuration: 0.5)
     }

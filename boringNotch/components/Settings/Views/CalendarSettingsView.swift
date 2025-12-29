@@ -119,7 +119,7 @@ struct CalendarSettings: View {
 
 func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
     let srgb = nsColor.usingColorSpace(.sRGB) ?? nsColor
-    var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0,0,0,0)
+    var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
     srgb.getRed(&r, green: &g, blue: &b, alpha: &a)
 
     func lighten(_ c: CGFloat) -> CGFloat {

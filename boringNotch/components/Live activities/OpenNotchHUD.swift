@@ -78,7 +78,7 @@ struct OpenNotchHUD: View {
     }
     
     func SpeakerSymbol(_ value: CGFloat) -> String {
-        switch(value) {
+        switch value {
             case 0: return "speaker.slash"
             case 0...0.33: return "speaker.wave.1"
             case 0.33...0.66: return "speaker.wave.2"

@@ -101,8 +101,7 @@ enum MusicPlayerImageSizes {
         // Calculate and set the exact width of the notch
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
            let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width,
-           topLeftNotchpadding > 100, topRightNotchpadding > 100 // Ensure reasonable padding
-        {
+           topLeftNotchpadding > 100, topRightNotchpadding > 100 { // Ensure reasonable padding
             notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
         } else {
             // Fallback for screens where auxiliary area is not reported correctly

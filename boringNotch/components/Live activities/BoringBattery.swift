@@ -17,11 +17,9 @@ struct BatteryView: View {
     var iconStatus: String {
         if isCharging {
             return "bolt"
-        }
-        else if isPluggedIn {
+        } else if isPluggedIn {
             return "plug"
-        }
-        else {
+        } else {
             return ""
         }
     }
@@ -182,7 +180,7 @@ struct BoringBatteryView: View {
     @State private var isPressed: Bool = false
     @State private var isHoveringButton: Bool = false
     @State private var isHoveringPopover: Bool = false
-    @State private var hideTask: Task<Void, Never>? = nil
+    @State private var hideTask: Task<Void, Never>?
 
     @EnvironmentObject var vm: BoringViewModel
 

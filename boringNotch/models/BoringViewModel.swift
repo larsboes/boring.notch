@@ -39,7 +39,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
     
-    @Published var backgroundImage: NSImage? = nil
+    @Published var backgroundImage: NSImage?
 
     @Published var screenUUID: String?
 

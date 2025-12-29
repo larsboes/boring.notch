@@ -114,4 +114,3 @@ extension View {
         self.modifier(QuickLookPresenter(service: service))
     }
 }
-

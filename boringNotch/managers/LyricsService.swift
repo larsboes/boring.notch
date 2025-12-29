@@ -224,7 +224,7 @@ class LyricsService: ObservableObject {
         let normalizedArtist = artist.lowercased()
         
         // Score each result and pick the best
-        var bestResult: [String: Any]? = nil
+        var bestResult: [String: Any]?
         var bestScore = 0
         
         for result in results {
