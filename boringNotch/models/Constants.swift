@@ -146,7 +146,7 @@ extension Defaults.Keys {
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
-    static let showCalendar = Key<Bool>("showCalendar", default: false)
+    static let showCalendar = Key<Bool>("showCalendar", default: true)
     static let showWeather = Key<Bool>("showWeather", default: false)
     static let openWeatherMapApiKey = Key<String>("openWeatherMapApiKey", default: "")
     static let hideCompletedReminders = Key<Bool>("hideCompletedReminders", default: true)
