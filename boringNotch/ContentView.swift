@@ -432,18 +432,23 @@ struct ContentView: View {
                 return base
             }()
 
-            Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .clipShape(
-                    RoundedRectangle(
-                        cornerRadius: closedCornerRadius)
-                )
-                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                .frame(
-                    width: scaledArtSize,
-                    height: scaledArtSize
-                )
+            GeometryReader { geo in
+                Image(nsImage: musicManager.albumArt)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.width)
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: closedCornerRadius
+                        )
+                    )
+                    .clipped()
+                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+            }
+            .frame(
+                width: scaledArtSize,
+                height: scaledArtSize
+            )
 
             Rectangle()
                 .fill(.black)
