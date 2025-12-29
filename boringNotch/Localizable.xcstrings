@@ -2602,6 +2602,9 @@
         }
       }
     },
+    "API Key" : {
+
+    },
     "App icon" : {
       "localizations" : {
         "ar" : {
@@ -5902,6 +5905,9 @@
         }
       }
     },
+    "Condition" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -6201,6 +6207,9 @@
           }
         }
       }
+    },
+    "Current Weather" : {
+
     },
     "Currently selected: %@" : {
       "localizations" : {
@@ -8106,6 +8115,9 @@
         }
       }
     },
+    "Enable 'Show weather' above to request location permission." : {
+
+    },
     "Enable blur effect behind album art" : {
       "localizations" : {
         "ar" : {
@@ -8706,6 +8718,9 @@
           }
         }
       }
+    },
+    "Enable location access" : {
+
     },
     "Enable shelf" : {
       "localizations" : {
@@ -9408,6 +9423,9 @@
         }
       }
     },
+    "Feels %@" : {
+
+    },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
         "ar" : {
@@ -10107,6 +10125,9 @@
           }
         }
       }
+    },
+    "Get your free API key" : {
+
     },
     "GitHub" : {
       "localizations" : {
@@ -11909,6 +11930,9 @@
         }
       }
     },
+    "Last Updated" : {
+
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -12008,6 +12032,24 @@
           }
         }
       }
+    },
+    "Loading weather..." : {
+
+    },
+    "Location" : {
+
+    },
+    "Location Access" : {
+
+    },
+    "Location access granted" : {
+
+    },
+    "Location access is denied. Please enable it in System Settings." : {
+
+    },
+    "Location access is required to show weather information." : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -15010,6 +15052,9 @@
         }
       }
     },
+    "No weather data" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -15610,6 +15655,9 @@
         }
       }
     },
+    "Open Location Settings" : {
+
+    },
     "Open Notch" : {
       "localizations" : {
         "ar" : {
@@ -15910,6 +15958,9 @@
         }
       }
     },
+    "Open Settings" : {
+
+    },
     "Open shelf by default if items are present" : {
       "localizations" : {
         "ar" : {
@@ -16009,6 +16060,9 @@
           }
         }
       }
+    },
+    "OpenWeatherMap API Key" : {
+
     },
     "Option key behaviour" : {
       "localizations" : {
@@ -20212,6 +20266,9 @@
         }
       }
     },
+    "Show weather" : {
+
+    },
     "Slider color" : {
       "localizations" : {
         "ar" : {
@@ -21213,6 +21270,9 @@
           }
         }
       }
+    },
+    "Temperature" : {
+
     },
     "Time to Full Charge: %lld min" : {
       "localizations" : {
@@ -22814,6 +22874,9 @@
           }
         }
       }
+    },
+    "Weather" : {
+
     },
     "Welcome" : {
       "localizations" : {

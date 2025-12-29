@@ -1803,7 +1803,8 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 struct WeatherSettings: View {
     @ObservedObject private var weatherManager = WeatherManager.shared
     @Default(.showWeather) var showWeather: Bool
-    
+    @Default(.openWeatherMapApiKey) var apiKey: String
+
     var body: some View {
         Form {
             Defaults.Toggle(key: .showWeather) {
@@ -1815,7 +1816,19 @@ struct WeatherSettings: View {
                     weatherManager.checkLocationAuthorization()
                 }
             }
-            
+
+            Section(header: Text("API Key")) {
+                SecureField("OpenWeatherMap API Key", text: $apiKey)
+                    .textFieldStyle(.roundedBorder)
+
+                if apiKey.isEmpty {
+                    Link(destination: URL(string: "https://openweathermap.org/api")!) {
+                        Label("Get your free API key", systemImage: "arrow.up.right.square")
+                            .font(.caption)
+                    }
+                }
+            }
+
             Section(header: Text("Location Access")) {
                 if weatherManager.locationAuthorizationStatus == .notDetermined {
                     VStack(alignment: .leading, spacing: 8) {

@@ -10,6 +10,7 @@ import CoreLocation
 import SwiftUI
 import Combine
 import WeatherKit
+import Defaults
 
 // MARK: - Weather Models
 
@@ -138,26 +139,8 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         
         Task {
             do {
-                // Fetch weather using WeatherKit
-                let weather = try await weatherService.weather(for: location)
-                
-                // Get location name using reverse geocoding
-                let placemarks = try? await geocoder.reverseGeocodeLocation(location)
-                let locationName = placemarks?.first?.locality ?? placemarks?.first?.name ?? "Unknown"
-                
-                // Create weather data from WeatherKit response
-                let weatherData = WeatherData(
-                    temperature: weather.currentWeather.temperature.value,
-                    condition: weather.currentWeather.condition.description,
-                    symbolName: weather.currentWeather.symbolName,
-                    humidity: weather.currentWeather.humidity,
-                    windSpeed: weather.currentWeather.wind.speed.value,
-                    feelsLike: weather.currentWeather.apparentTemperature.value,
-                    high: weather.dailyForecast.first?.highTemperature.value ?? weather.currentWeather.temperature.value,
-                    low: weather.dailyForecast.first?.lowTemperature.value ?? weather.currentWeather.temperature.value,
-                    location: locationName,
-                    lastUpdated: Date()
-                )
+                // Fetch weather using OpenWeatherMap (for local testing without Apple Developer Account)
+                let weatherData = try await OpenWeatherMapService.shared.fetchWeather(for: location)
                 
                 await MainActor.run {
                     self.currentWeather = weatherData
@@ -167,13 +150,7 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 
             } catch {
                 await MainActor.run {
-                    // Provide a user-friendly error message
-                    let errorDescription = error.localizedDescription
-                    if errorDescription.contains("DTD") || errorDescription.contains("plist") {
-                        self.errorMessage = "Weather service unavailable. Please try again later."
-                    } else {
-                        self.errorMessage = "Failed to fetch weather: \(errorDescription)"
-                    }
+                    self.errorMessage = error.localizedDescription
                     self.isLoading = false
                     print("Weather fetch error: \(error)")
                 }
@@ -184,6 +161,91 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     nonisolated deinit {
         Task { @MainActor in
             stopUpdatingWeather()
+        }
+    }
+}
+
+// MARK: - OpenWeatherMap Service
+
+private struct OpenWeatherResponse: Codable {
+    let weather: [OpenWeatherCondition]
+    let main: OpenWeatherMain
+    let wind: OpenWeatherWind
+    let name: String
+    let dt: TimeInterval
+}
+
+private struct OpenWeatherCondition: Codable {
+    let id: Int
+    let main: String
+    let description: String
+    let icon: String
+}
+
+private struct OpenWeatherMain: Codable {
+    let temp: Double
+    let feels_like: Double
+    let temp_min: Double
+    let temp_max: Double
+    let humidity: Double
+}
+
+private struct OpenWeatherWind: Codable {
+    let speed: Double
+}
+
+class OpenWeatherMapService {
+    static let shared = OpenWeatherMapService()
+
+    func fetchWeather(for location: CLLocation) async throws -> WeatherData {
+        let apiKey = Defaults[.openWeatherMapApiKey]
+        guard !apiKey.isEmpty else {
+            throw NSError(domain: "OpenWeatherMap", code: 401, userInfo: [NSLocalizedDescriptionKey: "Please add your OpenWeatherMap API key in Settings > Weather"])
+        }
+
+        let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(location.coordinate.latitude)&lon=\(location.coordinate.longitude)&appid=\(apiKey)&units=metric"
+
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "OpenWeatherMap", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
+        }
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw NSError(domain: "OpenWeatherMap", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch weather data"])
+        }
+
+        let decoded = try JSONDecoder().decode(OpenWeatherResponse.self, from: data)
+
+        return WeatherData(
+            temperature: decoded.main.temp,
+            condition: decoded.weather.first?.main ?? "Unknown",
+            symbolName: mapIconToSFSymbol(icon: decoded.weather.first?.icon ?? ""),
+            humidity: decoded.main.humidity / 100.0,
+            windSpeed: decoded.wind.speed * 3.6,
+            feelsLike: decoded.main.feels_like,
+            high: decoded.main.temp_max,
+            low: decoded.main.temp_min,
+            location: decoded.name,
+            lastUpdated: Date(timeIntervalSince1970: decoded.dt)
+        )
+    }
+
+    private func mapIconToSFSymbol(icon: String) -> String {
+        switch icon {
+        case "01d": return "sun.max.fill"
+        case "01n": return "moon.stars.fill"
+        case "02d": return "cloud.sun.fill"
+        case "02n": return "cloud.moon.fill"
+        case "03d", "03n": return "cloud.fill"
+        case "04d", "04n": return "smoke.fill"
+        case "09d", "09n": return "cloud.drizzle.fill"
+        case "10d": return "cloud.sun.rain.fill"
+        case "10n": return "cloud.moon.rain.fill"
+        case "11d", "11n": return "cloud.bolt.fill"
+        case "13d", "13n": return "snowflake"
+        case "50d", "50n": return "cloud.fog.fill"
+        default: return "cloud.fill"
         }
     }
 }
