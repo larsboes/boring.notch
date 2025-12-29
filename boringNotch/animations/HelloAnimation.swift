@@ -114,7 +114,7 @@ struct HelloAnimation: View {
             try? await Task.sleep(for: .seconds(0.6))
             
             withAnimation(
-                BoringAnimations.helloAnimation
+                StandardAnimations.hello
             ) {
                 progress = 1.0
             }

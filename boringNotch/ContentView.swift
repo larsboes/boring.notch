@@ -33,27 +33,52 @@ struct ContentView: View {
 
     @Namespace var albumArtNamespace
 
-    @Default(.useMusicVisualizer) var useMusicVisualizer
-
     @Default(.showNotHumanFace) var showNotHumanFace
 
-
+    // Use standardized animations from StandardAnimations enum
+    private let animationSpring = StandardAnimations.interactive
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
 
+    // MARK: - Corner Radius Scaling
+    private var cornerRadiusScaleFactor: CGFloat? {
+        guard Defaults[.cornerRadiusScaling] else { return nil }
+        let effectiveHeight = displayClosedNotchHeight
+        guard effectiveHeight > 0 else { return nil }
+        return effectiveHeight / 38.0
+    }
+    
     private var topCornerRadius: CGFloat {
-       ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
-                ? cornerRadiusInsets.opened.top
-                : cornerRadiusInsets.closed.top
+        // If the notch is open, return the opened radius.
+        if vm.notchState == .open {
+            return cornerRadiusInsets.opened.top
+        }
+
+        // For the closed notch, scale if enabled
+        let baseClosedTop = cornerRadiusInsets.closed.top
+        guard let scaleFactor = cornerRadiusScaleFactor else {
+            return displayClosedNotchHeight > 0 ? baseClosedTop : 0
+        }
+        return max(0, baseClosedTop * scaleFactor)
     }
 
     private var currentNotchShape: NotchShape {
-        NotchShape(
+        // Scale bottom corner radius for closed notch shape when scaling is enabled.
+        let baseClosedBottom = cornerRadiusInsets.closed.bottom
+        let bottomCorner: CGFloat
+
+        if vm.notchState == .open {
+            bottomCorner = cornerRadiusInsets.opened.bottom
+        } else if let scaleFactor = cornerRadiusScaleFactor {
+            bottomCorner = max(0, baseClosedBottom * scaleFactor)
+        } else {
+            bottomCorner = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
+        }
+
+        return NotchShape(
             topCornerRadius: topCornerRadius,
-            bottomCornerRadius: ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
-                ? cornerRadiusInsets.opened.bottom
-                : cornerRadiusInsets.closed.bottom
+            bottomCornerRadius: bottomCorner
         )
     }
 
@@ -68,16 +93,22 @@ struct ContentView: View {
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         }
 
         return chinWidth
     }
+
+    // If the closed notch height is 0 (any display/setting), display a 10pt nearly-invisible notch
+    // instead of fully hiding it. This preserves layout while avoiding visual artifacts.
+    private var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
+
+    private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
     var body: some View {
         // Calculate scale based on gesture progress only
@@ -93,37 +124,31 @@ struct ContentView: View {
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
-                        vm.notchState == .open
-                        ? Defaults[.cornerRadiusScaling]
-                        ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
-                        : cornerRadiusInsets.closed.bottom
+                        vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
                     .clipShape(currentNotchShape)
-                    .overlay(alignment: .top) {
-                        Rectangle()
+                          .overlay(alignment: .top) {
+                              displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
+                        : Rectangle()
                             .fill(.black)
                             .frame(height: 1)
                             .padding(.horizontal, topCornerRadius)
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
-                            ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
+                            ? .black.opacity(0.7) : .clear, radius: 6
                     )
-                    .padding(
-                        .bottom,
-                        vm.effectiveClosedNotchHeight == 0 ? 10 : 0
-                    )
+                    // Removed conditional bottom padding when using custom 0 notch to keep layout stable
+                    .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
                     .conditionalModifier(true) { view in
-                        let openAnimation = BoringAnimations.openAnimation
-                        let closeAnimation = BoringAnimations.closeAnimation
-                        
+
                         return view
-                            .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
+                            .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
                             .animation(.smooth, value: gestureProgress)
                     }
                     .contentShape(Rectangle())
@@ -284,7 +309,7 @@ struct ContentView: View {
                             }
                             .frame(width: 76, alignment: .trailing)
                         }
-                        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+                        .frame(height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
@@ -295,10 +320,10 @@ struct ContentView: View {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
                            BoringHeader()
-                               .frame(height: max(24, vm.effectiveClosedNotchHeight))
+                               .frame(height: max(24, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
+                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
                       if coordinator.sneakPeek.show {
@@ -328,7 +353,7 @@ struct ContentView: View {
                                   HStack(alignment: .center) {
                                       Image(systemName: "music.note")
                                       GeometryReader { geo in
-                                          MarqueeText(.constant(musicManager.songTitle + " - " + musicManager.artistName),  textColor: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, minDuration: 1, frameWidth: geo.size.width)
+                                          MarqueeText(musicManager.songTitle + " - " + musicManager.artistName,  color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
                                       }
                                   }
                                   .foregroundStyle(.gray)
@@ -342,7 +367,7 @@ struct ContentView: View {
                   view
                       .fixedSize()
               }
-              .zIndex(2)
+              .zIndex(1)
             if vm.notchState == .open {
                 VStack(spacing: 0) {
                     switch coordinator.currentView {
@@ -373,8 +398,8 @@ struct ContentView: View {
                 Rectangle()
                     .fill(.clear)
                     .frame(
-                        width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12)
+                        width: max(0, displayClosedNotchHeight - 12),
+                        height: max(0, displayClosedNotchHeight - 12)
                     )
                 Rectangle()
                     .fill(.black)
@@ -382,25 +407,42 @@ struct ContentView: View {
                 MinimalFaceFeatures()
             }
         }.frame(
-            height: vm.effectiveClosedNotchHeight,
+            height: displayClosedNotchHeight,
             alignment: .center
         )
     }
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
-        HStack {
+        HStack(spacing: 0) {
+            // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
+            let baseArtSize = displayClosedNotchHeight - 12
+            let scaledArtSize: CGFloat = {
+                if let scale = cornerRadiusScaleFactor {
+                    return displayClosedNotchHeight - 12 * scale
+                }
+                return baseArtSize
+            }()
+
+            let closedCornerRadius: CGFloat = {
+                let base = MusicPlayerImageSizes.cornerRadiusInset.closed
+                if let scale = cornerRadiusScaleFactor {
+                    return max(0, base * scale)
+                }
+                return base
+            }()
+
             Image(nsImage: musicManager.albumArt)
                 .resizable()
-                .clipped()
+                .aspectRatio(contentMode: .fit)
                 .clipShape(
                     RoundedRectangle(
-                        cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
+                        cornerRadius: closedCornerRadius)
                 )
                 .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                 .frame(
-                    width: max(0, vm.effectiveClosedNotchHeight - 12),
-                    height: max(0, vm.effectiveClosedNotchHeight - 12)
+                    width: scaledArtSize,
+                    height: scaledArtSize
                 )
 
             Rectangle()
@@ -411,10 +453,10 @@ struct ContentView: View {
                             && coordinator.expandingView.type == .music
                         {
                             MarqueeText(
-                                .constant(musicManager.songTitle),
-                                textColor: Defaults[.coloredSpectrogram]
+                                musicManager.songTitle,
+                                color: Defaults[.coloredSpectrogram]
                                     ? Color(nsColor: musicManager.avgColor) : Color.gray,
-                                minDuration: 0.4,
+                                delayDuration: 0.4,
                                 frameWidth: 100
                             )
                             .opacity(
@@ -451,39 +493,29 @@ struct ContentView: View {
                 )
 
             HStack {
-                if useMusicVisualizer {
-                    Rectangle()
-                        .fill(
-                            Defaults[.coloredSpectrogram]
-                                ? Color(nsColor: musicManager.avgColor).gradient
-                                : Color.gray.gradient
-                        )
-                        .frame(width: 50, alignment: .center)
-                        .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
-                        .mask {
-                            AudioSpectrumView(isPlaying: $musicManager.isPlaying)
-                                .frame(width: 16, height: 12)
-                        }
-                } else {
-                    LottieAnimationContainer()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
+                AudioSpectrumView(
+                    isPlaying: musicManager.isPlaying,
+                    tintColor: Defaults[.coloredSpectrogram]
+                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                    : Color.gray
+                )
+                .frame(width: 16, height: 12)
             }
             .frame(
                 width: max(
                     0,
-                    vm.effectiveClosedNotchHeight - 12
+                    displayClosedNotchHeight - 12
                         + gestureProgress / 2
                 ),
                 height: max(
                     0,
-                    vm.effectiveClosedNotchHeight - 12
+                    displayClosedNotchHeight - 12
                 ),
                 alignment: .center
             )
         }
         .frame(
-            height: vm.effectiveClosedNotchHeight,
+            height: displayClosedNotchHeight,
             alignment: .center
         )
     }
@@ -505,7 +537,7 @@ struct ContentView: View {
     }
 
     private func doOpen() {
-        withAnimation(BoringAnimations.interactiveSpring) {
+        withAnimation(StandardAnimations.interactive) {
             vm.open()
         }
     }
@@ -517,7 +549,7 @@ struct ContentView: View {
         hoverTask?.cancel()
         
         if hovering {
-            withAnimation(BoringAnimations.interactiveSpring) {
+            withAnimation(StandardAnimations.interactive) {
                 isHovering = true
             }
             
@@ -547,7 +579,7 @@ struct ContentView: View {
                 guard !Task.isCancelled else { return }
                 
                 await MainActor.run {
-                    withAnimation(BoringAnimations.interactiveSpring) {
+                    withAnimation(StandardAnimations.interactive) {
                         self.isHovering = false
                     }
                     
@@ -565,11 +597,11 @@ struct ContentView: View {
         guard vm.notchState == .closed else { return }
 
         if phase == .ended {
-            withAnimation(BoringAnimations.interactiveSpring) { gestureProgress = .zero }
+            withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
             return
         }
 
-        withAnimation(BoringAnimations.interactiveSpring) {
+        withAnimation(StandardAnimations.interactive) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
         }
 
@@ -577,7 +609,7 @@ struct ContentView: View {
             if Defaults[.enableHaptics] {
                 haptics.toggle()
             }
-            withAnimation(BoringAnimations.interactiveSpring) {
+            withAnimation(StandardAnimations.interactive) {
                 gestureProgress = .zero
             }
             doOpen()
@@ -587,18 +619,18 @@ struct ContentView: View {
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
         guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
 
-        withAnimation(BoringAnimations.interactiveSpring) {
+        withAnimation(StandardAnimations.interactive) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
         }
 
         if phase == .ended {
-            withAnimation(BoringAnimations.interactiveSpring) {
+            withAnimation(StandardAnimations.interactive) {
                 gestureProgress = .zero
             }
         }
 
         if translation > Defaults[.gestureSensitivity] {
-            withAnimation(BoringAnimations.interactiveSpring) {
+            withAnimation(StandardAnimations.interactive) {
                 isHovering = false
             }
             if !SharingStateManager.shared.preventNotchClose { 
