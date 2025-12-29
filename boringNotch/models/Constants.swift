@@ -21,6 +21,18 @@ let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .us
 let spacing: CGFloat = 16
 
 
+struct BluetoothDeviceIconMapping: Codable, Defaults.Serializable {
+    let UUID: UUID
+    let deviceName: String
+    var sfSymbolName: String
+    
+    init(UUID: UUID = UUID(), deviceName: String, sfSymbolName: String) {
+        self.UUID = UUID
+        self.deviceName = deviceName
+        self.sfSymbolName = sfSymbolName
+    }
+}
+
 enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all
     case selected(Set<String>)
@@ -84,6 +96,11 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
 }
 
 extension Defaults.Keys {
+    // MARK: Bluetooth
+    static let bluetoothDeviceIconMappings = Key<[BluetoothDeviceIconMapping]>("bluetoothDeviceIconMappings", default: [])
+    static let enableBluetoothSneakPeek = Key<Bool>("enableBluetoothSneakPeek", default: false)
+    static let bluetoothSneakPeekStyle = Key<SneakPeekStyle>("bluetoothSneakPeekStyle", default: .standard)
+
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
