@@ -28,21 +28,26 @@ struct BoringHeader: View {
             .blur(radius: vm.notchState == .closed ? 20 : 0)
             .zIndex(2)
 
-            // Only show black notch overlay when Liquid Glass effect is DISABLED
+            // Only show black notch overlay when Liquid Glass effect is DISABLED and on screens with hardware notch
             // When Liquid Glass is enabled, this black shape conflicts with the glass appearance
-            if vm.notchState == .open && !Defaults[.liquidGlassEffect] {
-                Rectangle()
-                    .fill(NSScreen.screen(withUUID: coordinator.selectedScreenUUID)?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
-                    .frame(width: vm.closedNotchSize.width)
-                    .mask {
-                        NotchShape()
-                    }
-            } else if vm.notchState == .open {
-                // Invisible spacer to maintain layout when Liquid Glass is enabled
-                Rectangle()
-                    .fill(.clear)
-                    .frame(width: vm.closedNotchSize.width)
-                    .allowsHitTesting(false)
+            let currentScreen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
+            let hasHardwareNotch = (currentScreen?.safeAreaInsets.top ?? 0) > 0
+            
+            if vm.notchState == .open && hasHardwareNotch {
+                if !Defaults[.liquidGlassEffect] {
+                    Rectangle()
+                        .fill(.black)
+                        .frame(width: vm.closedNotchSize.width)
+                        .mask {
+                            NotchShape()
+                        }
+                } else {
+                    // Invisible spacer to maintain layout when Liquid Glass is enabled
+                    // Only on screens WITH hardware notch where we need to leave space for it
+                    Color.clear
+                        .frame(width: vm.closedNotchSize.width, height: 1)
+                        .allowsHitTesting(false)
+                }
             }
 
             HStack(spacing: 4) {
