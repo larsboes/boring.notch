@@ -123,8 +123,45 @@ class BatteryStatusViewModel: ObservableObject {
     private func notifyImportanChangeStatus(delay: Double = 0.0) {
         Task {
             try? await Task.sleep(for: .seconds(delay))
-            self.coordinator.toggleExpandingView(status: true, type: .battery)
+            
+            var soundToPlay = "Disabled"
+            
+            // Check for battery level notifications
+            if let notificationType = checkBatteryLevel(level: Int(self.levelBattery), initial: self.isInitial) {
+                if notificationType == "Low Battery" {
+                    soundToPlay = Defaults[.lowBatteryNotificationSound]
+                } else if notificationType == "High Battery" {
+                    soundToPlay = Defaults[.highBatteryNotificationSound]
+                }
+                self.coordinator.toggleExpandingView(status: true, type: .battery)
+            } else if Defaults[.showPowerStatusNotifications] {
+                // Standard power status notification
+                soundToPlay = Defaults[.powerStatusNotificationSound]
+                self.coordinator.toggleExpandingView(status: true, type: .battery)
+            }
+            
+            if soundToPlay != "Disabled" {
+                NSSound(named: NSSound.Name(soundToPlay))?.play()
+            }
         }
+    }
+
+    /// Checks if the battery level crosses any defined thresholds
+    /// - Parameters:
+    ///   - level: The current battery level
+    ///   - initial: Whether this is the initial check
+    /// - Returns: A string describing the notification type ("Low Battery", "High Battery") or nil
+    private func checkBatteryLevel(level: Int, initial: Bool) -> String? {
+        let lowThreshold = Defaults[.lowBatteryNotificationLevel]
+        let highThreshold = Defaults[.highBatteryNotificationLevel]
+        
+        if !self.isCharging && (level == lowThreshold || (initial && level <= lowThreshold)) && lowThreshold > 0 {
+            return "Low Battery"
+        }
+        if self.isCharging && (level == highThreshold || (initial && level >= highThreshold)) && highThreshold > 0 {
+            return "High Battery"
+        }
+        return nil
     }
 
     deinit {

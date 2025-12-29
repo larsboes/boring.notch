@@ -34,6 +34,26 @@ struct Charge: View {
             } header: {
                 Text("Battery Information")
             }
+            
+            Section {
+                PickerSoundAlert(sounds: SystemSoundHelper.availableSystemSounds(), sound: Defaults.binding(.powerStatusNotificationSound))
+                
+                BatteryLevelPicker(
+                    title: "Low Battery Notification",
+                    level: Defaults.binding(.lowBatteryNotificationLevel),
+                    sounds: SystemSoundHelper.availableSystemSounds(),
+                    sound: Defaults.binding(.lowBatteryNotificationSound)
+                )
+                
+                BatteryLevelPicker(
+                    title: "High Battery Notification",
+                    level: Defaults.binding(.highBatteryNotificationLevel),
+                    sounds: SystemSoundHelper.availableSystemSounds(),
+                    sound: Defaults.binding(.highBatteryNotificationSound)
+                )
+            } header: {
+                Text("Notifications")
+            }
         }
         .onAppear {
             Task { @MainActor in
@@ -42,5 +62,39 @@ struct Charge: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Battery")
+    }
+}
+
+struct BatteryLevelPicker: View {
+    let title: String
+    @Binding var level: Int
+    let sounds: [String]
+    @Binding var sound: String
+    
+    var body: some View {
+        HStack {
+            Picker(title, selection: $level) {
+                Text("Disabled").tag(0)
+                ForEach(1...100, id: \.self) { level in
+                    Text("\(level)%").tag(level)
+                }
+            }
+            Divider()
+            PickerSoundAlert(sounds: sounds, sound: $sound)
+        }
+    }
+}
+
+struct PickerSoundAlert: View {
+    let sounds: [String]
+    @Binding var sound: String
+    
+    var body: some View {
+        Picker("Sound", selection: $sound) {
+            Text("Disabled").tag("Disabled")
+            ForEach(sounds, id: \.self) { sound in
+                Text(sound).tag(sound)
+            }
+        }
     }
 }
