@@ -26,7 +26,7 @@ struct BluetoothDeviceIconMapping: Codable, Defaults.Serializable {
     let deviceName: String
     var sfSymbolName: String
     
-    init(UUID: UUID = UUID(), deviceName: String, sfSymbolName: String) {
+    init(UUID: Foundation.UUID = Foundation.UUID(), deviceName: String, sfSymbolName: String) {
         self.UUID = UUID
         self.deviceName = deviceName
         self.sfSymbolName = sfSymbolName
@@ -82,6 +82,7 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case standard = "Default"
     case inline = "Inline"
+    case minimal = "Minimal"
     
     var id: String { self.rawValue }
 }
@@ -178,7 +179,6 @@ extension Defaults.Keys {
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
-    static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
     static let powerStatusNotificationSound = Key<String>("powerStatusNotificationSound", default: "Disabled")
     static let lowBatteryNotificationLevel = Key<Int>("lowBatteryNotificationLevel", default: 0)
     static let lowBatteryNotificationSound = Key<String>("lowBatteryNotificationSound", default: "Disabled")

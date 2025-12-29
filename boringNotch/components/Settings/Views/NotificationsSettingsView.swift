@@ -15,7 +15,9 @@ enum NotificationDeliveryStyle: String, CaseIterable, Defaults.Serializable {
 
 struct NotificationsSettingsView: View {
     @StateObject private var manager = NotificationCenterManager.shared
-    
+    @Default(.notificationDeliveryStyle) var notificationDeliveryStyle
+    @Default(.notificationRetentionDays) var notificationRetentionDays
+
     var body: some View {
         Form {
             Section {
@@ -50,7 +52,7 @@ struct NotificationsSettingsView: View {
             }
             
             Section {
-                Picker("Delivery Style", selection: Defaults.binding(.notificationDeliveryStyle)) {
+                Picker("Delivery Style", selection: $notificationDeliveryStyle) {
                     ForEach(NotificationDeliveryStyle.allCases, id: \.self) { style in
                         Text(style.localizedName).tag(style)
                     }
@@ -64,8 +66,8 @@ struct NotificationsSettingsView: View {
                     Text("Respect Do Not Disturb / Focus")
                 }
                 
-                Stepper(value: Defaults.binding(.notificationRetentionDays), in: 1...30) {
-                    Text("Keep history for \(Defaults[.notificationRetentionDays]) days")
+                Stepper(value: $notificationRetentionDays, in: 1...30) {
+                    Text("Keep history for \(notificationRetentionDays) days")
                 }
             } header: {
                 Text("History")

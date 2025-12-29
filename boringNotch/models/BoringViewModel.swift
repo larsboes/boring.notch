@@ -205,7 +205,6 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     @ObservedObject var batteryStatus = BatteryStatusViewModel.shared
-    @ObservedObject var screenRecording = ScreenRecordingManager.shared
     
     var effectiveClosedNotchHeight: CGFloat {
         let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
@@ -218,8 +217,7 @@ class BoringViewModel: NSObject, ObservableObject {
         // Check if any live activity is active
         let hasActiveLiveActivity = MusicManager.shared.isPlaying ||
                                     coordinator.sneakPeek.show ||
-                                    batteryStatus.hasActiveBatteryNotification ||
-                                    screenRecording.isRecording
+                                    batteryStatus.hasActiveBatteryNotification
         
         // Use inactive height when there's no live activity
         if hasActiveLiveActivity {

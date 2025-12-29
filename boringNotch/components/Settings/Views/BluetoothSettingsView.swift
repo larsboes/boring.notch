@@ -5,6 +5,7 @@ struct BluetoothSettingsView: View {
     @StateObject private var bluetoothManager = BluetoothManager.shared
     @State private var iconPickerPresented = false
     @State private var selectedDeviceForIcon: String?
+    @Default(.bluetoothSneakPeekStyle) var bluetoothSneakPeekStyle
     
     var body: some View {
         Form {
@@ -30,7 +31,7 @@ struct BluetoothSettingsView: View {
                     Text("Show connection notifications")
                 }
                 
-                Picker("Notification Style", selection: Defaults.binding(.bluetoothSneakPeekStyle)) {
+                Picker("Notification Style", selection: $bluetoothSneakPeekStyle) {
                     Text("Standard").tag(SneakPeekStyle.standard)
                     Text("Minimal").tag(SneakPeekStyle.minimal)
                 }

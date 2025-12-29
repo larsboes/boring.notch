@@ -275,19 +275,6 @@ struct BoringBatteryView: View {
             timeToFullCharge: 10,
             isForNotification: false
         ).frame(width: 200, height: 200)
-        
-        HStack {
-            BatteryRing(percentage: 96, displayPercentage: true)
-                .padding()
-            BatteryRing(percentage: 97, displayPercentage: true)
-                .padding()
-            BatteryRing(percentage: 98, displayPercentage: true)
-                .padding()
-            BatteryRing(percentage: 99, displayPercentage: true)
-                .padding()
-            BatteryRing(percentage: 100, displayPercentage: true)
-                .padding()
-        }
     }
     .background(.black)
 }

@@ -13,6 +13,37 @@ This document outlines the architectural issues identified in the boring.notch c
 
 ---
 
+## Update Log
+
+### 2025-12-29 - Post Feature Merge Analysis
+
+After merging all feature PRs, the codebase was re-analyzed. **Key findings:**
+
+| Metric | Before Merge | After Merge | Change |
+|--------|--------------|-------------|--------|
+| `.shared` occurrences | 260+ | **290** | +11.5% ❌ |
+| AppDelegate lines | 610 | 619 | +9 |
+| ContentView lines | 700 | 717 | +17 |
+| MusicManager lines | 621 | 620 | -1 |
+
+**New Singletons Added:**
+- `NotchFaceManager.shared` - Eye tracking and mood management
+- `SharingStateManager.shared` - Share sheet lifecycle
+- `XPCHelperClient.shared` - Privileged system operations
+
+**New Features:**
+- NotchMoodView - Animated face with eye tracking
+- SkyLight window - Lock screen support
+- StandardAnimations enum - ✅ Good centralization
+
+**Compile Errors to Fix:**
+1. `EmptyState.swift:15` - `MinimalFaceFeatures(height:width:)` doesn't exist → use `MinimalFaceFeatures()`
+2. `BoringNotchXPCHelperProtocol.swift` - Missing `getBluetoothDeviceMinorClass` method signature
+
+**Verdict:** Architecture got slightly worse (+11.5% singletons), but StandardAnimations is a positive step.
+
+---
+
 ## Part 1: Architectural Analysis
 
 ### 1.1 The Singleton Web
@@ -500,16 +531,30 @@ After refactoring, the codebase should:
 
 ## Appendix: Code Smells Reference
 
-### Files to Watch
+### Files to Watch (Updated 2025-12-29)
 
-| File | Issue | Priority |
-|------|-------|----------|
-| `ContentView.swift` | 700 lines, nested if-else | High |
-| `boringNotchApp.swift` | 610 line AppDelegate | High |
-| `MusicManager.swift` | 621 lines, 15+ responsibilities | High |
-| `BoringViewCoordinator.swift` | Misleading name, state dumping ground | Medium |
-| `BoringViewModel.swift` | @ObservedObject to singletons | Medium |
-| `NotchHomeView.swift` | 609 lines, embedded components | Medium |
+| File | Lines | Issue | Priority |
+|------|-------|-------|----------|
+| `ContentView.swift` | 717 | Nested if-else, 7+ singleton refs | High |
+| `boringNotchApp.swift` | 619 | AppDelegate god object | High |
+| `MusicManager.swift` | 620 | 15+ responsibilities | High |
+| `NotchHomeView.swift` | 614 | 24 .shared references | High |
+| `BoringViewCoordinator.swift` | 300 | State dumping ground | Medium |
+| `BoringViewModel.swift` | 230 | @ObservedObject to singletons | Medium |
+| `ShelfItemViewModel.swift` | - | 56 .shared references (worst) | Medium |
+| `NotchMoodView.swift` | 144 | New - directly observes singleton | Low |
+
+### Singletons Inventory (290 total usages)
+
+| Singleton | Usages | Notes |
+|-----------|--------|-------|
+| `BoringViewCoordinator.shared` | 64 | Used in almost every file |
+| `MusicManager.shared` | 35+ | Core dependency |
+| `ShelfStateViewModel.shared` | 30+ | Shelf feature |
+| `BatteryStatusViewModel.shared` | 15+ | Battery monitoring |
+| `XPCHelperClient.shared` | 9 | NEW - System operations |
+| `SharingStateManager.shared` | 8 | NEW - Share sheet state |
+| `NotchFaceManager.shared` | 3 | NEW - Face animation |
 
 ### Patterns to Eliminate
 
@@ -518,8 +563,17 @@ After refactoring, the codebase should:
 - `NotificationCenter.default.post` for internal state changes
 - Magic numbers without constants
 - Nested if-else chains for state determination
+- **NEW:** Adding new `.shared` singletons for new features
+
+### Immediate Fixes Required
+
+1. **EmptyState.swift:15** - Change `MinimalFaceFeatures(height: 70, width: 80)` to `MinimalFaceFeatures()`
+2. **BoringNotchXPCHelperProtocol.swift** - Add missing method:
+   ```swift
+   func getBluetoothDeviceMinorClass(with deviceName: String, with reply: @escaping (String?) -> Void)
+   ```
 
 ---
 
 *Document created: 2025-12-29*
-*Last updated: 2025-12-29*
+*Last updated: 2025-12-29 (Post-merge analysis)*

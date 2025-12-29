@@ -12,7 +12,6 @@
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
 		1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100292D2E86940F00035A57 /* QuickShareService.swift */; };
 		1113ABC52E80E27000EC13B2 /* ShelfItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113ABC32E80E27000EC13B2 /* ShelfItemView.swift */; };
-		110029312E86940F00035A57 /* ScreenRecordingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029302E86940F00035A57 /* ScreenRecordingManager.swift */; };
 		110029332E86940F00035A57 /* NotchMoodView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029322E86940F00035A57 /* NotchMoodView.swift */; };
 		110029352E86940F00035A57 /* NotchFaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029342E86940F00035A57 /* NotchFaceManager.swift */; };
 		110029392E86940F00035A57 /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029382E86940F00035A57 /* ClipboardManager.swift */; };
@@ -213,7 +212,6 @@
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
 		1100292D2E86940F00035A57 /* QuickShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickShareService.swift; sourceTree = "<group>"; };
-		110029302E86940F00035A57 /* ScreenRecordingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenRecordingManager.swift; sourceTree = "<group>"; };
 		110029322E86940F00035A57 /* NotchMoodView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchMoodView.swift; sourceTree = "<group>"; };
 		110029342E86940F00035A57 /* NotchFaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchFaceManager.swift; sourceTree = "<group>"; };
 		110029382E86940F00035A57 /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
@@ -603,7 +601,6 @@
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
 				B1F0A0012E60000100000001 /* BrightnessManager.swift */,
 				59D8C23B2E589FAA00147B33 /* VolumeManager.swift */,
-				110029302E86940F00035A57 /* ScreenRecordingManager.swift */,
 				110029342E86940F00035A57 /* NotchFaceManager.swift */,
 				110029382E86940F00035A57 /* ClipboardManager.swift */,
 				1100293A2E86940F00035A57 /* NotesManager.swift */,
@@ -1044,7 +1041,6 @@
 				1113ABCB2E80E27000EC13B2 /* QuickLookService.swift in Sources */,
 				1113ABCC2E80E27000EC13B2 /* ShelfDropService.swift in Sources */,
 				1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */,
-				110029312E86940F00035A57 /* ScreenRecordingManager.swift in Sources */,
 				110029332E86940F00035A57 /* NotchMoodView.swift in Sources */,
 				110029352E86940F00035A57 /* NotchFaceManager.swift in Sources */,
 				110029392E86940F00035A57 /* ClipboardManager.swift in Sources */,

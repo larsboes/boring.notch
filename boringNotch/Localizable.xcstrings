@@ -1904,6 +1904,9 @@
         }
       }
     },
+    "Add Note" : {
+
+    },
     "Additional features" : {
       "localizations" : {
         "ar" : {
@@ -3507,6 +3510,9 @@
         }
       }
     },
+    "Bluetooth" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
         "ar" : {
@@ -4108,7 +4114,6 @@
       }
     },
     "Cancel" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -4207,6 +4212,9 @@
           }
         }
       }
+    },
+    "Change Icon" : {
+
     },
     "Change media with horizontal gestures" : {
       "localizations" : {
@@ -5208,6 +5216,9 @@
         }
       }
     },
+    "Clipboard" : {
+
+    },
     "Close" : {
       "localizations" : {
         "ar" : {
@@ -5811,6 +5822,9 @@
     "Condition" : {
 
     },
+    "Connected Devices" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -6012,6 +6026,7 @@
       }
     },
     "Corner radius scaling" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6814,6 +6829,9 @@
         }
       }
     },
+    "Delivery Style" : {
+
+    },
     "Description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7017,7 +7035,6 @@
       }
     },
     "Disabled" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7819,6 +7836,9 @@
       }
     },
     "Enable 'Show weather' above to request location permission." : {
+
+    },
+    "Enable Bluetooth Integration" : {
 
     },
     "Enable blur effect behind album art" : {
@@ -10834,6 +10854,9 @@
         }
       }
     },
+    "History" : {
+
+    },
     "Hover delay" : {
       "localizations" : {
         "ar" : {
@@ -11334,6 +11357,15 @@
         }
       }
     },
+    "Inactive notch height" : {
+
+    },
+    "Inactive notch sizing (For non-notch displays)" : {
+
+    },
+    "Info & Updates" : {
+
+    },
     "Inline" : {
       "localizations" : {
         "ar" : {
@@ -11535,6 +11567,9 @@
         }
       }
     },
+    "Keep history for %lld days" : {
+
+    },
     "Last Updated" : {
 
     },
@@ -11657,6 +11692,7 @@
 
     },
     "Lottie JSON URL" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -13356,6 +13392,9 @@
         }
       }
     },
+    "Minimal" : {
+
+    },
     "Mirror" : {
       "localizations" : {
         "ar" : {
@@ -14157,6 +14196,9 @@
         }
       }
     },
+    "No connected devices found" : {
+
+    },
     "No events" : {
       "localizations" : {
         "ar" : {
@@ -14561,6 +14603,9 @@
         }
       }
     },
+    "Notch Background" : {
+
+    },
     "Notch behavior" : {
       "localizations" : {
         "ar" : {
@@ -14961,6 +15006,15 @@
         }
       }
     },
+    "Notes" : {
+
+    },
+    "Notification Style" : {
+
+    },
+    "Notifications" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -15062,6 +15116,9 @@
       }
     },
     "Open Location Settings" : {
+
+    },
+    "Open macOS settings" : {
 
     },
     "Open Notch" : {
@@ -15570,6 +15627,9 @@
         }
       }
     },
+    "Permission Status" : {
+
+    },
     "Pick a Color" : {
       "localizations" : {
         "ar" : {
@@ -15669,6 +15729,9 @@
           }
         }
       }
+    },
+    "Play sound" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -17170,6 +17233,9 @@
         }
       }
     },
+    "Request permission" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -17269,6 +17335,9 @@
           }
         }
       }
+    },
+    "Respect Do Not Disturb / Focus" : {
+
     },
     "Restart" : {
       "extractionState" : "stale",
@@ -17641,6 +17710,12 @@
           }
         }
       }
+    },
+    "Search SF Symbols" : {
+
+    },
+    "Select Icon for %@" : {
+
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
@@ -18144,6 +18219,9 @@
         }
       }
     },
+    "Shelf Events" : {
+
+    },
     "Shortcuts" : {
       "localizations" : {
         "ar" : {
@@ -18543,6 +18621,9 @@
           }
         }
       }
+    },
+    "Show connection notifications" : {
+
     },
     "Show cool face animation while inactive" : {
       "localizations" : {
@@ -19847,6 +19928,9 @@
         }
       }
     },
+    "Sneak peak duration" : {
+
+    },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {
         "ar" : {
@@ -20147,6 +20231,12 @@
         }
       }
     },
+    "Sound" : {
+
+    },
+    "Sources" : {
+
+    },
     "Speed" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -20348,6 +20438,12 @@
         }
       }
     },
+    "Standard" : {
+
+    },
+    "Status" : {
+
+    },
     "Stopped" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -20548,6 +20644,9 @@
           }
         }
       }
+    },
+    "System Events" : {
+
     },
     "System features" : {
       "localizations" : {
@@ -20851,6 +20950,9 @@
           }
         }
       }
+    },
+    "Title" : {
+
     },
     "Toggle Notch Open:" : {
       "localizations" : {
@@ -21652,6 +21754,9 @@
           }
         }
       }
+    },
+    "Use smaller height when inactive" : {
+
     },
     "Use your macOS system accent color" : {
       "localizations" : {
@@ -22955,6 +23060,21 @@
           }
         }
       }
+    },
+    "모두 읽음" : {
+
+    },
+    "배터리와 시스템 이벤트를 한 곳에서 확인하세요." : {
+
+    },
+    "비우기" : {
+
+    },
+    "알림이 비활성화되어 있어요. 설정에서 켜주세요." : {
+
+    },
+    "읽음 처리" : {
+
     }
   },
   "version" : "1.0"

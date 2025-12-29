@@ -1,4 +1,5 @@
 import IOBluetooth
+import CoreBluetooth
 import SwiftUI
 import Defaults
 import Combine

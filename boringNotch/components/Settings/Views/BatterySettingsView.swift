@@ -9,6 +9,12 @@ import Defaults
 import SwiftUI
 
 struct Charge: View {
+    @Default(.powerStatusNotificationSound) var powerStatusNotificationSound
+    @Default(.lowBatteryNotificationLevel) var lowBatteryNotificationLevel
+    @Default(.lowBatteryNotificationSound) var lowBatteryNotificationSound
+    @Default(.highBatteryNotificationLevel) var highBatteryNotificationLevel
+    @Default(.highBatteryNotificationSound) var highBatteryNotificationSound
+
     var body: some View {
         Form {
             Section {
@@ -36,20 +42,20 @@ struct Charge: View {
             }
             
             Section {
-                PickerSoundAlert(sounds: SystemSoundHelper.availableSystemSounds(), sound: Defaults.binding(.powerStatusNotificationSound))
+                PickerSoundAlert(sounds: SystemSoundHelper.availableSystemSounds(), sound: $powerStatusNotificationSound)
                 
                 BatteryLevelPicker(
                     title: "Low Battery Notification",
-                    level: Defaults.binding(.lowBatteryNotificationLevel),
+                    level: $lowBatteryNotificationLevel,
                     sounds: SystemSoundHelper.availableSystemSounds(),
-                    sound: Defaults.binding(.lowBatteryNotificationSound)
+                    sound: $lowBatteryNotificationSound
                 )
                 
                 BatteryLevelPicker(
                     title: "High Battery Notification",
-                    level: Defaults.binding(.highBatteryNotificationLevel),
+                    level: $highBatteryNotificationLevel,
                     sounds: SystemSoundHelper.availableSystemSounds(),
-                    sound: Defaults.binding(.highBatteryNotificationSound)
+                    sound: $highBatteryNotificationSound
                 )
             } header: {
                 Text("Notifications")

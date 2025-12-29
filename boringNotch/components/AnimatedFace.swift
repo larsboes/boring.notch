@@ -7,9 +7,12 @@
 import SwiftUI
 
 struct MinimalFaceFeatures: View {
+    var height: CGFloat = 20
+    var width: CGFloat = 30
+    
     var body: some View {
         NotchMoodView()
-            .frame(width: 30, height: 20)
+            .frame(width: width, height: height)
     }
 }
 
