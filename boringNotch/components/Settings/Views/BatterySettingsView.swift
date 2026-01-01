@@ -5,23 +5,19 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import SwiftUI
 
 struct Charge: View {
-    @Default(.powerStatusNotificationSound) var powerStatusNotificationSound
-    @Default(.lowBatteryNotificationLevel) var lowBatteryNotificationLevel
-    @Default(.lowBatteryNotificationSound) var lowBatteryNotificationSound
-    @Default(.highBatteryNotificationLevel) var highBatteryNotificationLevel
-    @Default(.highBatteryNotificationSound) var highBatteryNotificationSound
+    @Environment(\.bindableSettings) var settings
 
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
-                Defaults.Toggle(key: .showBatteryIndicator) {
+                Toggle(isOn: $settings.showBatteryIndicator) {
                     Text("Show battery indicator")
                 }
-                Defaults.Toggle(key: .showPowerStatusNotifications) {
+                Toggle(isOn: $settings.showPowerStatusNotifications) {
                     Text("Show power status notifications")
                 }
             } header: {
@@ -30,11 +26,11 @@ struct Charge: View {
             Section {
                 // toggle won't show if device is wall powered device
                 if deviceHasBattery() {
-                    Defaults.Toggle(key: .showBatteryPercentage) {
+                    Toggle(isOn: $settings.showBatteryPercentage) {
                         Text("Show battery percentage")
                     }
                 }
-                Defaults.Toggle(key: .showPowerStatusIcons) {
+                Toggle(isOn: $settings.showPowerStatusIcons) {
                     Text("Show power status icons")
                 }
             } header: {
@@ -42,20 +38,20 @@ struct Charge: View {
             }
             
             Section {
-                PickerSoundAlert(sounds: SystemSoundHelper.availableSystemSounds(), sound: $powerStatusNotificationSound)
+                PickerSoundAlert(sounds: SystemSoundHelper.availableSystemSounds(), sound: $settings.powerStatusNotificationSound)
                 
                 BatteryLevelPicker(
                     title: "Low Battery Notification",
-                    level: $lowBatteryNotificationLevel,
+                    level: $settings.lowBatteryNotificationLevel,
                     sounds: SystemSoundHelper.availableSystemSounds(),
-                    sound: $lowBatteryNotificationSound
+                    sound: $settings.lowBatteryNotificationSound
                 )
                 
                 BatteryLevelPicker(
                     title: "High Battery Notification",
-                    level: $highBatteryNotificationLevel,
+                    level: $settings.highBatteryNotificationLevel,
                     sounds: SystemSoundHelper.availableSystemSounds(),
-                    sound: $highBatteryNotificationSound
+                    sound: $settings.highBatteryNotificationSound
                 )
             } header: {
                 Text("Notifications")

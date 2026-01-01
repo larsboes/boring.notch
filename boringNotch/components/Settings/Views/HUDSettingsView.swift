@@ -5,19 +5,15 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import SwiftUI
 
 struct HUD: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @Default(.inlineHUD) var inlineHUD
-    @Default(.enableGradient) var enableGradient
-    @Default(.optionKeyAction) var optionKeyAction
-    @Default(.hudReplacement) var hudReplacement
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(\.bindableSettings) var settings
     @State private var accessibilityAuthorized = false
     
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
                 HStack {
@@ -30,7 +26,7 @@ struct HUD: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 40)
-                    Defaults.Toggle("", key: .hudReplacement)
+                    Toggle("", isOn: $settings.hudReplacement)
                     .labelsHidden()
                     .toggleStyle(.switch)
                     .controlSize(.large)
@@ -55,68 +51,68 @@ struct HUD: View {
             }
             
             Section {
-                Picker("Option key behaviour", selection: $optionKeyAction) {
+                Picker("Option key behaviour", selection: $settings.optionKeyAction) {
                     ForEach(OptionKeyAction.allCases) { opt in
                         Text(opt.rawValue).tag(opt)
                     }
                 }
                 
-                Picker("Progress bar style", selection: $enableGradient) {
+                Picker("Progress bar style", selection: $settings.enableGradient) {
                     Text("Hierarchical")
                         .tag(false)
                     Text("Gradient")
                         .tag(true)
                 }
-                Defaults.Toggle(key: .systemEventIndicatorShadow) {
+                Toggle(isOn: $settings.systemEventIndicatorShadow) {
                     Text("Enable glowing effect")
                 }
-                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
+                Toggle(isOn: $settings.systemEventIndicatorUseAccent) {
                     Text("Tint progress bar with accent color")
                 }
             } header: {
                 Text("General")
             }
-            .disabled(!hudReplacement)
+            .disabled(!settings.hudReplacement)
             
             Section {
-                Defaults.Toggle(key: .showOpenNotchHUD) {
+                Toggle(isOn: $settings.showOpenNotchHUD) {
                     Text("Show HUD in open notch")
                 }
-                Defaults.Toggle(key: .showOpenNotchHUDPercentage) {
+                Toggle(isOn: $settings.showOpenNotchHUDPercentage) {
                     Text("Show percentage")
                 }
-                .disabled(!Defaults[.showOpenNotchHUD])
+                .disabled(!settings.showOpenNotchHUD)
             } header: {
                 HStack {
                     Text("Open Notch")
                     customBadge(text: "Beta")
                 }
             }
-            .disabled(!hudReplacement)
+            .disabled(!settings.hudReplacement)
             
             Section {
-                Picker("HUD style", selection: $inlineHUD) {
+                Picker("HUD style", selection: $settings.inlineHUD) {
                     Text("Default")
                         .tag(false)
                     Text("Inline")
                         .tag(true)
                 }
-                .onChange(of: Defaults[.inlineHUD]) {
-                    if Defaults[.inlineHUD] {
+                .onChange(of: settings.inlineHUD) {
+                    if settings.inlineHUD {
                         withAnimation {
-                            Defaults[.systemEventIndicatorShadow] = false
-                            Defaults[.enableGradient] = false
+                            settings.systemEventIndicatorShadow = false
+                            settings.enableGradient = false
                         }
                     }
                 }
                 
-                Defaults.Toggle(key: .showClosedNotchHUDPercentage) {
+                Toggle(isOn: $settings.showClosedNotchHUDPercentage) {
                     Text("Show percentage")
                 }
             } header: {
                 Text("Closed Notch")
             }
-            .disabled(!Defaults[.hudReplacement])
+            .disabled(!settings.hudReplacement)
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("HUDs")

@@ -5,28 +5,22 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import SwiftUI
 
 struct Media: View {
-    @Default(.waitInterval) var waitInterval
-    @Default(.mediaController) var mediaController
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @Default(.hideNotchOption) var hideNotchOption
-    @Default(.enableSneakPeek) private var enableSneakPeek
-    @Default(.sneakPeekStyles) var sneakPeekStyles
-
-    @Default(.enableLyrics) var enableLyrics
+    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(\.bindableSettings) var settings
 
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
-                Picker("Music Source", selection: $mediaController) {
+                Picker("Music Source", selection: $settings.mediaController) {
                     ForEach(availableMediaControllers) { controller in
                         Text(controller.rawValue).tag(controller)
                     }
                 }
-                .onChange(of: mediaController) { _, _ in
+                .onChange(of: settings.mediaController) { _, _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.mediaControllerChanged,
                         object: nil
@@ -61,24 +55,24 @@ struct Media: View {
                     "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
-                Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
-                Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
+                Toggle("Show sneak peek on playback changes", isOn: $settings.enableSneakPeek)
+                Picker("Sneak Peek Style", selection: $settings.sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
                         Text(style.rawValue).tag(style)
                     }
                 }
                 HStack {
-                    Stepper(value: $waitInterval, in: 0...10, step: 1) {
+                    Stepper(value: $settings.waitInterval, in: 0...10, step: 1) {
                         HStack {
                             Text("Media inactivity timeout")
                             Spacer()
-                            Text("\(Defaults[.waitInterval], specifier: "%.0f") seconds")
+                            Text("\(settings.waitInterval, specifier: "%.0f") seconds")
                                 .foregroundStyle(.secondary)
                         }
                     }
                 }
                 Picker(
-                    selection: $hideNotchOption,
+                    selection: $settings.hideNotchOption,
                     label:
                         HStack {
                             Text("Full screen behavior")
@@ -96,7 +90,7 @@ struct Media: View {
             
             Section {
                 MusicSlotConfigurationView()
-                Defaults.Toggle(key: .enableLyrics) {
+                Toggle(isOn: $settings.enableLyrics) {
                     HStack {
                         Text("Show lyrics below artist name")
                         customBadge(text: "Beta")

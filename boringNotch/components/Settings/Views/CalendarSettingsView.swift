@@ -5,32 +5,29 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import EventKit
 import SwiftUI
 
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
-    @Default(.showCalendar) var showCalendar: Bool
-    @Default(.hideCompletedReminders) var hideCompletedReminders
-    @Default(.hideAllDayEvents) var hideAllDayEvents
-    @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
+    @Environment(\.bindableSettings) var settings
 
     var body: some View {
+        @Bindable var settings = settings
         Form {
-            Defaults.Toggle(key: .showCalendar) {
+            Toggle(isOn: $settings.showCalendar) {
                 Text("Show calendar")
             }
-            Defaults.Toggle(key: .hideCompletedReminders) {
+            Toggle(isOn: $settings.hideCompletedReminders) {
                 Text("Hide completed reminders")
             }
-            Defaults.Toggle(key: .hideAllDayEvents) {
+            Toggle(isOn: $settings.hideAllDayEvents) {
                 Text("Hide all-day events")
             }
-            Defaults.Toggle(key: .autoScrollToNextEvent) {
+            Toggle(isOn: $settings.autoScrollToNextEvent) {
                 Text("Auto-scroll to next event")
             }
-            Defaults.Toggle(key: .showFullEventTitles) {
+            Toggle(isOn: $settings.showFullEventTitles) {
                 Text("Always show full event titles")
             }
             Section(header: Text("Calendars")) {
@@ -64,7 +61,7 @@ struct CalendarSettings: View {
                                 Text(calendar.title)
                             }
                             .accentColor(lighterColor(from: calendar.color))
-                            .disabled(!showCalendar)
+                            .disabled(!settings.showCalendar)
                         }
                     }
                 }
@@ -100,7 +97,7 @@ struct CalendarSettings: View {
                                 Text(calendar.title)
                             }
                             .accentColor(lighterColor(from: calendar.color))
-                            .disabled(!showCalendar)
+                            .disabled(!settings.showCalendar)
                         }
                     }
                 }

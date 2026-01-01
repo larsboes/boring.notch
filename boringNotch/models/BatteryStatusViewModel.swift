@@ -5,23 +5,25 @@ import IOKit.ps
 import SwiftUI
 
 /// A view model that manages and monitors the battery status of the device
-class BatteryStatusViewModel: ObservableObject {
+/// A view model that manages and monitors the battery status of the device
+@MainActor
+@Observable class BatteryStatusViewModel {
 
     private var wasCharging: Bool = false
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
 
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    var coordinator = BoringViewCoordinator.shared
 
-    @Published private(set) var levelBattery: Float = 0.0
-    @Published private(set) var maxCapacity: Float = 0.0
-    @Published private(set) var isPluggedIn: Bool = false
-    @Published private(set) var isCharging: Bool = false
-    @Published private(set) var isInLowPowerMode: Bool = false
-    @Published private(set) var isInitial: Bool = false
-    @Published private(set) var timeToFullCharge: Int = 0
-    @Published private(set) var statusText: String = ""
-    @Published var hasActiveBatteryNotification: Bool = false
+    private(set) var levelBattery: Float = 0.0
+    private(set) var maxCapacity: Float = 0.0
+    private(set) var isPluggedIn: Bool = false
+    private(set) var isCharging: Bool = false
+    private(set) var isInLowPowerMode: Bool = false
+    private(set) var isInitial: Bool = false
+    private(set) var timeToFullCharge: Int = 0
+    private(set) var statusText: String = ""
+    var hasActiveBatteryNotification: Bool = false
 
     private let managerBattery = BatteryActivityManager.shared
     private var managerBatteryId: Int?
@@ -44,8 +46,10 @@ class BatteryStatusViewModel: ObservableObject {
     /// Sets up the monitor to observe battery events
     private func setupMonitor() {
         managerBatteryId = managerBattery.addObserver { [weak self] event in
-            guard let self = self else { return }
-            self.handleBatteryEvent(event)
+            Task { @MainActor in
+                guard let self = self else { return }
+                self.handleBatteryEvent(event)
+            }
         }
     }
 
@@ -173,10 +177,12 @@ class BatteryStatusViewModel: ObservableObject {
     }
 
     deinit {
-        print("🔌 Cleaning up battery monitoring...")
-        if let managerBatteryId: Int = managerBatteryId {
-            managerBattery.removeObserver(byId: managerBatteryId)
-        }
+        // Singleton, effectively never deinits.
+        // Accessing MainActor isolated managerBatteryId from deinit is difficult.
+        // print("🔌 Cleaning up battery monitoring...")
+        // if let id = managerBatteryId {
+        //     managerBattery.removeObserver(byId: id)
+        // }
     }
 
 }

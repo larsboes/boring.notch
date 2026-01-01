@@ -45,39 +45,74 @@ struct DynamicNotchApp: App {
     private let userDriverDelegate = SparkleUserDriverDelegate()
 
     init() {
+        // Skip heavy initialization when running as test host
+        let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: userDriverDelegate)
+            startingUpdater: !isRunningTests, updaterDelegate: nil, userDriverDelegate: userDriverDelegate)
 
         // Initialize the settings window controller with the updater controller
-        SettingsWindowController.shared.setUpdaterController(updaterController)
+        // Skip when running tests to avoid view instantiation that requires BoringViewModel
+        if !isRunningTests {
+            SettingsWindowController.shared.setUpdaterController(updaterController)
+        }
+    }
+
+    /// Check if running as a test host
+    private var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
-            Button("Settings") {
-                SettingsWindowController.shared.showWindow()
+        // Skip MenuBarExtra when running as test host to avoid SwiftUI initialization issues
+        // FIXME: This if-else block causes a build error with SceneBuilder.
+        // if isRunningTests {
+        //     Settings {
+        //         EmptyView()
+        //     }
+        // } else {
+            MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+                Button("Settings") {
+                    SettingsWindowController.shared.showWindow()
+                }
+                .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+                CheckForUpdatesView(updater: updaterController.updater)
+                Divider()
+                Button("Restart Boring Notch") {
+                    ApplicationRelauncher.restart()
+                }
+                Button("Quit", role: .destructive) {
+                    NSApplication.shared.terminate(self)
+                }
+                .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
             }
-            .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-            CheckForUpdatesView(updater: updaterController.updater)
-            Divider()
-            Button("Restart Boring Notch") {
-                ApplicationRelauncher.restart()
-            }
-            Button("Quit", role: .destructive) {
-                NSApplication.shared.terminate(self)
-            }
-            .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
-        }
+            .environment(\.pluginManager, appDelegate.pluginManager)
+        // }
     }
 }
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
+    // MARK: - Plugin System
+    
+    lazy var pluginManager: PluginManager = {
+        PluginManager(
+            services: ServiceContainer(),
+            eventBus: PluginEventBus(),
+            appState: BoringAppState()
+        )
+    }()
+
     // MARK: - Coordinators (Phase 3 refactoring)
 
     /// Manages window creation, positioning, and multi-display support
     private lazy var windowCoordinator: WindowCoordinator = {
-        let wc = WindowCoordinator(primaryViewModel: vm, coordinator: coordinator)
+        let wc = WindowCoordinator(
+            primaryViewModel: vm,
+            coordinator: coordinator,
+            settings: settings,
+            pluginManager: pluginManager
+        )
         wc.onDragDetectorsNeedSetup = { [weak self] in
             self?.dragDetectionCoordinator.setupDragDetectors()
         }
@@ -98,8 +133,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     var statusItem: NSStatusItem?
     let vm: BoringViewModel = .init()
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    var coordinator = BoringViewCoordinator.shared
     var quickShareService = QuickShareService.shared
+    var settings: NotchSettings = DefaultsNotchSettings()
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     private var previousScreens: [NSScreen]?
@@ -135,6 +171,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
+        
+        // Deactivate plugins
+        Task {
+            await pluginManager.deactivateAllPlugins()
+        }
 
         NotificationCenter.default.removeObserver(self)
         if let observer = screenLockedObserver {
@@ -191,6 +232,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Application Lifecycle
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Skip heavy initialization when running as test host
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            return
+        }
+        
+        // Activate plugins
+        Task {
+            await pluginManager.activateEnabledPlugins()
+        }
 
         NotificationCenter.default.addObserver(
             self,

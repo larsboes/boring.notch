@@ -5,17 +5,17 @@
 //  Created by Alexander on 2025-12-29.
 //
 
+
 import SwiftUI
-import Defaults
 
 struct NotchMoodView: View {
-    @Default(.selectedMood) var mood
+    @Environment(\.settings) var settings
     @ObservedObject var faceManager = NotchFaceManager.shared
     @State private var blink = false
     @State private var breathe = false
     
     var body: some View {
-        let currentMood = faceManager.isSleepy ? .sleepy : mood
+        let currentMood = faceManager.isSleepy ? .sleepy : settings.selectedMood
         
         ZStack {
             // Eyes

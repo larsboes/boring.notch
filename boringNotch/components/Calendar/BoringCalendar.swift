@@ -5,14 +5,13 @@
 //  Created by Harsh Vardhan  Goswami  on 08/09/24.
 //
 
-import Defaults
 import SwiftUI
 
 // MARK: - WeekDayPicker
 /// Fixed 6-day week view (Mon-Sat) with compact styling
 struct WeekDayPicker: View {
     @Binding var selectedDate: Date
-    @Default(.enableHaptics) private var enableHaptics
+    @Environment(\.settings) var settings
     @State private var haptics: Bool = false
     
     /// Get Mon-Sat of the week containing the selected date
@@ -47,7 +46,7 @@ struct WeekDayPicker: View {
         
         return Button(action: {
             selectedDate = date
-            if enableHaptics {
+            if settings.enableHaptics {
                 haptics.toggle()
             }
         }) {
@@ -87,7 +86,8 @@ struct WeekDayPicker: View {
 }
 
 struct CalendarView: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
 
@@ -113,7 +113,8 @@ struct CalendarView: View {
             .padding(.horizontal, 8)
 
             let filteredEvents = EventListView.filteredEvents(
-                events: calendarManager.events
+                events: calendarManager.events,
+                settings: settings
             )
             if filteredEvents.isEmpty {
                 EmptyEventsView(selectedDate: selectedDate)
@@ -164,20 +165,19 @@ struct EmptyEventsView: View {
 
 struct EventListView: View {
     @Environment(\.openURL) private var openURL
+    @Environment(\.settings) var settings
     @ObservedObject private var calendarManager = CalendarManager.shared
     let events: [EventModel]
-    @Default(.autoScrollToNextEvent) private var autoScrollToNextEvent
-    @Default(.showFullEventTitles) private var showFullEventTitles
 
-    static func filteredEvents(events: [EventModel]) -> [EventModel] {
+    static func filteredEvents(events: [EventModel], settings: NotchSettings) -> [EventModel] {
         events.filter { event in
             if event.type.isReminder {
                 if case .reminder(let completed) = event.type {
-                    return !completed || !Defaults[.hideCompletedReminders]
+                    return !completed || !settings.hideCompletedReminders
                 }
             }
             // Filter out all-day events if setting is enabled
-            if event.isAllDay && Defaults[.hideAllDayEvents] {
+            if event.isAllDay && settings.hideAllDayEvents {
                 return false
             }
             return true
@@ -185,7 +185,7 @@ struct EventListView: View {
     }
 
     private var filteredEvents: [EventModel] {
-        Self.filteredEvents(events: events)
+        Self.filteredEvents(events: events, settings: settings)
     }
 
     private func scrollToRelevantEvent(proxy: ScrollViewProxy) {
@@ -267,7 +267,10 @@ struct EventListView: View {
                         Text(event.title)
                             .font(.callout)
                             .foregroundColor(.white)
-                            .lineLimit(showFullEventTitles ? nil : 1)
+                        Text(event.title)
+                            .font(.callout)
+                            .foregroundColor(.white)
+                            .lineLimit(settings.showFullEventTitles ? nil : 1)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: 4) {
                             if event.isAllDay {
@@ -305,7 +308,11 @@ struct EventListView: View {
                             .font(.callout)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
-                            .lineLimit(showFullEventTitles ? nil : 2)
+                        Text(event.title)
+                            .font(.callout)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .lineLimit(settings.showFullEventTitles ? nil : 2)
 
                         if let location = event.location, !location.isEmpty {
                             Text(location)
@@ -374,5 +381,5 @@ struct ReminderToggle: View {
     CalendarView()
         .frame(width: 215, height: 130)
         .background(.black)
-        .environmentObject(BoringViewModel())
+        .environment(BoringViewModel())
 }

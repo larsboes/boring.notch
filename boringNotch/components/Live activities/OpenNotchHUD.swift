@@ -6,14 +6,13 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct OpenNotchHUD: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
     @Binding var type: SneakContentType
     @Binding var value: CGFloat
     @Binding var icon: String
-    @Default(.showOpenNotchHUDPercentage) var showPercentage
+    @Environment(\.settings) var settings
     
     var body: some View {
         HStack(spacing: 8) {
@@ -51,7 +50,7 @@ struct OpenNotchHUD: View {
                 DraggableProgressBar(value: $value, onChange: { newVal in
                      updateSystemValue(newVal)
                 })
-                .frame(width: showPercentage ? 65 : 108) // Fixed width for consistency
+                .frame(width: settings.showOpenNotchHUDPercentage ? 65 : 108) // Fixed width for consistency
             } else {
                 Text(value > 0 ? "Unmuted" : "Muted")
                     .font(.system(size: 13, weight: .medium))
@@ -60,7 +59,7 @@ struct OpenNotchHUD: View {
             }
             
             // Percentage Text
-            if type != .mic && showPercentage {
+            if type != .mic && settings.showOpenNotchHUDPercentage {
                 Text("\(Int(value * 100))%")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.gray)
@@ -100,7 +99,7 @@ struct OpenNotchHUD: View {
 
 #Preview {
     OpenNotchHUD(type: .constant(.volume), value: .constant(0.5), icon: .constant(""))
-        .environmentObject(BoringViewModel())
+        .environment(BoringViewModel())
         .padding()
         .background(Color.gray)
 }

@@ -8,14 +8,14 @@ import Foundation
 import AppKit
 
 @MainActor
-final class ShelfStateViewModel: ObservableObject {
+@Observable final class ShelfStateViewModel {
     static let shared = ShelfStateViewModel()
 
-    @Published private(set) var items: [ShelfItem] = [] {
+    private(set) var items: [ShelfItem] = [] {
         didSet { schedulePersistence() }
     }
 
-    @Published var isLoading: Bool = false
+    var isLoading: Bool = false
 
     var isEmpty: Bool { items.isEmpty }
 

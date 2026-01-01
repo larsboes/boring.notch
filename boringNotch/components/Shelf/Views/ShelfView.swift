@@ -9,17 +9,19 @@ import SwiftUI
 import AppKit
 
 struct ShelfView: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @StateObject var tvm = ShelfStateViewModel.shared
-    @StateObject var selection = ShelfSelectionModel.shared
-    @StateObject private var quickLookService = QuickLookService()
+    @Environment(BoringViewModel.self) var vm
+    @State var tvm = ShelfStateViewModel.shared
+    @State var selection = ShelfSelectionModel.shared
+    @ObservedObject private var quickLookService = QuickLookService.shared
     private let spacing: CGFloat = 8
 
     var body: some View {
+        @Bindable var vm = vm
+        
         HStack(spacing: 12) {
             FileShareView()
                 .aspectRatio(1, contentMode: .fit)
-                .environmentObject(vm)
+                .environment(vm)
             panel
                 .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
@@ -78,7 +80,8 @@ struct ShelfView: View {
     }
 
     var content: some View {
-        Group {
+        @Bindable var vm = vm
+        return Group {
             if tvm.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "tray.and.arrow.down")
@@ -97,6 +100,7 @@ struct ShelfView: View {
                     LazyHStack(spacing: spacing) {
                         ForEach(tvm.items) { item in
                             ShelfItemView(item: item)
+                                .environment(vm)
                                 .environmentObject(quickLookService)
                         }
                     }

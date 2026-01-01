@@ -15,7 +15,7 @@ let defaultImage: NSImage = .init(
 )!
 
 @MainActor
-class MusicManager: ObservableObject {
+@Observable class MusicManager {
     // MARK: - Properties
     static let shared = MusicManager()
     private var cancellables = Set<AnyCancellable>()
@@ -33,31 +33,55 @@ class MusicManager: ObservableObject {
     private var activeController: (any MediaControllerProtocol)?
 
     // Published properties for UI
-    @Published var songTitle: String = "I'm Handsome"
-    @Published var artistName: String = "Me"
-    @Published var albumArt: NSImage = defaultImage
-    @Published var isPlaying = false
-    @Published var album: String = "Self Love"
-    @Published var isPlayerIdle: Bool = true
-    @Published var animations: BoringAnimations = .init()
-    @Published var avgColor: NSColor = .white
-    @Published var bundleIdentifier: String?
-    @Published var songDuration: TimeInterval = 0
-    @Published var elapsedTime: TimeInterval = 0
-    @Published var timestampDate: Date = .init()
-    @Published var playbackRate: Double = 1
-    @Published var isShuffled: Bool = false
-    @Published var repeatMode: RepeatMode = .off
-    @Published var volume: Double = 0.5
-    @Published var volumeControlSupported: Bool = true
-    @Published var usingAppIconForArtwork: Bool = false
+    var songTitle: String = "I'm Handsome"
+    var artistName: String = "Me"
+    var albumArt: NSImage = defaultImage
+    var isPlaying = false
+    var album: String = "Self Love"
+    var isPlayerIdle: Bool = true
+    var animations: BoringAnimations = .init()
+    var avgColor: NSColor = .white
+    var bundleIdentifier: String?
+    var songDuration: TimeInterval = 0
+    var elapsedTime: TimeInterval = 0
+    var timestampDate: Date = .init()
+    var playbackRate: Double = 1
+    var isShuffled: Bool = false
+    var repeatMode: RepeatMode = .off
+    var volume: Double = 0.5
+    var volumeControlSupported: Bool = true
+    var usingAppIconForArtwork: Bool = false
 
     // MARK: - Sneak Peek Request (replaces direct coordinator coupling)
 
     /// Published when music starts playing and sneak peek should be shown.
     /// The coordinator subscribes to this instead of being called directly.
     /// This maintains separation of concerns: data manager doesn't know about view coordinator.
-    @Published var sneakPeekRequest: SneakPeekRequest?
+    private let sneakPeekSubject = PassthroughSubject<SneakPeekRequest, Never>()
+    var sneakPeekPublisher: AnyPublisher<SneakPeekRequest, Never> {
+        sneakPeekSubject.eraseToAnyPublisher()
+    }
+    
+    // Publisher for playback state changes (for MusicService)
+    private let playbackStateSubject = PassthroughSubject<PlaybackState, Never>()
+    var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
+        playbackStateSubject.eraseToAnyPublisher()
+    }
+    
+    // Publisher for average color changes
+    private let avgColorSubject = PassthroughSubject<NSColor, Never>()
+    var avgColorPublisher: AnyPublisher<NSColor, Never> {
+        avgColorSubject.eraseToAnyPublisher()
+    }
+    
+    // Kept for backward compatibility if needed, but publisher is preferred for events
+    var sneakPeekRequest: SneakPeekRequest? {
+        didSet {
+            if let request = sneakPeekRequest {
+                sneakPeekSubject.send(request)
+            }
+        }
+    }
 
     struct SneakPeekRequest: Equatable {
         let style: SneakPeekStyle
@@ -67,14 +91,14 @@ class MusicManager: ObservableObject {
             lhs.style == rhs.style && lhs.type == rhs.type
         }
     }
-    @Published var canFavoriteTrack: Bool = false
+    var canFavoriteTrack: Bool = false
     
     // Lyrics are now managed by LyricsService
     var lyricsService: LyricsService { LyricsService.shared }
     var currentLyrics: String { lyricsService.currentLyrics }
     var isFetchingLyrics: Bool { lyricsService.isFetchingLyrics }
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
-    @Published var isFavoriteTrack: Bool = false
+    var isFavoriteTrack: Bool = false
 
     private var artworkData: Data?
 
@@ -84,10 +108,10 @@ class MusicManager: ObservableObject {
     private var lastArtworkAlbum: String = "Self Love"
     private var lastArtworkBundleIdentifier: String?
 
-    @Published var isFlipping: Bool = false
+    var isFlipping: Bool = false
     private var flipWorkItem: DispatchWorkItem?
 
-    @Published var isTransitioning: Bool = false
+    var isTransitioning: Bool = false
     private var transitionWorkItem: DispatchWorkItem?
 
     // MARK: - Initialization
@@ -205,6 +229,9 @@ class MusicManager: ObservableObject {
     // MARK: - Update Methods
     @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
+        // Publish state change
+        playbackStateSubject.send(state)
+
         // Check for playback state changes (playing/paused)
         if state.isPlaying != self.isPlaying {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
@@ -477,7 +504,9 @@ class MusicManager: ObservableObject {
         albumArt.averageColor { [weak self] color in
             DispatchQueue.main.async {
                 withAnimation(.smooth) {
-                    self?.avgColor = color ?? .white
+                    let newColor = color ?? .white
+                    self?.avgColor = newColor
+                    self?.avgColorSubject.send(newColor)
                 }
             }
         }

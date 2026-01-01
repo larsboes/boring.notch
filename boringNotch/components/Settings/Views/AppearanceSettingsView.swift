@@ -7,25 +7,21 @@
 
 import AVFoundation
 import AppKit
-import Defaults
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct Appearance: View {
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @Default(.mirrorShape) var mirrorShape
-    @Default(.sliderColor) var sliderColor
-    @Default(.backgroundImageURL) var backgroundImageURL: URL?
-    @Default(.liquidGlassEffect) var liquidGlassEffect
-    @Default(.liquidGlassStyle) var liquidGlassStyle
+    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(\.bindableSettings) var settings
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
-                Defaults.Toggle(key: .settingsIconInNotch) {
+                Toggle(isOn: $settings.settingsIconInNotch) {
                     Text("Show settings icon in notch")
                 }
 
@@ -34,15 +30,14 @@ struct Appearance: View {
             }
 
             Section {
-                Defaults.Toggle(key: .coloredSpectrogram) {
+                Toggle(isOn: $settings.coloredSpectrogram) {
                     Text("Colored spectrogram")
                 }
-                Defaults
-                    .Toggle("Player tinting", key: .playerColorTinting)
-                Defaults.Toggle(key: .lightingEffect) {
+                Toggle("Player tinting", isOn: $settings.playerColorTinting)
+                Toggle(isOn: $settings.lightingEffect) {
                     Text("Enable blur effect behind album art")
                 }
-                Picker("Slider color", selection: $sliderColor) {
+                Picker("Slider color", selection: $settings.sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.rawValue)
                     }
@@ -52,7 +47,7 @@ struct Appearance: View {
             }
 
             Section {
-                Defaults.Toggle(key: .liquidGlassEffect) {
+                Toggle(isOn: $settings.liquidGlassEffect) {
                     HStack {
                         Text("Liquid Glass Effect")
                         Text("Beta")
@@ -64,46 +59,22 @@ struct Appearance: View {
                             .cornerRadius(4)
                     }
                 }
-                if liquidGlassEffect {
-                    Picker("Glass Style", selection: $liquidGlassStyle) {
+                if settings.liquidGlassEffect {
+                    Picker("Glass Style", selection: $settings.liquidGlassStyle) {
                         ForEach(LiquidGlassStyle.allCases) { style in
                             Text(style.rawValue).tag(style)
                         }
                     }
                     
+                    // SwiftGlass configuration
                     LabeledContent {
-                        Slider(value: .init(
-                            get: { Defaults[.liquidGlassBlurRadius] },
-                            set: { 
-                                Defaults[.liquidGlassBlurRadius] = $0
-                                LiquidGlassManager.shared.blurRadius = Float($0)
-                            }
-                        ), in: 5...50, step: 5)
+                        Slider(value: $settings.liquidGlassBlurRadius, in: 5...50, step: 5)
                         .frame(width: 150)
                     } label: {
                         Text("Blur Intensity")
                     }
-                    
-                    // Permission status indicator
-                    LabeledContent {
-                        if LiquidGlassManager.shared.hasPermission {
-                            Label("Granted", systemImage: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                                .font(.caption)
-                        } else {
-                            Button("Grant Permission") {
-                                Task {
-                                    await LiquidGlassManager.shared.requestPermission()
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
-                        }
-                    } label: {
-                        Text("Screen Recording")
-                    }
                 }
-                Defaults.Toggle(key: .enableShadow) {
+                Toggle(isOn: $settings.enableShadow) {
                     Text("Enable shadow")
                 }
             } header: {
@@ -112,7 +83,7 @@ struct Appearance: View {
             
             Section {
                 ZStack {
-                    if let imageURL = backgroundImageURL,
+                    if let imageURL = settings.backgroundImageURL,
                        let nsImage = NSImage(contentsOf: imageURL) {
                         ZStack(alignment: .topTrailing) {
                             Image(nsImage: nsImage)
@@ -122,10 +93,10 @@ struct Appearance: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                             
                             Button {
-                                if let imageURL = backgroundImageURL {
+                                if let imageURL = settings.backgroundImageURL {
                                     try? FileManager.default.removeItem(at: imageURL)
                                 }
-                                backgroundImageURL = nil
+                                settings.backgroundImageURL = nil
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.white)
@@ -158,7 +129,7 @@ struct Appearance: View {
                     
                     if panel.runModal() == .OK, let sourceURL = panel.url {
                         if let copiedURL = BoringViewModel.copyBackgroundImageToAppStorage(sourceURL: sourceURL) {
-                            backgroundImageURL = copiedURL
+                            settings.backgroundImageURL = copiedURL
                         }
                     }
                 }
@@ -168,17 +139,17 @@ struct Appearance: View {
             }
 
             Section {
-                Defaults.Toggle(key: .showMirror) {
+                Toggle(isOn: $settings.showMirror) {
                     Text("Enable boring mirror")
                 }
                     .disabled(!checkVideoInput())
-                Picker("Mirror shape", selection: $mirrorShape) {
+                Picker("Mirror shape", selection: $settings.mirrorShape) {
                     Text("Circle")
                         .tag(MirrorShapeEnum.circle)
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                Defaults.Toggle(key: .showNotHumanFace) {
+                Toggle(isOn: $settings.showNotHumanFace) {
                     Text("Show cool face animation while inactive")
                 }
             } header: {

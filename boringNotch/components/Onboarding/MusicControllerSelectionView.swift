@@ -6,12 +6,11 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct MusicControllerSelectionView: View {
     let onContinue: () -> Void
 
-    @Default(.mediaController) var mediaController
+    @Environment(\.bindableSettings) var settings
     
     private var availableMediaControllers: [MediaControllerType] {
         if MusicManager.shared.isNowPlayingDeprecated {
@@ -21,7 +20,7 @@ struct MusicControllerSelectionView: View {
         }
     }
     
-    @State private var selectedMediaController: MediaControllerType = Defaults[.mediaController]
+    @State private var selectedMediaController: MediaControllerType = .nowPlaying
     
     var body: some View {
         VStack(spacing: 20) {
@@ -56,7 +55,7 @@ struct MusicControllerSelectionView: View {
 //            Spacer()
 
             Button("Continue", action: {
-                self.mediaController = self.selectedMediaController
+                settings.mediaController = self.selectedMediaController
                 NotificationCenter.default.post(
                     name: Notification.Name.mediaControllerChanged,
                     object: nil
@@ -72,6 +71,9 @@ struct MusicControllerSelectionView: View {
             VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 .ignoresSafeArea()
         )
+        .onAppear {
+            self.selectedMediaController = settings.mediaController
+        }
     }
 }
 

@@ -31,6 +31,12 @@ final class WindowCoordinator {
 
     /// Reference to view coordinator
     private let coordinator: BoringViewCoordinator
+    
+    /// Settings
+    private let settings: NotchSettings
+    
+    /// Plugin Manager
+    private let pluginManager: PluginManager
 
     /// Track screen lock state
     var isScreenLocked: Bool = false
@@ -45,17 +51,21 @@ final class WindowCoordinator {
 
     init(
         primaryViewModel: BoringViewModel,
-        coordinator: BoringViewCoordinator
+        coordinator: BoringViewCoordinator,
+        settings: NotchSettings,
+        pluginManager: PluginManager
     ) {
         self.primaryViewModel = primaryViewModel
         self.coordinator = coordinator
+        self.settings = settings
+        self.pluginManager = pluginManager
     }
 
     // MARK: - Window Lifecycle
 
     /// Clean up all windows
     func cleanupWindows(shouldInvert: Bool = false) {
-        let shouldCleanupMulti = shouldInvert ? !Defaults[.showOnAllDisplays] : Defaults[.showOnAllDisplays]
+        let shouldCleanupMulti = shouldInvert ? !settings.showOnAllDisplays : settings.showOnAllDisplays
 
         if shouldCleanupMulti {
             windows.values.forEach { window in
@@ -86,7 +96,8 @@ final class WindowCoordinator {
             contentRect: rect,
             styleMask: styleMask,
             backing: .buffered,
-            defer: false
+            defer: false,
+            settings: settings
         )
 
         // Enable SkyLight only when screen is locked
@@ -98,7 +109,8 @@ final class WindowCoordinator {
 
         window.contentView = NSHostingView(
             rootView: ContentView()
-                .environmentObject(viewModel)
+                .environment(viewModel)
+                .environment(\.pluginManager, pluginManager)
         )
 
         window.orderFrontRegardless()
@@ -138,7 +150,7 @@ final class WindowCoordinator {
 
     /// Adjust window positions based on current display configuration
     func adjustWindowPosition(changeAlpha: Bool = false) {
-        if Defaults[.showOnAllDisplays] {
+        if settings.showOnAllDisplays {
             adjustMultiDisplayWindows(changeAlpha: changeAlpha)
         } else {
             adjustSingleDisplayWindow(changeAlpha: changeAlpha)
@@ -188,7 +200,7 @@ final class WindowCoordinator {
         if let preferredScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "") {
             coordinator.selectedScreenUUID = coordinator.preferredScreenUUID ?? ""
             selectedScreen = preferredScreen
-        } else if Defaults[.automaticallySwitchDisplay], let mainScreen = NSScreen.main,
+        } else if settings.automaticallySwitchDisplay, let mainScreen = NSScreen.main,
                   let mainUUID = mainScreen.displayUUID {
             coordinator.selectedScreenUUID = mainUUID
             selectedScreen = mainScreen
@@ -218,7 +230,7 @@ final class WindowCoordinator {
     // MARK: - SkyLight Window Support (Lock Screen)
 
     func enableSkyLightOnAllWindows() {
-        if Defaults[.showOnAllDisplays] {
+        if settings.showOnAllDisplays {
             windows.values.forEach { window in
                 if let skyWindow = window as? BoringNotchSkyLightWindow {
                     skyWindow.enableSkyLight()
@@ -236,7 +248,7 @@ final class WindowCoordinator {
         Task {
             try? await Task.sleep(for: .milliseconds(150))
             await MainActor.run {
-                if Defaults[.showOnAllDisplays] {
+                if self.settings.showOnAllDisplays {
                     self.windows.values.forEach { window in
                         if let skyWindow = window as? BoringNotchSkyLightWindow {
                             skyWindow.disableSkyLight()
@@ -255,7 +267,7 @@ final class WindowCoordinator {
 
     /// Get the view model for a specific screen UUID
     func viewModel(for screenUUID: String) -> BoringViewModel? {
-        if Defaults[.showOnAllDisplays] {
+        if settings.showOnAllDisplays {
             return viewModels[screenUUID]
         } else {
             return primaryViewModel
@@ -264,7 +276,7 @@ final class WindowCoordinator {
 
     /// Get the view model for the screen containing a point
     func viewModel(at point: NSPoint) -> BoringViewModel {
-        if Defaults[.showOnAllDisplays] {
+        if settings.showOnAllDisplays {
             for screen in NSScreen.screens {
                 if screen.frame.contains(point) {
                     if let uuid = screen.displayUUID, let screenViewModel = viewModels[uuid] {

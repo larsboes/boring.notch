@@ -6,24 +6,24 @@
 //
 
 import AppKit
-import Defaults
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct FileShareView: View {
-    @EnvironmentObject private var vm: BoringViewModel
+    @Environment(BoringViewModel.self) private var vm
+    @Environment(\.settings) var settings
     @StateObject private var quickShare = QuickShareService.shared
-    @Default(.quickShareProvider) var quickShareProvider: String
 
     @State private var hostView: NSView?
     @State private var interactionNonce: UUID = .init()
     @State private var isProcessing = false
     
     private var selectedProvider: QuickShareProvider {
-        quickShare.availableProviders.first(where: { $0.id == quickShareProvider }) ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
+        quickShare.availableProviders.first(where: { $0.id == settings.quickShareProvider }) ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
     }
 
     var body: some View {
+        @Bindable var vm = vm
         dropArea
             .background(NSViewHost(view: $hostView))
             .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data, .image], isTargeted: $vm.dropZoneTargeting) { providers in

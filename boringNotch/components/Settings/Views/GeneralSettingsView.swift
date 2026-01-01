@@ -5,7 +5,6 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import LaunchAtLogin
 import SwiftUI
 
@@ -14,38 +13,23 @@ struct GeneralSettings: View {
         guard let uuid = screen.displayUUID else { return nil }
         return (uuid, screen.localizedName)
     }
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-
-    @Default(.mirrorShape) var mirrorShape
-    @Default(.gestureSensitivity) var gestureSensitivity
-    @Default(.minimumHoverDuration) var minimumHoverDuration
-    @Default(.nonNotchHeight) var nonNotchHeight
-    @Default(.nonNotchHeightMode) var nonNotchHeightMode
-    @Default(.notchHeight) var notchHeight
-    @Default(.notchHeightMode) var notchHeightMode
-    @Default(.showOnAllDisplays) var showOnAllDisplays
-    @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
-    @Default(.enableGestures) var enableGestures
-    @Default(.openNotchOnHover) var openNotchOnHover
-    @Default(.inactiveNotchHeight) var inactiveNotchHeight
-    @Default(.useInactiveNotchHeight) var useInactiveNotchHeight
+    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(\.bindableSettings) var settings
 
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
-                Toggle(isOn: Binding(
-                    get: { Defaults[.menubarIcon] },
-                    set: { Defaults[.menubarIcon] = $0 }
-                )) {
+                Toggle(isOn: $settings.menubarIcon) {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
                 LaunchAtLogin.Toggle("Launch at login")
-                Defaults.Toggle(key: .showOnAllDisplays) {
+                .tint(.effectiveAccent)
+                Toggle(isOn: $settings.showOnAllDisplays) {
                     Text("Show on all displays")
                 }
-                .onChange(of: showOnAllDisplays) {
+                .onChange(of: settings.showOnAllDisplays) {
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
@@ -60,23 +44,23 @@ struct GeneralSettings: View {
                         return (uuid, screen.localizedName)
                     }
                 }
-                .disabled(showOnAllDisplays)
+                .disabled(settings.showOnAllDisplays)
                 
-                Defaults.Toggle(key: .automaticallySwitchDisplay) {
+                Toggle(isOn: $settings.automaticallySwitchDisplay) {
                     Text("Automatically switch displays")
                 }
-                    .onChange(of: automaticallySwitchDisplay) {
+                    .onChange(of: settings.automaticallySwitchDisplay) {
                         NotificationCenter.default.post(
                             name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
                     }
-                    .disabled(showOnAllDisplays)
+                    .disabled(settings.showOnAllDisplays)
             } header: {
                 Text("System features")
             }
 
             Section {
                 Picker(
-                    selection: $notchHeightMode,
+                    selection: $settings.notchHeightMode,
                     label:
                         Text("Notch height on notch displays")
                 ) {
@@ -87,54 +71,54 @@ struct GeneralSettings: View {
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
                 }
-                .onChange(of: notchHeightMode) {
-                    switch notchHeightMode {
+                .onChange(of: settings.notchHeightMode) {
+                    switch settings.notchHeightMode {
                     case .matchRealNotchSize:
                         // Get the actual notch height from the built-in display
-                        notchHeight = getRealNotchHeight()
+                        settings.notchHeight = getRealNotchHeight()
                     case .matchMenuBar:
-                        notchHeight = 43
+                        settings.notchHeight = 43
                     case .custom:
-                        notchHeight = 38
+                        settings.notchHeight = 38
                     }
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
-                if notchHeightMode == .custom {
-                    Slider(value: $notchHeight, in: 15...45, step: 1) {
-                        Text("Custom notch size - \(notchHeight, specifier: "%.0f")")
+                if settings.notchHeightMode == .custom {
+                    Slider(value: $settings.notchHeight, in: 15...45, step: 1) {
+                        Text("Custom notch size - \(settings.notchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: notchHeight) {
+                    .onChange(of: settings.notchHeight) {
                         NotificationCenter.default.post(
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
-                Picker("Notch height on non-notch displays", selection: $nonNotchHeightMode) {
+                Picker("Notch height on non-notch displays", selection: $settings.nonNotchHeightMode) {
                     Text("Match menubar height")
                         .tag(WindowHeightMode.matchMenuBar)
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
                 }
-                .onChange(of: nonNotchHeightMode) {
-                    switch nonNotchHeightMode {
+                .onChange(of: settings.nonNotchHeightMode) {
+                    switch settings.nonNotchHeightMode {
                     case .matchMenuBar:
-                        nonNotchHeight = 23
+                        settings.nonNotchHeight = 23
                     case .matchRealNotchSize, .custom:
-                        nonNotchHeight = 23
+                        settings.nonNotchHeight = 23
                     }
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
-                if nonNotchHeightMode == .custom {
+                if settings.nonNotchHeightMode == .custom {
                     // Custom binding to skip values 1-14 (jump from 0 to 10)
                     let sliderValue = Binding<Double>(
                         get: { 
-                            nonNotchHeight == 0 ? 0 : nonNotchHeight - 14
+                            settings.nonNotchHeight == 0 ? 0 : settings.nonNotchHeight - 14
                         },
                         set: { newValue in
-                            let oldValue = nonNotchHeight
-                            nonNotchHeight = newValue == 0 ? 0 : newValue + 14
-                            if oldValue != nonNotchHeight {
+                            let oldValue = settings.nonNotchHeight
+                            settings.nonNotchHeight = newValue == 0 ? 0 : newValue + 14
+                            if oldValue != settings.nonNotchHeight {
                                 NotificationCenter.default.post(
                                     name: Notification.Name.notchHeightChanged, object: nil)
                             }
@@ -142,7 +126,7 @@ struct GeneralSettings: View {
                     )
                     
                     Slider(value: sliderValue, in: 0...26, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                        Text("Custom notch size - \(settings.nonNotchHeight, specifier: "%.0f")")
                     }
                 }
             } header: {
@@ -150,16 +134,16 @@ struct GeneralSettings: View {
             }
             
             Section {
-                Defaults.Toggle(key: .useInactiveNotchHeight) {
+                Toggle(isOn: $settings.useInactiveNotchHeight) {
                     Text("Use smaller height when inactive")
                 }
-                .onChange(of: useInactiveNotchHeight) {
+                .onChange(of: settings.useInactiveNotchHeight) {
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
 
-                if useInactiveNotchHeight {
-                    InactiveNotchHeightSlider(maxHeight: nonNotchHeight)
+                if settings.useInactiveNotchHeight {
+                    InactiveNotchHeightSlider(maxHeight: settings.nonNotchHeight)
                 }
             } header: {
                 Text("Inactive notch sizing (For non-notch displays)")
@@ -177,33 +161,34 @@ struct GeneralSettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("General")
-        .onChange(of: openNotchOnHover) {
-            if !openNotchOnHover {
-                enableGestures = true
+        .onChange(of: settings.openNotchOnHover) {
+            if !settings.openNotchOnHover {
+                settings.enableGestures = true
             }
         }
     }
 
     @ViewBuilder
     func gestureControls() -> some View {
+        @Bindable var settings = settings
         Section {
-            Defaults.Toggle(key: .enableGestures) {
+            Toggle(isOn: $settings.enableGestures) {
                 Text("Enable gestures")
             }
-                .disabled(!openNotchOnHover)
-            if enableGestures {
+                .disabled(!settings.openNotchOnHover)
+            if settings.enableGestures {
                 Toggle("Change media with horizontal gestures", isOn: .constant(false))
                     .disabled(true)
-                Defaults.Toggle(key: .closeGestureEnabled) {
+                Toggle(isOn: $settings.closeGestureEnabled) {
                     Text("Close gesture")
                 }
-                Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
+                Slider(value: $settings.gestureSensitivity, in: 100...300, step: 100) {
                     HStack {
                         Text("Gesture sensitivity")
                         Spacer()
                         Text(
-                            Defaults[.gestureSensitivity] == 100
-                                ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low"
+                            settings.gestureSensitivity == 100
+                                ? "High" : settings.gestureSensitivity == 200 ? "Medium" : "Low"
                         )
                         .foregroundStyle(.secondary)
                     }
@@ -226,37 +211,35 @@ struct GeneralSettings: View {
 
     @ViewBuilder
     func NotchBehaviour() -> some View {
+        @Bindable var settings = settings
         Section {
-            Defaults.Toggle(key: .openNotchOnHover) {
+            Toggle(isOn: $settings.openNotchOnHover) {
                 Text("Open notch on hover")
             }
-            Defaults.Toggle(key: .enableHaptics) {
+            Toggle(isOn: $settings.enableHaptics) {
                     Text("Enable haptic feedback")
             }
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
-            if openNotchOnHover {
-                Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
+            if settings.openNotchOnHover {
+                Slider(value: $settings.minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
                         Text("Hover delay")
                         Spacer()
-                        Text("\(minimumHoverDuration, specifier: "%.1f")s")
+                        Text("\(settings.minimumHoverDuration, specifier: "%.1f")s")
                             .foregroundStyle(.secondary)
                     }
                 }
-                .onChange(of: minimumHoverDuration) {
+                .onChange(of: settings.minimumHoverDuration) {
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
             }
             
-            Slider(value: Binding(
-                get: { Defaults[.sneakPeakDuration] },
-                set: { Defaults[.sneakPeakDuration] = $0 }
-            ), in: 0.5...5, step: 0.5) {
+            Slider(value: $settings.sneakPeakDuration, in: 0.5...5, step: 0.5) {
                 HStack {
                     Text("Sneak peak duration")
                     Spacer()
-                    Text("\(Defaults[.sneakPeakDuration], specifier: "%.1f")s")
+                    Text("\(settings.sneakPeakDuration, specifier: "%.1f")s")
                         .foregroundStyle(.secondary)
                 }
             }
@@ -269,13 +252,15 @@ struct GeneralSettings: View {
 struct InactiveNotchHeightSlider: View {
     @State private var localValue: Double
     let maxHeight: Double
+    @Environment(\.bindableSettings) var settings
     
     init(maxHeight: Double) {
         self.maxHeight = maxHeight
-        self._localValue = State(initialValue: Defaults[.inactiveNotchHeight])
+        self._localValue = State(initialValue: 0) // Will be updated in onAppear
     }
     
     var body: some View {
+        @Bindable var settings = settings
         let effectiveMax = max(1, maxHeight)
         let clampedValue = min(localValue, effectiveMax)
         
@@ -293,14 +278,17 @@ struct InactiveNotchHeightSlider: View {
                     localValue = newValue
                 }
             ), in: 1...effectiveMax, step: 1)
-                .onChange(of: localValue) { _, newValue in
+                .onChange(of: localValue) { newValue in
                     let finalValue = min(newValue, effectiveMax)
-                    Defaults[.inactiveNotchHeight] = finalValue
+                    settings.inactiveNotchHeight = finalValue
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged,
                         object: nil
                     )
                 }
+        }
+        .onAppear {
+            localValue = settings.inactiveNotchHeight
         }
     }
 }

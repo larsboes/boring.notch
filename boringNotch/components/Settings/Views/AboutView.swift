@@ -5,7 +5,6 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import Sparkle
 import SwiftUI
 
@@ -13,14 +12,16 @@ struct About: View {
     @State private var showBuildNumber: Bool = false
     let updaterController: SPUStandardUpdaterController
     @Environment(\.openWindow) var openWindow
+    @Environment(\.bindableSettings) var settings
     var body: some View {
+        @Bindable var settings = settings
         VStack {
             Form {
                 Section {
                     HStack {
                         Text("Release name")
                         Spacer()
-                        Text(Defaults[.releaseName])
+                        Text(settings.releaseName)
                             .foregroundStyle(.secondary)
                     }
                     HStack {

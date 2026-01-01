@@ -213,6 +213,32 @@ private class SharingServiceDelegate: NSObject {}
         }
     }
 
+    @MainActor
+    func share(items: [ShelfItem], from view: NSView?) {
+        Task {
+            var itemsToShare: [Any] = []
+            
+            for item in items {
+                switch item.kind {
+                case .file:
+                    if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                        itemsToShare.append(url)
+                    }
+                case .text(let string):
+                    itemsToShare.append(string)
+                case .link(let url):
+                    itemsToShare.append(url)
+                }
+            }
+            
+            guard !itemsToShare.isEmpty else { return }
+            
+            // Default to System Share Menu if no specific provider is chosen
+            let provider = QuickShareProvider(id: "System Share Menu", supportsRawText: true)
+            await shareFilesOrText(itemsToShare, using: provider, from: view)
+        }
+    }
+
     private func resolveShelfItemBookmark(for fileURL: URL) async -> URL? {
         let items = await ShelfStateViewModel.shared.items
 

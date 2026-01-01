@@ -7,16 +7,14 @@
 
 import AppKit
 import SwiftUI
-import Defaults
-
 import QuickLook
 
 struct ShelfItemView: View {
     let item: ShelfItem
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var selection = ShelfSelectionModel.shared
-    @StateObject private var viewModel: ShelfItemViewModel
-    @EnvironmentObject private var quickLookService: QuickLookService
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
+    @Bindable var selection = ShelfSelectionModel.shared
+    @State private var viewModel: ShelfItemViewModel
     @State private var showStack = false
     @State private var debouncedDropTarget = false
 
@@ -25,7 +23,7 @@ struct ShelfItemView: View {
     
     init(item: ShelfItem) {
         self.item = item
-        _viewModel = StateObject(wrappedValue: ShelfItemViewModel(item: item))
+        _viewModel = State(initialValue: ShelfItemViewModel(item: item))
     }
 
     var body: some View {
@@ -45,6 +43,7 @@ struct ShelfItemView: View {
 
                 DraggableClickHandler(
                     item: item,
+                    settings: settings,
                     viewModel: viewModel,
                     dragPreviewContent: {
                         DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
@@ -72,9 +71,6 @@ struct ShelfItemView: View {
         .onAppear {
             Task { 
                 await viewModel.loadThumbnail()
-            }
-            viewModel.onQuickLookRequest = { urls in
-                quickLookService.show(urls: urls, selectFirst: true)
             }
         }
     }
@@ -146,6 +142,7 @@ struct ShelfItemView: View {
 // MARK: - Draggable Click Handler with NSDraggingSource
 private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     let item: ShelfItem
+    let settings: NotchSettings
     let viewModel: ShelfItemViewModel
     @ViewBuilder let dragPreviewContent: () -> Content
     let onRightClick: (NSEvent, NSView) -> Void
@@ -154,6 +151,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     func makeNSView(context: Context) -> DraggableClickView {
         let view = DraggableClickView()
         view.item = item
+        view.settings = settings
         view.viewModel = viewModel
         view.getDragPreview = {
             self.renderDragPreview()
@@ -165,6 +163,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     
     func updateNSView(_ nsView: DraggableClickView, context: Context) {
         nsView.item = item
+        nsView.settings = settings
         nsView.viewModel = viewModel
         // Update the closure to capture latest state if needed, though usually content closure is enough
         nsView.getDragPreview = {
@@ -189,6 +188,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     
     final class DraggableClickView: NSView, NSDraggingSource {
         var item: ShelfItem!
+        var settings: NotchSettings!
         weak var viewModel: ShelfItemViewModel?
         var getDragPreview: (() -> NSImage)?
         var onRightClick: ((NSEvent, NSView) -> Void)?
@@ -302,7 +302,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         
         func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
             // When copyOnDrag is enabled, only allow copy operations
-            if Defaults[.copyOnDrag] {
+            if settings.copyOnDrag {
                 return [.copy]
             }
             
@@ -331,7 +331,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             draggedURLs.removeAll()
 
             // Auto-remove items from shelf if enabled and drag succeeded
-            if Defaults[.autoRemoveShelfItems] && !operation.isEmpty {
+            if settings.autoRemoveShelfItems && !operation.isEmpty {
                 for item in draggedItems {
                     ShelfStateViewModel.shared.remove(item)
                 }

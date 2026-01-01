@@ -1,24 +1,12 @@
-import Defaults
 import SwiftUI
 
-enum NotificationDeliveryStyle: String, CaseIterable, Defaults.Serializable {
-    case banner
-    case soundOnly
-    
-    var localizedName: String {
-        switch self {
-        case .banner: return "Banner & Sound"
-        case .soundOnly: return "Sound Only"
-        }
-    }
-}
 
 struct NotificationsSettingsView: View {
     @StateObject private var manager = NotificationCenterManager.shared
-    @Default(.notificationDeliveryStyle) var notificationDeliveryStyle
-    @Default(.notificationRetentionDays) var notificationRetentionDays
+    @Environment(\.bindableSettings) var settings
 
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
                 HStack {
@@ -38,13 +26,13 @@ struct NotificationsSettingsView: View {
             }
             
             Section {
-                Defaults.Toggle(key: .showShelfNotifications) {
+                Toggle(isOn: $settings.showShelfNotifications) {
                     Text("Shelf Events")
                 }
-                Defaults.Toggle(key: .showSystemNotifications) {
+                Toggle(isOn: $settings.showSystemNotifications) {
                     Text("System Events")
                 }
-                Defaults.Toggle(key: .showInfoNotifications) {
+                Toggle(isOn: $settings.showInfoNotifications) {
                     Text("Info & Updates")
                 }
             } header: {
@@ -52,22 +40,22 @@ struct NotificationsSettingsView: View {
             }
             
             Section {
-                Picker("Delivery Style", selection: $notificationDeliveryStyle) {
+                Picker("Delivery Style", selection: $settings.notificationDeliveryStyle) {
                     ForEach(NotificationDeliveryStyle.allCases, id: \.self) { style in
                         Text(style.localizedName).tag(style)
                     }
                 }
                 
-                Defaults.Toggle(key: .notificationSoundEnabled) {
+                Toggle(isOn: $settings.notificationSoundEnabled) {
                     Text("Play sound")
                 }
                 
-                Defaults.Toggle(key: .respectDoNotDisturb) {
+                Toggle(isOn: $settings.respectDoNotDisturb) {
                     Text("Respect Do Not Disturb / Focus")
                 }
                 
-                Stepper(value: $notificationRetentionDays, in: 1...30) {
-                    Text("Keep history for \(notificationRetentionDays) days")
+                Stepper(value: $settings.notificationRetentionDays, in: 1...30) {
+                    Text("Keep history for \(settings.notificationRetentionDays) days")
                 }
             } header: {
                 Text("History")

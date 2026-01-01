@@ -1,5 +1,5 @@
 {
-  "originHash" : "d3e79be4e53962f27c4530285bdbb640c671863b9b0c9c3aa873d0f8a60a7552",
+  "originHash" : "126727bed45325d580bb70c89570cb1518ebf174486c1641137f2da500c63713",
   "pins" : [
     {
       "identity" : "asyncxpcconnection",
@@ -116,6 +116,15 @@
       "state" : {
         "revision" : "b626d3002773b1a1304166643e7f118f724b2132",
         "version" : "1.0.4"
+      }
+    },
+    {
+      "identity" : "swiftglass",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/1998code/SwiftGlass.git",
+      "state" : {
+        "revision" : "b11729993a2f4a4f11d17ee833ec05b2140400c5",
+        "version" : "26.0.1"
       }
     },
     {

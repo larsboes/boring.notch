@@ -6,19 +6,18 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct WeatherSettings: View {
     @ObservedObject private var weatherManager = WeatherManager.shared
-    @Default(.showWeather) var showWeather: Bool
-    @Default(.openWeatherMapApiKey) var apiKey: String
+    @Environment(\.bindableSettings) var settings
 
     var body: some View {
+        @Bindable var settings = settings
         Form {
-            Defaults.Toggle(key: .showWeather) {
+            Toggle(isOn: $settings.showWeather) {
                 Text("Show weather")
             }
-            .onChange(of: showWeather) { _, newValue in
+            .onChange(of: settings.showWeather) { _, newValue in
                 if newValue {
                     // When weather is enabled, check and request location if needed
                     weatherManager.checkLocationAuthorization()
@@ -26,10 +25,10 @@ struct WeatherSettings: View {
             }
 
             Section(header: Text("API Key")) {
-                SecureField("OpenWeatherMap API Key", text: $apiKey)
+                SecureField("OpenWeatherMap API Key", text: $settings.openWeatherMapApiKey)
                     .textFieldStyle(.roundedBorder)
 
-                if apiKey.isEmpty {
+                if settings.openWeatherMapApiKey.isEmpty {
                     Link(destination: URL(string: "https://openweathermap.org/api")!) {
                         Label("Get your free API key", systemImage: "arrow.up.right.square")
                             .font(.caption)

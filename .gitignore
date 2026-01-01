@@ -53,6 +53,5 @@ build/
 *.xcarchive
 *.dSYM
 
-# AI
-.claude/
-.agent/
+# Build logs
+build_log*.txt

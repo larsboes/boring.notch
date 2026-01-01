@@ -1,0 +1,257 @@
+//
+//  PluginEventBus.swift
+//  boringNotch
+//
+//  Central event bus for inter-plugin communication.
+//  Enables loose coupling between plugins.
+//
+
+import Foundation
+import Combine
+
+// MARK: - Plugin Event Bus
+
+/// Central hub for inter-plugin communication.
+/// Plugins emit events and subscribe to events from other plugins.
+@MainActor
+final class PluginEventBus: Observable {
+    private var cancellables = Set<AnyCancellable>()
+    private let eventSubject = PassthroughSubject<any PluginEvent, Never>()
+
+    /// Stream of all events
+    var events: AnyPublisher<any PluginEvent, Never> {
+        eventSubject.eraseToAnyPublisher()
+    }
+
+    init() {}
+
+    // MARK: - Emitting Events
+
+    /// Emit an event to all subscribers
+    func emit(_ event: any PluginEvent) {
+        eventSubject.send(event)
+    }
+
+    /// Emit a simple event with just a type
+    func emit(_ type: PluginEventType, from pluginId: String, data: [String: Any] = [:]) {
+        let event = GenericPluginEvent(type: type, sourcePluginId: pluginId, data: data)
+        eventSubject.send(event)
+    }
+
+    // MARK: - Subscribing to Events
+
+    /// Subscribe to all events of a specific type
+    func subscribe<T: PluginEvent>(
+        to eventType: T.Type,
+        handler: @escaping (T) async -> Void
+    ) -> AnyCancellable {
+        events
+            .compactMap { $0 as? T }
+            .sink { event in
+                Task { @MainActor in
+                    await handler(event)
+                }
+            }
+    }
+
+    /// Subscribe to events from a specific plugin
+    func subscribe(
+        from pluginId: String,
+        handler: @escaping (any PluginEvent) async -> Void
+    ) -> AnyCancellable {
+        events
+            .filter { $0.sourcePluginId == pluginId }
+            .sink { event in
+                Task { @MainActor in
+                    await handler(event)
+                }
+            }
+    }
+
+    /// Subscribe to events of a specific type string
+    func subscribe(
+        toType type: PluginEventType,
+        handler: @escaping (any PluginEvent) async -> Void
+    ) -> AnyCancellable {
+        events
+            .filter { $0.type == type }
+            .sink { event in
+                Task { @MainActor in
+                    await handler(event)
+                }
+            }
+    }
+}
+
+// MARK: - Plugin Event Protocol
+
+/// Base protocol for all plugin events
+protocol PluginEvent: Sendable {
+    /// Type of event for filtering
+    var type: PluginEventType { get }
+
+    /// ID of the plugin that emitted this event
+    var sourcePluginId: String { get }
+
+    /// When the event occurred
+    var timestamp: Date { get }
+}
+
+// MARK: - Event Types
+
+enum PluginEventType: String, Sendable, Hashable {
+    // Lifecycle events
+    case pluginActivated
+    case pluginDeactivated
+    case pluginError
+
+    // Music events
+    case musicPlaybackStarted
+    case musicPlaybackPaused
+    case musicPlaybackStopped
+    case musicTrackChanged
+
+    // Calendar events
+    case calendarEventStartingSoon
+    case calendarEventStarted
+    case calendarEventEnded
+    case calendarEventsRefreshed
+
+    // Shelf events
+    case shelfItemAdded
+    case shelfItemRemoved
+    case shelfCleared
+
+    // System events
+    case batteryLevelChanged
+    case batteryChargingStateChanged
+    case volumeChanged
+    case brightnessChanged
+
+    // Notch events
+    case notchOpened
+    case notchClosed
+    case notchExpanded
+
+    // Generic
+    case custom
+}
+
+// MARK: - Generic Event
+
+/// Simple event for cases where a full custom type isn't needed
+struct GenericPluginEvent: PluginEvent {
+    let type: PluginEventType
+    let sourcePluginId: String
+    let timestamp: Date
+    let data: [String: Any]
+
+    init(
+        type: PluginEventType,
+        sourcePluginId: String,
+        timestamp: Date = Date(),
+        data: [String: Any] = [:]
+    ) {
+        self.type = type
+        self.sourcePluginId = sourcePluginId
+        self.timestamp = timestamp
+        self.data = data
+    }
+}
+
+// MARK: - Concrete Events
+
+/// Music playback changed event
+struct MusicPlaybackChangedEvent: PluginEvent {
+    let type: PluginEventType
+    let sourcePluginId: String
+    let timestamp: Date
+    let isPlaying: Bool
+    let track: TrackInfo?
+
+    init(isPlaying: Bool, track: TrackInfo?) {
+        self.type = isPlaying ? .musicPlaybackStarted : .musicPlaybackPaused
+        self.sourcePluginId = "com.boringnotch.music"
+        self.timestamp = Date()
+        self.isPlaying = isPlaying
+        self.track = track
+    }
+}
+
+/// Music track changed event
+struct MusicTrackChangedEvent: PluginEvent {
+    let type = PluginEventType.musicTrackChanged
+    let sourcePluginId = "com.boringnotch.music"
+    let timestamp = Date()
+    let previousTrack: TrackInfo?
+    let newTrack: TrackInfo?
+
+    init(previousTrack: TrackInfo?, newTrack: TrackInfo?) {
+        self.previousTrack = previousTrack
+        self.newTrack = newTrack
+    }
+}
+
+/// Calendar event starting soon
+struct CalendarEventStartingSoonEvent: PluginEvent {
+    let type = PluginEventType.calendarEventStartingSoon
+    let sourcePluginId = "com.boringnotch.calendar"
+    let timestamp = Date()
+    let event: CalendarEvent
+    let startsIn: TimeInterval
+
+    init(event: CalendarEvent, startsIn: TimeInterval) {
+        self.event = event
+        self.startsIn = startsIn
+    }
+}
+
+/// Shelf item added event
+struct ShelfItemAddedEvent: PluginEvent {
+    let type = PluginEventType.shelfItemAdded
+    let sourcePluginId = "com.boringnotch.shelf"
+    let timestamp = Date()
+    let item: ShelfItem
+
+    init(item: ShelfItem) {
+        self.item = item
+    }
+}
+
+/// Battery state changed event
+struct BatteryStateChangedEvent: PluginEvent {
+    let type: PluginEventType
+    let sourcePluginId = "com.boringnotch.battery"
+    let timestamp = Date()
+    let level: Double
+    let isCharging: Bool
+
+    init(level: Double, isCharging: Bool, levelChanged: Bool) {
+        self.type = levelChanged ? .batteryLevelChanged : .batteryChargingStateChanged
+        self.level = level
+        self.isCharging = isCharging
+    }
+}
+
+/// Notch state changed event
+/// Note: Uses existing NotchDisplayState from NotchStateMachine.swift
+struct NotchStateChangedEvent: PluginEvent {
+    let type: PluginEventType
+    let sourcePluginId = "com.boringnotch.core"
+    let timestamp = Date()
+    let state: NotchDisplayState
+
+    init(state: NotchDisplayState) {
+        // Map the actual NotchDisplayState cases to event types
+        switch state {
+        case .closed:
+            self.type = .notchClosed
+        case .open:
+            self.type = .notchOpened
+        case .helloAnimation, .sneakPeek, .expanding:
+            // These are transitional states, treat as expanded
+            self.type = .notchExpanded
+        }
+        self.state = state
+    }
+}

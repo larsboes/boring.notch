@@ -1,13 +1,13 @@
-import Defaults
 import SwiftUI
 
 struct BluetoothSettingsView: View {
     @StateObject private var bluetoothManager = BluetoothManager.shared
     @State private var iconPickerPresented = false
     @State private var selectedDeviceForIcon: String?
-    @Default(.bluetoothSneakPeekStyle) var bluetoothSneakPeekStyle
+    @Environment(\.bindableSettings) var settings
     
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
                 if !bluetoothManager.isInitialized {
@@ -27,15 +27,15 @@ struct BluetoothSettingsView: View {
             }
             
             Section {
-                Defaults.Toggle(key: .enableBluetoothSneakPeek) {
+                Toggle(isOn: $settings.enableBluetoothSneakPeek) {
                     Text("Show connection notifications")
                 }
                 
-                Picker("Notification Style", selection: $bluetoothSneakPeekStyle) {
+                Picker("Notification Style", selection: $settings.bluetoothSneakPeekStyle) {
                     Text("Standard").tag(SneakPeekStyle.standard)
                     Text("Minimal").tag(SneakPeekStyle.minimal)
                 }
-                .disabled(!Defaults[.enableBluetoothSneakPeek])
+                .disabled(!settings.enableBluetoothSneakPeek)
             } header: {
                 Text("Notifications")
             }
@@ -96,6 +96,7 @@ struct BluetoothSettingsView: View {
 struct IconPickerSheet: View {
     let deviceName: String
     @Environment(\.dismiss) var dismiss
+    @Environment(\.bindableSettings) var settings
     @State private var searchText = ""
     
     let commonIcons = [
@@ -106,6 +107,7 @@ struct IconPickerSheet: View {
     ]
     
     var body: some View {
+        @Bindable var settings = settings
         VStack {
             Text("Select Icon for \(deviceName)")
                 .font(.headline)
@@ -144,13 +146,13 @@ struct IconPickerSheet: View {
     }
     
     private func saveIcon(_ icon: String) {
-        var mappings = Defaults[.bluetoothDeviceIconMappings]
+        var mappings = settings.bluetoothDeviceIconMappings
         if let index = mappings.firstIndex(where: { $0.deviceName == deviceName }) {
             mappings[index].sfSymbolName = icon
         } else {
             mappings.append(BluetoothDeviceIconMapping(deviceName: deviceName, sfSymbolName: icon))
         }
-        Defaults[.bluetoothDeviceIconMappings] = mappings
+        settings.bluetoothDeviceIconMappings = mappings
         dismiss()
     }
 }

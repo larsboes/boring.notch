@@ -5,42 +5,39 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import SwiftUI
 
 struct Shelf: View {
-    
-    @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
-    @Default(.quickShareProvider) var quickShareProvider
-    @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Environment(\.bindableSettings) var settings
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
-        quickShareService.availableProviders.first(where: { $0.id == quickShareProvider })
+        quickShareService.availableProviders.first(where: { $0.id == settings.quickShareProvider })
     }
     
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
-                Defaults.Toggle(key: .boringShelf) {
+                Toggle(isOn: $settings.boringShelf) {
                     Text("Enable shelf")
                 }
-                Defaults.Toggle(key: .openShelfByDefault) {
+                Toggle(isOn: $settings.openShelfByDefault) {
                     Text("Open shelf by default if items are present")
                 }
-                Defaults.Toggle(key: .expandedDragDetection) {
+                Toggle(isOn: $settings.expandedDragDetection) {
                     Text("Expanded drag detection area")
                 }
-                .onChange(of: expandedDragDetection) {
+                .onChange(of: settings.expandedDragDetection) {
                     NotificationCenter.default.post(
                         name: Notification.Name.expandedDragDetectionChanged,
                         object: nil
                     )
                 }
-                Defaults.Toggle(key: .copyOnDrag) {
+                Toggle(isOn: $settings.copyOnDrag) {
                     Text("Copy items on drag")
                 }
-                Defaults.Toggle(key: .autoRemoveShelfItems) {
+                Toggle(isOn: $settings.autoRemoveShelfItems) {
                     Text("Remove from shelf after dragging")
                 }
 
@@ -51,7 +48,7 @@ struct Shelf: View {
             }
             
             Section {
-                Picker("Quick Share Service", selection: $quickShareProvider) {
+                Picker("Quick Share Service", selection: $settings.quickShareProvider) {
                     ForEach(quickShareService.availableProviders, id: \.id) { provider in
                         HStack {
                             Group {

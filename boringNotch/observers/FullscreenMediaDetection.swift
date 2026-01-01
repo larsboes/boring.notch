@@ -11,10 +11,10 @@ import Defaults
 import MacroVisionKit
 
 @MainActor
-final class FullscreenMediaDetector: ObservableObject {
+@Observable final class FullscreenMediaDetector {
     static let shared = FullscreenMediaDetector()
     
-    @Published var fullscreenStatus: [String: Bool] = [:]
+    var fullscreenStatus: [String: Bool] = [:]
     
     private var monitorTask: Task<Void, Never>?
     
@@ -22,9 +22,7 @@ final class FullscreenMediaDetector: ObservableObject {
         startMonitoring()
     }
     
-    deinit {
-        monitorTask?.cancel()
-    }
+
     
     private func startMonitoring() {
         monitorTask = Task { @MainActor in

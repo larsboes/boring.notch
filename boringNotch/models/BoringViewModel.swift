@@ -10,7 +10,7 @@ import Defaults
 import SwiftUI
 
 @MainActor
-class BoringViewModel: NSObject, ObservableObject {
+@Observable class BoringViewModel: NSObject {
     // MARK: - Dependencies (injected, not @ObservedObject to singletons)
 
     /// View coordinator - accessed as property, not @ObservedObject
@@ -23,32 +23,34 @@ class BoringViewModel: NSObject, ObservableObject {
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
 
-    @Published var contentType: ContentType = .normal
-    @Published private(set) var notchState: NotchState = .closed
+    var contentType: ContentType = .normal
+    private(set) var notchState: NotchState = .closed
 
-    @Published var dragDetectorTargeting: Bool = false
-    @Published var generalDropTargeting: Bool = false
-    @Published var dropZoneTargeting: Bool = false
-    @Published var dropEvent: Bool = false
-    @Published var anyDropZoneTargeting: Bool = false
+    var dragDetectorTargeting: Bool = false
+    var generalDropTargeting: Bool = false
+    var dropZoneTargeting: Bool = false
+    var dropEvent: Bool = false
+    var anyDropZoneTargeting: Bool {
+        dropZoneTargeting || dragDetectorTargeting || generalDropTargeting
+    }
     var cancellables: Set<AnyCancellable> = []
     
-    @Published var hideOnClosed: Bool = true
+    var hideOnClosed: Bool = true
 
-    @Published var edgeAutoOpenActive: Bool = false
-    @Published var isHoveringCalendar: Bool = false
-    @Published var isBatteryPopoverActive: Bool = false
+    var edgeAutoOpenActive: Bool = false
+    var isHoveringCalendar: Bool = false
+    var isBatteryPopoverActive: Bool = false
     
-    @Published var backgroundImage: NSImage?
+    var backgroundImage: NSImage?
 
-    @Published var screenUUID: String?
+    var screenUUID: String?
 
-    @Published var notchSize: CGSize = getClosedNotchSize()
-    @Published var closedNotchSize: CGSize = getClosedNotchSize()
+    var notchSize: CGSize = getClosedNotchSize()
+    var closedNotchSize: CGSize = getClosedNotchSize()
     
     private let webcamManager: WebcamManager
-    @Published var isCameraExpanded: Bool = false
-    @Published var isRequestingAuthorization: Bool = false
+    var isCameraExpanded: Bool = false
+    var isRequestingAuthorization: Bool = false
     
     var inactiveNotchSize: CGSize = .zero
     private var inactiveHeightUpdateTask: DispatchWorkItem?
@@ -89,12 +91,7 @@ class BoringViewModel: NSObject, ObservableObject {
         closedNotchSize = notchSize
         inactiveNotchSize = getInactiveNotchSize(screenUUID: screenUUID)
 
-        Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
-            .map { shelf, drag, general in
-                shelf || drag || general
-            }
-            .assign(to: \.anyDropZoneTargeting, on: self)
-            .store(in: &cancellables)
+
 
         setupDetectorObserver()
         setupBackgroundImageObserver()
@@ -196,36 +193,65 @@ class BoringViewModel: NSObject, ObservableObject {
     }
     
     private func setupDetectorObserver() {
-        // Publisher for the user’s fullscreen detection setting
-        let enabledPublisher = Defaults
-            .publisher(.hideNotchOption)
-            .map(\.newValue)
-            .map { $0 != .never }
-            .removeDuplicates()
-
-        // Publisher for the current screen UUID (non-nil, distinct)
-        let screenPublisher = $screenUUID
-            .compactMap { $0 }
-            .removeDuplicates()
-
-        // Publisher for fullscreen status dictionary
-        let fullscreenStatusPublisher = detector.$fullscreenStatus
-            .removeDuplicates()
-
-        // Combine all three: screen UUID, fullscreen status, and enabled setting
-        Publishers.CombineLatest3(screenPublisher, fullscreenStatusPublisher, enabledPublisher)
-            .map { screenUUID, fullscreenStatus, enabled in
-                let isFullscreen = fullscreenStatus[screenUUID] ?? false
-                return enabled && isFullscreen
+        Task { @MainActor in
+            // Observe Defaults changes
+            for await _ in Defaults.updates(.hideNotchOption) {
+                updateHideOnClosed()
             }
-            .removeDuplicates()
-            .receive(on: RunLoop.main)
-            .sink { [weak self] shouldHide in
-                withAnimation(.smooth) {
-                    self?.hideOnClosed = shouldHide
+        }
+        
+        Task { @MainActor in
+            // Poll/Observe detector status and screenUUID
+            // Since we don't have a direct stream for property changes in @Observable yet without boilerplate,
+            // and screenUUID changes rarely, we can use a loop with withObservationTracking or just check periodically
+            // if we want to be 100% reactive.
+            // However, for simplicity and robustness with @Observable:
+            
+            while !Task.isCancelled {
+                let shouldHide = withObservationTracking {
+                    let enabled = Defaults[.hideNotchOption] != .never
+                    let uuid = self.screenUUID
+                    let status = self.detector.fullscreenStatus
+                    
+                    if let uuid = uuid {
+                        return enabled && (status[uuid] ?? false)
+                    }
+                    return false
+                } onChange: {
+                    Task { @MainActor in
+                        // Trigger re-evaluation
+                    }
                 }
+                
+                if self.hideOnClosed != shouldHide {
+                    withAnimation(.smooth) {
+                        self.hideOnClosed = shouldHide
+                    }
+                }
+                
+                // Wait for a bit to avoid tight loop if onChange fires rapidly or immediately
+                try? await Task.sleep(for: .milliseconds(200))
             }
-            .store(in: &cancellables)
+        }
+    }
+    
+    private func updateHideOnClosed() {
+        let enabled = Defaults[.hideNotchOption] != .never
+        let uuid = self.screenUUID
+        let status = self.detector.fullscreenStatus
+        
+        let shouldHide: Bool
+        if let uuid = uuid {
+            shouldHide = enabled && (status[uuid] ?? false)
+        } else {
+            shouldHide = false
+        }
+        
+        if self.hideOnClosed != shouldHide {
+            withAnimation(.smooth) {
+                self.hideOnClosed = shouldHide
+            }
+        }
     }
 
     private let batteryStatus: BatteryStatusViewModel

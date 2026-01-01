@@ -15,12 +15,12 @@ import SwiftUIIntrospect
 
 @MainActor
 struct ContentView: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager = WebcamManager.shared
+    @Environment(BoringViewModel.self) var vm
+    @Bindable var webcamManager = WebcamManager.shared
 
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @ObservedObject var musicManager = MusicManager.shared
-    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+    @Bindable var coordinator = BoringViewCoordinator.shared
+    var musicManager = MusicManager.shared
+    var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var stateMachine = NotchStateMachine.shared
@@ -120,7 +120,32 @@ struct ContentView: View {
 
     private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
+    // MARK: - State Observation
+    
+    private struct StateSnapshot: Equatable {
+        let helloAnimationRunning: Bool
+        let notchState: NotchState
+        let currentView: NotchViews
+        let sneakPeekShow: Bool
+        let expandingViewShow: Bool
+        let isPlaying: Bool
+        let isPlayerIdle: Bool
+    }
+
+    private var currentStateSnapshot: StateSnapshot {
+        StateSnapshot(
+            helloAnimationRunning: coordinator.helloAnimationRunning,
+            notchState: vm.notchState,
+            currentView: coordinator.currentView,
+            sneakPeekShow: coordinator.sneakPeek.show,
+            expandingViewShow: coordinator.expandingView.show,
+            isPlaying: musicManager.isPlaying,
+            isPlayerIdle: musicManager.isPlayerIdle
+        )
+    }
+
     var body: some View {
+        @Bindable var vm = vm
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
             guard gestureProgress != 0 else { return 1.0 }
@@ -140,26 +165,14 @@ struct ContentView: View {
                     .background {
                         ZStack {
                             if liquidGlassEffect {
-                                // Get the current screen and window for Metal blur
-                                let currentScreen = vm.screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
-                                let notchWindow = NSApp.windows.first { $0.contentView?.subviews.first(where: { $0 is NSHostingView<ContentView> }) != nil }
-                                let captureRect = currentScreen.map { screen in
-                                    LiquidGlassManager.captureRect(
-                                        for: screen,
-                                        notchSize: isDisplayStateOpen ? vm.notchSize : vm.closedNotchSize
-                                    )
-                                } ?? .zero
+                                // Metal capture logic removed - using SwiftGlass
+
                                 
-                                LiquidGlassBackground(
-                                    shape: Rectangle(),
-                                    configuration: liquidGlassStyle.configuration,
-                                    isActive: true,
-                                    tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil,
-                                    isExpanded: isDisplayStateOpen,
-                                    screen: currentScreen,
-                                    excludingWindow: notchWindow,
-                                    captureRect: captureRect
-                                )
+                                Rectangle()
+                                    .swiftGlassEffect(
+                                        isEnabled: true,
+                                        tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil
+                                    )
                             } else {
                                 Color.black
                             }
@@ -301,7 +314,7 @@ struct ContentView: View {
         .animation(.smooth, value: gestureProgress)
         .background(dragDetector)
         .preferredColorScheme(.dark)
-        .environmentObject(vm)
+        .environment(vm)
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -332,11 +345,11 @@ struct ContentView: View {
 
     @ViewBuilder
     func NotchLayout() -> some View {
+        @Bindable var vm = vm
         NotchContentRouter(
             displayState: stateMachine.displayState,
             albumArtNamespace: albumArtNamespace,
             coordinator: coordinator,
-            musicManager: musicManager,
             batteryModel: batteryModel,
             closedNotchHeight: displayClosedNotchHeight,
             cornerRadiusScaleFactor: cornerRadiusScaleFactor,
@@ -345,13 +358,7 @@ struct ContentView: View {
         .onAppear {
             updateStateMachine()
         }
-        .onChange(of: coordinator.helloAnimationRunning) { updateStateMachine() }
-        .onChange(of: vm.notchState) { updateStateMachine() }
-        .onChange(of: coordinator.currentView) { updateStateMachine() }
-        .onChange(of: coordinator.sneakPeek.show) { updateStateMachine() }
-        .onChange(of: coordinator.expandingView.show) { updateStateMachine() }
-        .onChange(of: musicManager.isPlaying) { updateStateMachine() }
-        .onChange(of: musicManager.isPlayerIdle) { updateStateMachine() }
+        .onChange(of: currentStateSnapshot) { _, _ in updateStateMachine() }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
     }
 
@@ -371,6 +378,7 @@ struct ContentView: View {
 
     @ViewBuilder
     var dragDetector: some View {
+        @Bindable var vm = vm
         if Defaults[.boringShelf] && vm.notchState == .closed {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -393,13 +401,11 @@ struct ContentView: View {
             if liquidGlassEffect {
                 // Liquid glass effect with optional background image overlay
                 ZStack {
-                    LiquidGlassBackground(
-                        shape: Rectangle(),
-                        configuration: liquidGlassStyle.configuration,
-                        isActive: true,
-                        tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil,
-                        isExpanded: isDisplayStateOpen
-                    )
+                    Rectangle()
+                        .swiftGlassEffect(
+                            isEnabled: true,
+                            tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil
+                        )
                     
                     // Optional background image on top of glass
                     if isHovering || vm.notchState == .open, let hoverImage = vm.backgroundImage {
@@ -578,8 +584,10 @@ struct GeneralDropTargetDelegate: DropDelegate {
 
 #Preview {
     let vm = BoringViewModel()
-    vm.open()
-    return ContentView()
-        .environmentObject(vm)
+    ContentView()
+        .environment(vm)
         .frame(width: vm.notchSize.width, height: vm.notchSize.height)
+        .onAppear {
+            vm.open()
+        }
 }

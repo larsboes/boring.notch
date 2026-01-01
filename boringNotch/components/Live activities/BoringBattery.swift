@@ -1,5 +1,4 @@
 import SwiftUI
-import Defaults
 
 /// A view that displays the battery status with an icon and charging indicator.
 struct BatteryView: View {
@@ -10,7 +9,8 @@ struct BatteryView: View {
     var isInLowPowerMode: Bool
     var batteryWidth: CGFloat = 26
     var isForNotification: Bool
-
+    var settings: NotchSettings
+    
     var icon: String = "battery.0"
 
     /// Determines the icon to display when charging.
@@ -57,7 +57,7 @@ struct BatteryView: View {
                 )
                 .padding(.leading, 2)
 
-            if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
+            if iconStatus != "" && (isForNotification || settings.showPowerStatusIcons) {
                 ZStack {
                     Image(iconStatus)
                         .resizable()
@@ -182,7 +182,8 @@ struct BoringBatteryView: View {
     @State private var isHoveringPopover: Bool = false
     @State private var hideTask: Task<Void, Never>?
 
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
 
     var body: some View {
         Button(action: {
@@ -191,7 +192,7 @@ struct BoringBatteryView: View {
             }
         }) {
             HStack {
-                if Defaults[.showBatteryPercentage] {
+                if settings.showBatteryPercentage {
                     Text("\(Int32(levelBattery))%")
                         .font(.callout)
                         .foregroundStyle(.white)
@@ -202,7 +203,8 @@ struct BoringBatteryView: View {
                     isCharging: isCharging,
                     isInLowPowerMode: isInLowPowerMode,
                     batteryWidth: batteryWidth,
-                    isForNotification: isForNotification
+                    isForNotification: isForNotification,
+                    settings: settings
                 )
             }
         }

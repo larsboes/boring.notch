@@ -32,14 +32,17 @@ extension SkyLightOperator {
 }
 
 class BoringNotchSkyLightWindow: NSPanel {
+    private let settings: NotchSettings
     private var isSkyLightEnabled: Bool = false
     
-    override init(
+    init(
         contentRect: NSRect,
         styleMask: NSWindow.StyleMask,
         backing: NSWindow.BackingStoreType,
-        defer flag: Bool
+        defer flag: Bool,
+        settings: NotchSettings
     ) {
+        self.settings = settings
         super.init(
             contentRect: contentRect,
             styleMask: styleMask,
@@ -48,7 +51,12 @@ class BoringNotchSkyLightWindow: NSPanel {
         )
         
         configureWindow()
+        configureWindow()
         setupObservers()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     private func configureWindow() {
@@ -102,7 +110,7 @@ class BoringNotchSkyLightWindow: NSPanel {
         
         let hasNotch = (self.screen?.safeAreaInsets.top ?? 0) > 0
         
-        if Defaults[.hideNonNotchedFromMissionControl] && !hasNotch {
+        if settings.hideNonNotchedFromMissionControl && !hasNotch {
             newBehavior.insert(.transient)
         }
         
@@ -110,7 +118,7 @@ class BoringNotchSkyLightWindow: NSPanel {
     }
     
     private func updateSharingType() {
-        if Defaults[.hideFromScreenRecording] {
+        if settings.hideFromScreenRecording {
             sharingType = .none
         } else {
             sharingType = .readOnly

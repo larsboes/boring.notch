@@ -6,15 +6,15 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct InlineHUD: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
     @Binding var type: SneakContentType
     @Binding var value: CGFloat
     @Binding var icon: String
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
+    @Environment(\.settings) var settings
     var body: some View {
         HStack {
             HStack(spacing: 5) {
@@ -93,7 +93,7 @@ struct InlineHUD: View {
                                 .lineLimit(1)
                                 .allowsTightening(true)
                                 .multilineTextAlignment(.trailing)
-                        } else if Defaults[.showClosedNotchHUDPercentage] {
+                        } else if settings.showClosedNotchHUDPercentage {
                             Text("\(Int(value * 100))%")
                                 .font(.caption)
                                 .fontWeight(.medium)
@@ -158,5 +158,5 @@ struct InlineHUD: View {
         .padding(.horizontal, 8)
         .background(Color.black)
         .padding()
-        .environmentObject(BoringViewModel())
+        .environment(BoringViewModel())
 }

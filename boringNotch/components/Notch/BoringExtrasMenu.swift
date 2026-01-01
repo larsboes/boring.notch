@@ -28,7 +28,7 @@ struct BoringLargeButtons: View {
 }
 
 struct BoringExtrasMenu: View {
-    @ObservedObject var vm: BoringViewModel
+    var vm: BoringViewModel
     
     var body: some View {
         VStack {

@@ -5,18 +5,18 @@
 //  Created by Harsh Vardhan  Goswami  on 04/08/24.
 //
 
-import Defaults
 import SwiftUI
 
 struct BoringHeader: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @StateObject var tvm = ShelfStateViewModel.shared
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
+    var batteryModel = BatteryStatusViewModel.shared
+    @Bindable var coordinator = BoringViewCoordinator.shared
+    @State var tvm = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
                     TabSelectionView()
                         .padding(.leading, 8)
                 } else if vm.notchState == .open {
@@ -34,7 +34,7 @@ struct BoringHeader: View {
             let hasHardwareNotch = (currentScreen?.safeAreaInsets.top ?? 0) > 0
             
             if vm.notchState == .open && hasHardwareNotch {
-                if !Defaults[.liquidGlassEffect] {
+                if !settings.liquidGlassEffect {
                     Rectangle()
                         .fill(.black)
                         .frame(width: vm.closedNotchSize.width)
@@ -52,12 +52,12 @@ struct BoringHeader: View {
 
             HStack(spacing: 4) {
                 if vm.notchState == .open {
-                    if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
+                    if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && settings.showOpenNotchHUD {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                             .padding(.trailing, 8)
                     } else {
-                        if Defaults[.showMirror] {
+                        if settings.showMirror {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {
@@ -73,7 +73,7 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.settingsIconInNotch] {
+                        if settings.settingsIconInNotch {
                             Button(action: {
                                 SettingsWindowController.shared.showWindow()
                             }) {
@@ -89,7 +89,7 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.showBatteryIndicator] {
+                        if settings.showBatteryIndicator {
                             BoringBatteryView(
                                 batteryWidth: 30,
                                 isCharging: batteryModel.isCharging,
@@ -112,7 +112,7 @@ struct BoringHeader: View {
             .zIndex(2)
         }
         .foregroundColor(.gray)
-        .environmentObject(vm)
+        .environment(vm)
     }
 
     func isHUDType(_ type: SneakContentType) -> Bool {
@@ -126,5 +126,5 @@ struct BoringHeader: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel())
+    BoringHeader().environment(BoringViewModel())
 }

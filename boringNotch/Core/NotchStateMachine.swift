@@ -90,7 +90,23 @@ class NotchStateMachine: ObservableObject {
     @Published private(set) var displayState: NotchDisplayState = .closed(content: .idle)
     @Published private(set) var lastInput: NotchStateInput?
 
-    private init() {}
+    /// Settings provider - can be injected for testing
+    private let settings: NotchSettings?
+
+    /// Production initializer (singleton)
+    private init() {
+        self.settings = nil
+    }
+
+    /// Testable initializer with injected settings
+    init(settings: NotchSettings) {
+        self.settings = settings
+    }
+
+    /// Manually transition to a state (for testing computed properties like chinWidth)
+    func transition(to state: NotchDisplayState) {
+        displayState = state
+    }
 
     /// Compute the display state based on current inputs.
     /// This mirrors the logic from ContentView.NotchLayout() but in a testable form.

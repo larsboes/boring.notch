@@ -5,15 +5,10 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import SwiftUI
 
 struct Advanced: View {
-    @Default(.useCustomAccentColor) var useCustomAccentColor
-    @Default(.customAccentColorData) var customAccentColorData
-    @Default(.extendHoverArea) var extendHoverArea
-    @Default(.showOnLockScreen) var showOnLockScreen
-    @Default(.hideFromScreenRecording) var hideFromScreenRecording
+    @Environment(\.bindableSettings) var settings
     
     @State private var customAccentColor: Color = .accentColor
     @State private var selectedPresetColor: PresetAccentColor?
@@ -48,17 +43,18 @@ struct Advanced: View {
     }
     
     var body: some View {
+        @Bindable var settings = settings
         Form {
             Section {
                 VStack(alignment: .leading, spacing: 16) {
                     // Toggle between system and custom
-                    Picker("Accent color", selection: $useCustomAccentColor) {
+                    Picker("Accent color", selection: $settings.useCustomAccentColor) {
                         Text("System").tag(false)
                         Text("Custom").tag(true)
                     }
                     .pickerStyle(.segmented)
                     
-                    if !useCustomAccentColor {
+                    if !settings.useCustomAccentColor {
                         // System accent info
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(spacing: 12) {
@@ -157,10 +153,10 @@ struct Advanced: View {
             }
             
             Section {
-                Defaults.Toggle(key: .enableShadow) {
+                Toggle(isOn: $settings.enableShadow) {
                     Text("Enable window shadow")
                 }
-                Defaults.Toggle(key: .cornerRadiusScaling) {
+                Toggle(isOn: $settings.cornerRadiusScaling) {
                     Text("Scale corner radius for closed notch")
                 }
             } header: {
@@ -212,19 +208,19 @@ struct Advanced: View {
             }
             
             Section {
-                Defaults.Toggle(key: .extendHoverArea) {
+                Toggle(isOn: $settings.extendHoverArea) {
                     Text("Extend hover area")
                 }
-                Defaults.Toggle(key: .hideTitleBar) {
+                Toggle(isOn: $settings.hideTitleBar) {
                     Text("Hide title bar")
                 }
-                Defaults.Toggle(key: .showOnLockScreen) {
+                Toggle(isOn: $settings.showOnLockScreen) {
                     Text("Show notch on lock screen")
                 }
-                Defaults.Toggle(key: .hideFromScreenRecording) {
+                Toggle(isOn: $settings.hideFromScreenRecording) {
                     Text("Hide from screen recording")
                 }
-                Defaults.Toggle(key: .hideNonNotchedFromMissionControl) {
+                Toggle(isOn: $settings.hideNonNotchedFromMissionControl) {
                     Text("Hide windows on non-notch displays from Mission Control")
                 }
             } header: {
@@ -248,13 +244,13 @@ struct Advanced: View {
     private func saveCustomColor(_ color: Color) {
         let nsColor = NSColor(color)
         if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: nsColor, requiringSecureCoding: false) {
-            Defaults[.customAccentColorData] = colorData
+            settings.customAccentColorData = colorData
             forceUiUpdate()
         }
     }
     
     private func loadCustomColor() {
-        if let colorData = Defaults[.customAccentColorData],
+        if let colorData = settings.customAccentColorData,
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
             customAccentColor = Color(nsColor: nsColor)
             
@@ -279,7 +275,7 @@ struct Advanced: View {
     }
     
     private func initializeAccentColorState() {
-        if !useCustomAccentColor {
+        if !settings.useCustomAccentColor {
             selectedPresetColor = nil // Multicolor is selected when useCustomAccentColor is false
         } else {
             loadCustomColor()

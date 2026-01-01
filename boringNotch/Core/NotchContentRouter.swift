@@ -17,10 +17,11 @@ struct NotchContentRouter: View {
     let albumArtNamespace: Namespace.ID
 
     // Required environment and state for rendering
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var coordinator: BoringViewCoordinator
-    @ObservedObject var musicManager: MusicManager
-    @ObservedObject var batteryModel: BatteryStatusViewModel
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.pluginManager) var pluginManager
+    @Bindable var coordinator: BoringViewCoordinator
+    // var musicManager: MusicManager // Removed in favor of pluginManager
+    var batteryModel: BatteryStatusViewModel
 
     /// Height to use for closed notch content
     var closedNotchHeight: CGFloat
@@ -69,12 +70,15 @@ struct NotchContentRouter: View {
             idleContent
 
         case .musicLiveActivity:
-            MusicLiveActivity(
-                albumArtNamespace: albumArtNamespace,
-                displayClosedNotchHeight: closedNotchHeight,
-                cornerRadiusScaleFactor: cornerRadiusScaleFactor,
-                cornerRadiusInsets: cornerRadiusInsets
-            )
+            if let musicService = pluginManager?.services.music {
+                MusicLiveActivity(
+                    musicService: musicService,
+                    albumArtNamespace: albumArtNamespace,
+                    displayClosedNotchHeight: closedNotchHeight,
+                    cornerRadiusScaleFactor: cornerRadiusScaleFactor,
+                    cornerRadiusInsets: cornerRadiusInsets
+                )
+            }
 
         case .batteryNotification:
             batteryNotificationContent
@@ -143,14 +147,16 @@ struct NotchContentRouter: View {
             HStack(alignment: .center) {
                 Image(systemName: "music.note")
                 GeometryReader { geo in
-                    MarqueeText(
-                        musicManager.songTitle + " - " + musicManager.artistName,
-                        color: Defaults[.playerColorTinting]
-                            ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
-                            : .gray,
-                        delayDuration: 1.0,
-                        frameWidth: geo.size.width
-                    )
+                    if let musicService = pluginManager?.services.music, let track = musicService.currentTrack {
+                        MarqueeText(
+                            track.title + " - " + track.artist,
+                            color: Defaults[.playerColorTinting]
+                                ? Color(nsColor: musicService.avgColor).ensureMinimumBrightness(factor: 0.6)
+                                : .gray,
+                            delayDuration: 1.0,
+                            frameWidth: geo.size.width
+                        )
+                    }
                 }
             }
             .foregroundStyle(Color.gray)
@@ -194,9 +200,10 @@ struct NotchContentRouter: View {
             switch view {
             case .home:
                 NotchHomeView(albumArtNamespace: albumArtNamespace)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity, alignment: .top)
             case .shelf:
                 ShelfView()
+                    .environment(vm)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .notifications:
                 NotificationsView()
@@ -278,9 +285,9 @@ struct BoringFaceAnimation: View {
 // MARK: - Music Live Activity Component
 
 struct MusicLiveActivity: View {
-    @ObservedObject var musicManager = MusicManager.shared
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @EnvironmentObject var vm: BoringViewModel
+    var musicService: (any MusicServiceProtocol)
+    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(BoringViewModel.self) var vm
     
     let albumArtNamespace: Namespace.ID
     var gestureProgress: CGFloat = 0
@@ -308,17 +315,19 @@ struct MusicLiveActivity: View {
             }()
 
             GeometryReader { geo in
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: geo.size.width)
-                    .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: closedCornerRadius
+                if let artwork = musicService.artwork {
+                    Image(nsImage: artwork)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.width)
+                        .clipShape(
+                            RoundedRectangle(
+                                cornerRadius: closedCornerRadius
+                            )
                         )
-                    )
-                    .clipped()
-                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                        .clipped()
+                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                }
             }
             .frame(
                 width: scaledArtSize,
@@ -332,9 +341,9 @@ struct MusicLiveActivity: View {
 
             HStack {
                 AudioSpectrumView(
-                    isPlaying: musicManager.isPlaying,
+                    isPlaying: musicService.playbackState.isPlaying,
                     tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                    ? Color(nsColor: musicService.avgColor).ensureMinimumBrightness(factor: 0.5)
                     : Color.gray
                 )
                 .frame(width: 16, height: 12)
@@ -371,11 +380,11 @@ struct NotchContentRouter_Previews: PreviewProvider {
             displayState: NotchDisplayState.closed(content: NotchDisplayState.ClosedContent.idle),
             albumArtNamespace: namespace,
             coordinator: BoringViewCoordinator.shared,
-            musicManager: MusicManager.shared,
+            // musicManager: MusicManager.shared, // Removed
             batteryModel: BatteryStatusViewModel.shared,
             closedNotchHeight: CGFloat(32),
-            cornerRadiusScaleFactor: nil,
-            cornerRadiusInsets: cornerRadiusInsets
+            cornerRadiusScaleFactor: 1.0,
+            cornerRadiusInsets: CornerRadiusInsets(opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
         )
     }
 }

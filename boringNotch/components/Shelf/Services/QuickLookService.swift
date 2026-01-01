@@ -13,6 +13,8 @@ import AppKit
 
 @MainActor
 final class QuickLookService: ObservableObject {
+    static let shared = QuickLookService()
+    
     @Published var urls: [URL] = []
     @Published var selectedURL: URL?
 

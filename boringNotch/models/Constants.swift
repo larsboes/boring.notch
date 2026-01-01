@@ -105,7 +105,12 @@ extension Defaults.Keys {
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
+    static let preferredScreenUUID = Key<String?>("preferred_screen_uuid", default: nil)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    static let firstLaunch = Key<Bool>("firstLaunch", default: true)
+    static let showWhatsNew = Key<Bool>("showWhatsNew", default: true)
+    static let musicLiveActivityEnabled = Key<Bool>("musicLiveActivityEnabled", default: true)
+    static let currentMicStatus = Key<Bool>("currentMicStatus", default: true)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
@@ -129,7 +134,8 @@ extension Defaults.Keys {
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
     
     // MARK: Appearance
-    // static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
+    static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
+    static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showMirror = Key<Bool>("showMirror", default: false)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
@@ -280,6 +286,18 @@ enum LiquidGlassStyle: String, CaseIterable, Identifiable, Codable, Defaults.Ser
         case .default: return .default
         case .subtle: return .subtle
         case .vibrant: return .vibrant
+        }
+    }
+}
+
+enum NotificationDeliveryStyle: String, CaseIterable, Defaults.Serializable {
+    case banner
+    case soundOnly
+    
+    var localizedName: String {
+        switch self {
+        case .banner: return "Banner & Sound"
+        case .soundOnly: return "Sound Only"
         }
     }
 }

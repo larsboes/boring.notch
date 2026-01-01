@@ -6,10 +6,9 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct WeatherView: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
     @ObservedObject private var weatherManager = WeatherManager.shared
     
     var body: some View {
@@ -185,5 +184,5 @@ struct WeatherDetailItem: View {
     WeatherView()
         .frame(width: 215, height: 130)
         .background(.black)
-        .environmentObject(BoringViewModel())
+        .environment(BoringViewModel())
 }
