@@ -19,7 +19,23 @@ final class MusicService: MusicServiceProtocol {
     var repeatMode: RepeatMode = .off
     var isFavorite: Bool = false
 
-    private let manager = MusicManager.shared
+    // MARK: - Advanced Properties (Delegated)
+    
+    var currentLyrics: String { manager.currentLyrics }
+    var isFetchingLyrics: Bool { manager.isFetchingLyrics }
+    var syncedLyrics: [(time: Double, text: String)] { manager.syncedLyrics }
+    
+    var songDuration: TimeInterval { manager.songDuration }
+    var elapsedTime: TimeInterval { manager.elapsedTime }
+    var timestampDate: Date { manager.timestampDate }
+    var playbackRate: Double { manager.playbackRate }
+    var bundleIdentifier: String? { manager.bundleIdentifier }
+    var canFavoriteTrack: Bool { manager.canFavoriteTrack }
+    var isPlayerIdle: Bool { manager.isPlayerIdle }
+    var isNowPlayingDeprecated: Bool { manager.isNowPlayingDeprecated }
+    var volumeControlSupported: Bool { manager.volumeControlSupported }
+
+    private let manager: MusicManager
     private var cancellables = Set<AnyCancellable>()
 
     // Publisher for the protocol
@@ -27,10 +43,19 @@ final class MusicService: MusicServiceProtocol {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         _playbackStateSubject.eraseToAnyPublisher()
     }
+    
+    var sneakPeekPublisher: AnyPublisher<SneakPeekRequest, Never> {
+        manager.sneakPeekPublisher
+            .map { request in
+                SneakPeekRequest(style: request.style, type: request.type)
+            }
+            .eraseToAnyPublisher()
+    }
 
     // MARK: - Initialization
 
-    init() {
+    init(manager: MusicManager) {
+        self.manager = manager
         setupSubscriptions()
 
         // Initial state
@@ -132,5 +157,25 @@ final class MusicService: MusicServiceProtocol {
 
     func toggleFavorite() async {
         manager.toggleFavoriteTrack()
+    }
+    
+    func openMusicApp() async {
+        manager.openMusicApp()
+    }
+    
+    func syncVolumeFromActiveApp() async {
+        await manager.syncVolumeFromActiveApp()
+    }
+    
+    func destroy() {
+        manager.destroy()
+    }
+    
+    func forceUpdate() {
+        manager.forceUpdate()
+    }
+    
+    func estimatedPlaybackPosition(at date: Date) -> TimeInterval {
+        manager.estimatedPlaybackPosition(at: date)
     }
 }

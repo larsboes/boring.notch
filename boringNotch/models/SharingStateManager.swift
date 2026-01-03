@@ -10,10 +10,10 @@ import Combine
 import Foundation
 
 @MainActor
-final class SharingStateManager: ObservableObject {
-	static let shared = SharingStateManager()
-
-	private var activeSessions: Int = 0 {
+@Observable
+final class SharingStateManager: SharingServiceProtocol {
+    static let shared = SharingStateManager()
+    private var activeSessions: Int = 0 {
 		didSet {
 			let newValue = activeSessions > 0
 			if newValue != preventNotchClose {
@@ -25,11 +25,11 @@ final class SharingStateManager: ObservableObject {
 		}
 	}
 
-	@Published var preventNotchClose: Bool = false
+	var preventNotchClose: Bool = false
 
 	private var activeDelegates: [UUID: SharingLifecycleDelegate] = [:]
 
-	private init() {}
+	init() {}
 	
 	func requestCloseIfReady() {
 		if !preventNotchClose {

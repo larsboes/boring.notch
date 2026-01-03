@@ -11,7 +11,7 @@ import SwiftUI
 struct CameraPreviewView: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
-    @Bindable var webcamManager: WebcamManager
+    let webcamManager: any WebcamServiceProtocol
     
     // Track if authorization request is in progress to avoid multiple requests
     @State private var isRequestingAuthorization: Bool = false
@@ -114,5 +114,5 @@ struct CameraPreviewLayerView: NSViewRepresentable {
 }
 
 #Preview {
-    CameraPreviewView(webcamManager: .shared)
+    CameraPreviewView(webcamManager: WebcamManager())
 }

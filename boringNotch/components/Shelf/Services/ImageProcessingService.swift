@@ -48,11 +48,13 @@ struct ImageConversionOptions {
 
 /// Service for processing images (background removal, conversion, PDF creation)
 @MainActor
-final class ImageProcessingService {
-    static let shared = ImageProcessingService()
-    
-    private init() {}
+final class ImageProcessingService: ImageProcessingServiceProtocol {
+    private let temporaryFileStorage: any TemporaryFileStorageServiceProtocol
     private let ciContext = CIContext(options: nil)
+    
+    init(temporaryFileStorage: any TemporaryFileStorageServiceProtocol) {
+        self.temporaryFileStorage = temporaryFileStorage
+    }
     
     // MARK: - Remove Background
     
@@ -91,7 +93,7 @@ final class ImageProcessingService {
             throw ImageProcessingError.saveFailed
         }
         
-        guard let tempURL = await TemporaryFileStorageService.shared.createTempFile(
+        guard let tempURL = await temporaryFileStorage.createTempFile(
             for: .data(finalData, suggestedName: newName)
         ) else {
             throw ImageProcessingError.saveFailed
@@ -157,7 +159,7 @@ final class ImageProcessingService {
         let originalName = url.deletingPathExtension().lastPathComponent
         let newName = "\(originalName)_converted.\(options.format.fileExtension)"
         
-        guard let tempURL = await TemporaryFileStorageService.shared.createTempFile(
+        guard let tempURL = await temporaryFileStorage.createTempFile(
             for: .data(data, suggestedName: newName)
         ) else {
             throw ImageProcessingError.saveFailed
@@ -271,7 +273,7 @@ final class ImageProcessingService {
             throw ImageProcessingError.pdfCreationFailed
         }
         
-        guard let tempURL = await TemporaryFileStorageService.shared.createTempFile(
+        guard let tempURL = await temporaryFileStorage.createTempFile(
             for: .data(pdfData, suggestedName: pdfName)
         ) else {
             throw ImageProcessingError.saveFailed

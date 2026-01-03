@@ -12,13 +12,18 @@ import QuickLook
 struct ShelfItemView: View {
     let item: ShelfItem
     @Environment(BoringViewModel.self) var vm
+    @Environment(\.pluginManager) var pluginManager
     @Environment(\.settings) var settings
-    @Bindable var selection = ShelfSelectionModel.shared
+    
+    private var selection: ShelfSelectionModel {
+        pluginManager?.services.shelf.selection ?? ShelfSelectionModel()
+    }
+    
     @State private var viewModel: ShelfItemViewModel
     @State private var showStack = false
     @State private var debouncedDropTarget = false
 
-    private var isSelected: Bool { viewModel.isSelected }
+    private var isSelected: Bool { selection.isSelected(item.id) }
     private var shouldHideDuringDrag: Bool { selection.isDragging && selection.isSelected(item.id) && false }
     
     init(item: ShelfItem) {
@@ -45,12 +50,15 @@ struct ShelfItemView: View {
                     item: item,
                     settings: settings,
                     viewModel: viewModel,
+                    service: pluginManager!.services.shelf,
                     dragPreviewContent: {
                         DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
                     },
-                    onRightClick: viewModel.handleRightClick,
+                    onRightClick: { event, view in
+                        viewModel.handleRightClick(event: event, view: view, service: pluginManager!.services.shelf)
+                    },
                     onClick: { event, nsview in
-                        viewModel.handleClick(event: event, view: nsview)
+                        viewModel.handleClick(event: event, view: nsview, items: pluginManager!.services.shelf.items, service: pluginManager!.services.shelf)
                     }
                 )
             } else {
@@ -69,8 +77,10 @@ struct ShelfItemView: View {
             }
         }
         .onAppear {
-            Task { 
-                await viewModel.loadThumbnail()
+            if let service = pluginManager?.services.shelf {
+                Task { 
+                    await viewModel.loadThumbnail(service: service)
+                }
             }
         }
     }
@@ -144,6 +154,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     let item: ShelfItem
     let settings: NotchSettings
     let viewModel: ShelfItemViewModel
+    let service: ShelfServiceProtocol
     @ViewBuilder let dragPreviewContent: () -> Content
     let onRightClick: (NSEvent, NSView) -> Void
     let onClick: (NSEvent, NSView) -> Void
@@ -153,6 +164,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         view.item = item
         view.settings = settings
         view.viewModel = viewModel
+        view.service = service
         view.getDragPreview = {
             self.renderDragPreview()
         }
@@ -165,6 +177,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         nsView.item = item
         nsView.settings = settings
         nsView.viewModel = viewModel
+        nsView.service = service
         // Update the closure to capture latest state if needed, though usually content closure is enough
         nsView.getDragPreview = {
             self.renderDragPreview()
@@ -190,6 +203,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         var item: ShelfItem!
         var settings: NotchSettings!
         weak var viewModel: ShelfItemViewModel?
+        var service: ShelfServiceProtocol!
         var getDragPreview: (() -> NSImage)?
         var onRightClick: ((NSEvent, NSView) -> Void)?
         var onClick: ((NSEvent, NSView) -> Void)?
@@ -229,7 +243,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         
         private func startDragSession(with event: NSEvent) {
             // Prepare dragging items
-            let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let selectedItems = service.selection.selectedItems(in: service.items)
             let itemsToDrag: [ShelfItem]
 
             if selectedItems.count > 1 && selectedItems.contains(where: { $0.id == item.id }) {
@@ -272,7 +286,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
 
             switch item.kind {
             case .file:
-                guard let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) else {
+                guard let url = service.resolveAndUpdateBookmark(for: item) else {
                     pasteboardItem.setString(item.displayName, forType: .string)
                     return pasteboardItem
                 }
@@ -317,11 +331,11 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         }
         
         func draggingSession(_ session: NSDraggingSession, willBeginAt screenPoint: NSPoint) {
-            ShelfSelectionModel.shared.beginDrag()
+            service.selection.beginDrag()
         }
         
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
-            ShelfSelectionModel.shared.endDrag()
+            service.selection.endDrag()
 
             // Stop accessing security-scoped resources after drag completes
             for url in draggedURLs {
@@ -333,7 +347,7 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             // Auto-remove items from shelf if enabled and drag succeeded
             if settings.autoRemoveShelfItems && !operation.isEmpty {
                 for item in draggedItems {
-                    ShelfStateViewModel.shared.remove(item)
+                    service.remove(item)
                 }
             }
             draggedItems.removeAll()

@@ -47,7 +47,8 @@ enum StandardAnimations {
     /// Timing curve fallback for older macOS versions
     static let timingCurve = Animation.timingCurve(0.16, 1, 0.3, 1, duration: 0.7)
 
-    static let hello = Animation.easeInOut(duration: 4.0)
+    /// Organic timing curve for the hello animation
+    static let hello = Animation.timingCurve(0.2, 0.8, 0.2, 1, duration: 3.0)
 
     // MARK: - Content Transitions
 

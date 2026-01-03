@@ -10,12 +10,17 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class ShelfFileHandler {
-    static let shared = ShelfFileHandler()
+final class ShelfFileHandler: ShelfFileHandlerProtocol {
+    // Dependencies
+    let temporaryFileStorage: any TemporaryFileStorageServiceProtocol
+    
+    init(temporaryFileStorage: any TemporaryFileStorageServiceProtocol) {
+        self.temporaryFileStorage = temporaryFileStorage
+    }
     
     // MARK: - File Operations
     
-    func rename(item: ShelfItem, newName: String, completion: @escaping (Bool) -> Void) {
+    func rename(item: ShelfItem, newName: String, service: ShelfServiceProtocol, completion: @escaping (Bool) -> Void) {
         guard case let .file(bookmarkData) = item.kind else { 
             completion(false)
             return 
@@ -35,7 +40,7 @@ final class ShelfFileHandler {
                     try FileManager.default.moveItem(at: fileURL, to: newURL)
                     
                     if let newBookmark = try? Bookmark(url: newURL) {
-                        ShelfStateViewModel.shared.updateBookmark(for: item, bookmark: newBookmark.data)
+                        service.updateBookmark(for: item, bookmark: newBookmark.data)
                         completion(true)
                     } else {
                         completion(false)
@@ -50,11 +55,11 @@ final class ShelfFileHandler {
         }
     }
     
-    func showInFinder(items: [ShelfItem]) {
+    func showInFinder(items: [ShelfItem], service: ShelfServiceProtocol) {
         Task {
             let urls = await items.asyncCompactMap { item -> URL? in
                 if case .file = item.kind {
-                    return ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
+                    return service.resolveAndUpdateBookmark(for: item)
                 }
                 return nil
             }
@@ -75,18 +80,18 @@ final class ShelfFileHandler {
         }
     }
     
-    func compress(items: [ShelfItem]) {
+    func compress(items: [ShelfItem], service: ShelfServiceProtocol) {
         let fileURLs = items.compactMap { $0.fileURL }
         guard !fileURLs.isEmpty else { return }
 
         Task {
             // Create ZIP in a temporary location while holding access to selected resources
             if let zipTempURL = await fileURLs.accessSecurityScopedResources(accessor: { urls in
-                await TemporaryFileStorageService.shared.createZip(from: urls)
+                await self.temporaryFileStorage.createZip(from: urls, suggestedName: nil)
             }) {
                 if let bookmark = try? Bookmark(url: zipTempURL) {
                     let newItem = ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
-                    ShelfStateViewModel.shared.add([newItem])
+                    service.add([newItem])
                 } else {
                     // Fallback: reveal the temporary file in Finder
                     NSWorkspace.shared.activateFileViewerSelecting([zipTempURL])

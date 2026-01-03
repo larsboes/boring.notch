@@ -16,14 +16,14 @@ import SwiftUIIntrospect
 @MainActor
 struct ContentView: View {
     @Environment(BoringViewModel.self) var vm
-    @Bindable var webcamManager = WebcamManager.shared
+    @Environment(\.pluginManager) var pluginManager
 
     @Bindable var coordinator = BoringViewCoordinator.shared
-    var musicManager = MusicManager.shared
-    var batteryModel = BatteryStatusViewModel.shared
-    @ObservedObject var brightnessManager = BrightnessManager.shared
-    @ObservedObject var volumeManager = VolumeManager.shared
-    @ObservedObject var stateMachine = NotchStateMachine.shared
+    // var musicManager = MusicManager.shared // Removed
+    // var batteryModel = BatteryStatusViewModel.shared // Removed
+    @State var brightnessManager = BrightnessManager()
+    @State var volumeManager = VolumeManager()
+    var stateMachine = NotchStateMachine.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -31,6 +31,11 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
+    
+    // Helper to access music service from plugin manager
+    private var musicService: any MusicServiceProtocol {
+        pluginManager?.services.music ?? MusicService(manager: MusicManager())
+    }
 
     @Namespace var albumArtNamespace
 
@@ -102,11 +107,11 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
             chinWidth = 640
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && vm.notchState == .closed && (musicService.playbackState.isPlaying || !musicService.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
+            && (!musicService.playbackState.isPlaying && musicService.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         }
@@ -139,13 +144,16 @@ struct ContentView: View {
             currentView: coordinator.currentView,
             sneakPeekShow: coordinator.sneakPeek.show,
             expandingViewShow: coordinator.expandingView.show,
-            isPlaying: musicManager.isPlaying,
-            isPlayerIdle: musicManager.isPlayerIdle
+            isPlaying: musicService.playbackState.isPlaying,
+            isPlayerIdle: musicService.isPlayerIdle
         )
     }
 
     var body: some View {
         @Bindable var vm = vm
+        // Inject shelf service into view model
+        let _ = { vm.shelfService = pluginManager!.services.shelf }()
+        
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
             guard gestureProgress != 0 else { return 1.0 }
@@ -155,7 +163,19 @@ struct ContentView: View {
         
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                let mainLayout = NotchLayout()
+                NotchContentRouter(
+                    displayState: stateMachine.displayState,
+                    albumArtNamespace: albumArtNamespace,
+                    coordinator: coordinator,
+                    closedNotchHeight: displayClosedNotchHeight,
+                    cornerRadiusScaleFactor: cornerRadiusScaleFactor,
+                    cornerRadiusInsets: cornerRadiusInsets
+                )
+                    .onAppear {
+                        updateStateMachine()
+                    }
+                    .onChange(of: currentStateSnapshot) { _, _ in updateStateMachine() }
+                    .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
@@ -166,12 +186,10 @@ struct ContentView: View {
                         ZStack {
                             if liquidGlassEffect {
                                 // Metal capture logic removed - using SwiftGlass
-
-                                
                                 Rectangle()
                                     .swiftGlassEffect(
                                         isEnabled: true,
-                                        tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil
+                                        tintColor: musicService.playbackState.isPlaying ? Color(nsColor: musicService.avgColor).opacity(0.3) : nil
                                     )
                             } else {
                                 Color.black
@@ -217,8 +235,6 @@ struct ContentView: View {
                     )
                     // Removed conditional bottom padding when using custom 0 notch to keep layout stable
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
-                
-                mainLayout
                     .frame(height: isDisplayStateOpen ? vm.notchSize.height : nil)
                     .conditionalModifier(true) { view in
                         view
@@ -290,11 +306,6 @@ struct ContentView: View {
                             SettingsWindowController.shared.showWindow()
                         }
                         .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-                        //                    Button("Edit") { // Doesnt work....
-                        //                        let dn = DynamicNotch(content: EditPanelView())
-                        //                        dn.toggle()
-                        //                    }
-                        //                    .keyboardShortcut("E", modifiers: .command)
                     }
                 if vm.chinHeight > 0 {
                     Rectangle()
@@ -350,16 +361,11 @@ struct ContentView: View {
             displayState: stateMachine.displayState,
             albumArtNamespace: albumArtNamespace,
             coordinator: coordinator,
-            batteryModel: batteryModel,
+            // batteryModel: batteryModel, // Removed
             closedNotchHeight: displayClosedNotchHeight,
             cornerRadiusScaleFactor: cornerRadiusScaleFactor,
             cornerRadiusInsets: cornerRadiusInsets
         )
-        .onAppear {
-            updateStateMachine()
-        }
-        .onChange(of: currentStateSnapshot) { _, _ in updateStateMachine() }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
     }
 
     private func updateStateMachine() {
@@ -367,7 +373,8 @@ struct ContentView: View {
             notchState: vm.notchState,
             currentView: coordinator.currentView,
             coordinator: coordinator,
-            musicManager: musicManager,
+            musicService: musicService,
+            pluginManager: pluginManager,
             hideOnClosed: vm.hideOnClosed
         )
         NotchStateMachine.shared.update(with: input)
@@ -385,7 +392,7 @@ struct ContentView: View {
                 .contentShape(Rectangle())
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
             vm.dropEvent = true
-            ShelfStateViewModel.shared.load(providers)
+            pluginManager!.services.shelf.load(providers)
             return true
         }
         } else {
@@ -404,7 +411,7 @@ struct ContentView: View {
                     Rectangle()
                         .swiftGlassEffect(
                             isEnabled: true,
-                            tintColor: musicManager.isPlaying ? Color(nsColor: musicManager.avgColor).opacity(0.3) : nil
+                            tintColor: musicService.playbackState.isPlaying ? Color(nsColor: musicService.avgColor).opacity(0.3) : nil
                         )
                     
                     // Optional background image on top of glass

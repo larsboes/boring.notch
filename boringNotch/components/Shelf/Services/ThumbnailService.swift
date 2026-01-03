@@ -10,16 +10,14 @@ import AppKit
 import QuickLookThumbnailing
 import UniformTypeIdentifiers
 
-actor ThumbnailService {
-    static let shared = ThumbnailService()
-
+actor ThumbnailService: ThumbnailServiceProtocol {
     // Use NSCache for automatic memory management and thread safety
     private let cache = NSCache<NSString, CGImage>()
     private var pendingRequests: [String: Task<CGImage?, Never>] = [:]
     private let thumbnailGenerator = QLThumbnailGenerator.shared
     private let maxCacheSize = 100
 
-    private init() {
+    init() {
         cache.countLimit = maxCacheSize
     }
     

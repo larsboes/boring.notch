@@ -99,11 +99,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         PluginManager(
             services: ServiceContainer(),
             eventBus: PluginEventBus(),
-            appState: BoringAppState()
+            appState: BoringAppState(),
+            builtInPlugins: [
+                MusicPlugin(),
+                BatteryPlugin(),
+                CalendarPlugin(),
+                WeatherPlugin(),
+                ShelfPlugin(),
+                WebcamPlugin(),
+                NotificationsPlugin(),
+                ClipboardPlugin()
+            ]
         )
     }()
 
     // MARK: - Coordinators (Phase 3 refactoring)
+    
+    lazy var fullscreenDetector: FullscreenMediaDetector = {
+        FullscreenMediaDetector(musicService: pluginManager.services.music)
+    }()
+    
+    lazy var mediaKeyInterceptor: MediaKeyInterceptor = {
+        MediaKeyInterceptor(
+            volumeService: pluginManager.services.volume,
+            brightnessService: pluginManager.services.brightness,
+            keyboardBacklightService: pluginManager.services.keyboardBacklight,
+            coordinator: coordinator
+        )
+    }()
 
     /// Manages window creation, positioning, and multi-display support
     private lazy var windowCoordinator: WindowCoordinator = {
@@ -111,7 +134,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             primaryViewModel: vm,
             coordinator: coordinator,
             settings: settings,
-            pluginManager: pluginManager
+            pluginManager: pluginManager,
+            detector: fullscreenDetector
         )
         wc.onDragDetectorsNeedSetup = { [weak self] in
             self?.dragDetectionCoordinator.setupDragDetectors()
@@ -132,7 +156,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Legacy Properties (to be migrated)
 
     var statusItem: NSStatusItem?
-    let vm: BoringViewModel = .init()
+    
+    lazy var vm: BoringViewModel = {
+        BoringViewModel(
+            coordinator: coordinator,
+            detector: fullscreenDetector,
+            webcamService: pluginManager.services.webcam,
+            musicService: pluginManager.services.music,
+            soundService: pluginManager.services.sound
+        )
+    }()
+    
     var coordinator = BoringViewCoordinator.shared
     var quickShareService = QuickShareService.shared
     var settings: NotchSettings = DefaultsNotchSettings()
@@ -170,7 +204,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         // Flush debounced shelf persistence to avoid losing recent changes
-        ShelfStateViewModel.shared.flushSync()
+        pluginManager.services.shelf.flushSync()
         
         // Deactivate plugins
         Task {
@@ -186,7 +220,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DistributedNotificationCenter.default().removeObserver(observer)
             screenUnlockedObserver = nil
         }
-        MusicManager.shared.destroy()
+        pluginManager.services.music.destroy()
 
         // Cleanup via coordinators
         dragDetectionCoordinator.cleanupDragDetectors()
@@ -241,6 +275,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await pluginManager.activateEnabledPlugins()
         }
+        
+        // Configure coordinator with dependencies
+        coordinator.configure(
+            eventBus: pluginManager.eventBus,
+            mediaKeyInterceptor: mediaKeyInterceptor
+        )
 
         NotificationCenter.default.addObserver(
             self,
@@ -338,7 +378,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
             }
-        } else if MusicManager.shared.isNowPlayingDeprecated
+        } else if pluginManager.services.music.isNowPlayingDeprecated
             && Defaults[.mediaController] == .nowPlaying {
             DispatchQueue.main.async {
                 self.showOnboardingWindow(step: .musicPermission)
@@ -352,8 +392,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func playWelcomeSound() {
-        let audioPlayer = AudioPlayer()
-        audioPlayer.play(fileName: "boring", fileExtension: "m4a")
+        pluginManager.services.sound.play(.welcome)
     }
 
     func deviceHasNotch() -> Bool {

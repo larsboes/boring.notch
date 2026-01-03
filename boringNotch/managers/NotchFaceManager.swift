@@ -10,11 +10,14 @@ import AppKit
 import Combine
 import Defaults
 
-class NotchFaceManager: ObservableObject {
+import Observation
+
+@Observable
+class NotchFaceManager {
     static let shared = NotchFaceManager()
     
-    @Published var eyeOffset: CGSize = .zero
-    @Published var isSleepy: Bool = false
+    var eyeOffset: CGSize = .zero
+    var isSleepy: Bool = false
     
     private var mouseMonitor: Any?
     private var idleTimer: Timer?

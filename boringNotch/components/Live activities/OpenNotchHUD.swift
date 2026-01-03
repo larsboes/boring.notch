@@ -14,6 +14,9 @@ struct OpenNotchHUD: View {
     @Binding var icon: String
     @Environment(\.settings) var settings
     
+    @State private var volumeManager = VolumeManager()
+    @State private var brightnessManager = BrightnessManager()
+    
     var body: some View {
         HStack(spacing: 8) {
             // Icon
@@ -88,9 +91,9 @@ struct OpenNotchHUD: View {
     func updateSystemValue(_ newVal: CGFloat) {
         switch type {
         case .volume:
-            VolumeManager.shared.setAbsolute(Float32(newVal))
+            volumeManager.setAbsolute(Float32(newVal))
         case .brightness:
-            BrightnessManager.shared.setAbsolute(value: Float32(newVal))
+            brightnessManager.setAbsolute(value: Float32(newVal))
         default:
             break
         }

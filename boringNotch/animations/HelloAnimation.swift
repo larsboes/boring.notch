@@ -120,7 +120,7 @@ struct HelloAnimation: View {
             }
             
             // Wait for the animation to complete
-            try? await Task.sleep(for: .seconds(4.0))
+            try? await Task.sleep(for: .seconds(3.0))
             
             onFinish()
         }

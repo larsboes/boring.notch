@@ -15,8 +15,9 @@ import SwiftUI
 struct NotchHomeView: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
-    @Bindable var webcamManager = WebcamManager.shared
-    var batteryModel = BatteryStatusViewModel.shared
+    @Environment(\.pluginManager) var pluginManager
+    // var webcamManager = WebcamManager.shared // Removed
+    // var batteryModel = BatteryStatusViewModel.shared // Removed
     @Bindable var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
 
@@ -25,10 +26,13 @@ struct NotchHomeView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .padding(.top, 4)
             .transition(.opacity)
+            .environment(\.albumArtNamespace, albumArtNamespace) // Inject namespace for plugins
     }
 
     private var shouldShowCamera: Bool {
-        settings.showMirror && webcamManager.cameraAvailable && vm.isCameraExpanded
+        settings.showMirror
+            && (pluginManager?.services.webcam.cameraAvailable ?? false)
+            && vm.isCameraExpanded
     }
     
     private var shouldShowCalendar: Bool {
@@ -67,40 +71,49 @@ struct NotchHomeView: View {
 
     private var mainContent: some View {
         HStack(alignment: .top, spacing: additionalItemsCount >= 2 ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
-                .opacity(vm.notchState == .open ? 1 : 0)
-                .blur(radius: vm.notchState == .closed ? 30 : 0)
-                .animation(StandardAnimations.staggered(index: 0), value: vm.notchState)
-
-            if shouldShowCalendar {
-                CalendarView()
-                    .frame(width: itemWidth)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
-                    }
-                    .environment(vm)
+            // Render Music Plugin
+            if let pluginManager {
+                pluginManager.expandedPanelView(for: "com.boringnotch.music")
                     .opacity(vm.notchState == .open ? 1 : 0)
                     .blur(radius: vm.notchState == .closed ? 30 : 0)
-                    .animation(StandardAnimations.staggered(index: 1), value: vm.notchState)
-                    .transition(.opacity)
+                    .animation(StandardAnimations.staggered(index: 0), value: vm.notchState)
+            }
+
+            if shouldShowCalendar {
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.calendar")
+                        .frame(width: itemWidth)
+                        .onHover { isHovering in
+                            vm.isHoveringCalendar = isHovering
+                        }
+                        .environment(vm)
+                        .opacity(vm.notchState == .open ? 1 : 0)
+                        .blur(radius: vm.notchState == .closed ? 30 : 0)
+                        .animation(StandardAnimations.staggered(index: 1), value: vm.notchState)
+                        .transition(.opacity)
+                }
             }
 
             if shouldShowWeather {
-                WeatherView()
-                    .frame(width: itemWidth)
-                    .environment(vm)
-                    .opacity(vm.notchState == .open ? 1 : 0)
-                    .blur(radius: vm.notchState == .closed ? 30 : 0)
-                    .animation(StandardAnimations.staggered(index: 2), value: vm.notchState)
-                    .transition(.opacity)
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.weather")
+                        .frame(width: itemWidth)
+                        .environment(vm)
+                        .opacity(vm.notchState == .open ? 1 : 0)
+                        .blur(radius: vm.notchState == .closed ? 30 : 0)
+                        .animation(StandardAnimations.staggered(index: 2), value: vm.notchState)
+                        .transition(.opacity)
+                }
             }
 
             if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.webcam")
+                        .scaledToFit()
+                        .opacity(vm.notchState == .closed ? 0 : 1)
                     // Do not blur the camera view to prevent "Unable to render flattened version" errors
-                    .animation(StandardAnimations.staggered(index: 3), value: vm.notchState)
+                        .animation(StandardAnimations.staggered(index: 3), value: vm.notchState)
+                }
             }
         }
         .padding(.horizontal, 4)

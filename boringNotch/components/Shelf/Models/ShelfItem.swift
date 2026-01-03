@@ -144,13 +144,13 @@ struct ShelfItem: Identifiable, Codable, Equatable {
         return NSImage()
     }
     
-    func cleanupStoredData() {
+    func cleanupStoredData(storage: any TemporaryFileStorageServiceProtocol) {
         guard case let .file(bookmarkData) = kind,
               let url = Bookmark(data: bookmarkData).resolvedURL else { return }
         
         // Handle temporary files
         if isTemporary {
-            TemporaryFileStorageService.shared.removeTemporaryFileIfNeeded(at: url)
+            storage.removeTemporaryFileIfNeeded(at: url)
             return
         }
     }

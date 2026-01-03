@@ -20,8 +20,6 @@ struct NotchContentRouter: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.pluginManager) var pluginManager
     @Bindable var coordinator: BoringViewCoordinator
-    // var musicManager: MusicManager // Removed in favor of pluginManager
-    var batteryModel: BatteryStatusViewModel
 
     /// Height to use for closed notch content
     var closedNotchHeight: CGFloat
@@ -30,22 +28,28 @@ struct NotchContentRouter: View {
     var cornerRadiusInsets: CornerRadiusInsets
 
     var body: some View {
-        switch displayState {
-        case .helloAnimation:
-            helloAnimationContent
+        Group {
+            switch displayState {
+            case .helloAnimation:
+                helloAnimationContent
 
-        case .closed(let content):
-            closedContent(content)
+            case .closed(let content):
+                closedContent(content)
 
-        case .open(let view):
-            openContent(view)
+            case .open(let view):
+                openContent(view)
 
-        case .sneakPeek(let type, let value, let icon):
-            sneakPeekContent(type: type, value: value, icon: icon)
+            case .sneakPeek(let type, let value, let icon):
+                sneakPeekContent(type: type, value: value, icon: icon)
 
-        case .expanding(let type):
-            expandingContent(type: type)
+            case .expanding(let type):
+                expandingContent(type: type)
+            }
         }
+    .environment(\.displayClosedNotchHeight, closedNotchHeight)
+    .environment(\.cornerRadiusScaleFactor, cornerRadiusScaleFactor)
+    .environment(\.cornerRadiusInsets, cornerRadiusInsets)
+    .environment(\.albumArtNamespace, albumArtNamespace)
     }
 
     // MARK: - Hello Animation
@@ -69,19 +73,10 @@ struct NotchContentRouter: View {
         case .idle:
             idleContent
 
-        case .musicLiveActivity:
-            if let musicService = pluginManager?.services.music {
-                MusicLiveActivity(
-                    musicService: musicService,
-                    albumArtNamespace: albumArtNamespace,
-                    displayClosedNotchHeight: closedNotchHeight,
-                    cornerRadiusScaleFactor: cornerRadiusScaleFactor,
-                    cornerRadiusInsets: cornerRadiusInsets
-                )
+        case .plugin(let id):
+            if let pluginManager {
+                pluginManager.closedNotchView(for: id)
             }
-
-        case .batteryNotification:
-            batteryNotificationContent
 
         case .face:
             BoringFaceAnimation(height: closedNotchHeight)
@@ -97,37 +92,11 @@ struct NotchContentRouter: View {
     @ViewBuilder
     private var idleContent: some View {
         Rectangle()
-            .fill(Color.clear)
-            .frame(width: vm.closedNotchSize.width, height: closedNotchHeight)
+        .fill(Color.clear)
+        .frame(width: vm.closedNotchSize.width, height: closedNotchHeight)
     }
 
-    @ViewBuilder
-    private var batteryNotificationContent: some View {
-        HStack(spacing: 0) {
-            HStack {
-                Text(batteryModel.statusText)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.white)
-            }
 
-            Rectangle()
-                .fill(Color.black)
-                .frame(width: vm.closedNotchSize.width + 10)
-
-            HStack {
-                BoringBatteryView(
-                    batteryWidth: 30,
-                    isCharging: batteryModel.isCharging,
-                    isInLowPowerMode: batteryModel.isInLowPowerMode,
-                    isPluggedIn: batteryModel.isPluggedIn,
-                    levelBattery: batteryModel.levelBattery,
-                    isForNotification: true
-                )
-            }
-            .frame(width: 76, alignment: .trailing)
-        }
-        .frame(height: closedNotchHeight, alignment: .center)
-    }
 
     @ViewBuilder
     private func inlineHUDContent(type: SneakContentType, value: CGFloat, icon: String) -> some View {
@@ -140,6 +109,9 @@ struct NotchContentRouter: View {
         )
         .transition(.opacity)
     }
+
+    @State private var volumeManager = VolumeManager()
+    @State private var brightnessManager = BrightnessManager()
 
     @ViewBuilder
     private func sneakPeekOverlayContent(type: SneakContentType, value: CGFloat, icon: String) -> some View {
@@ -169,9 +141,9 @@ struct NotchContentRouter: View {
                 sendEventBack: { newVal in
                     switch type {
                     case .volume:
-                        VolumeManager.shared.setAbsolute(Float32(newVal))
+                        volumeManager.setAbsolute(Float32(newVal))
                     case .brightness:
-                        BrightnessManager.shared.setAbsolute(value: Float32(newVal))
+                        brightnessManager.setAbsolute(value: Float32(newVal))
                     default:
                         break
                     }
@@ -202,15 +174,21 @@ struct NotchContentRouter: View {
                 NotchHomeView(albumArtNamespace: albumArtNamespace)
                     .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity, alignment: .top)
             case .shelf:
-                ShelfView()
-                    .environment(vm)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.shelf")
+                        .environment(vm)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             case .notifications:
-                NotificationsView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.notifications")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             case .clipboard:
-                ClipboardView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.clipboard")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             case .notes:
                 NotesView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -282,93 +260,6 @@ struct BoringFaceAnimation: View {
     }
 }
 
-// MARK: - Music Live Activity Component
-
-struct MusicLiveActivity: View {
-    var musicService: (any MusicServiceProtocol)
-    @Bindable var coordinator = BoringViewCoordinator.shared
-    @Environment(BoringViewModel.self) var vm
-    
-    let albumArtNamespace: Namespace.ID
-    var gestureProgress: CGFloat = 0
-    var displayClosedNotchHeight: CGFloat
-    var cornerRadiusScaleFactor: CGFloat?
-    var cornerRadiusInsets: CornerRadiusInsets
-
-    var body: some View {
-        HStack(spacing: 0) {
-            // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
-            let baseArtSize = displayClosedNotchHeight - 12
-            let scaledArtSize: CGFloat = {
-                if let scale = cornerRadiusScaleFactor {
-                    return displayClosedNotchHeight - 12 * scale
-                }
-                return baseArtSize
-            }()
-
-            let closedCornerRadius: CGFloat = {
-                let base = MusicPlayerImageSizes.cornerRadiusInset.closed
-                if let scale = cornerRadiusScaleFactor {
-                    return max(0, base * scale)
-                }
-                return base
-            }()
-
-            GeometryReader { geo in
-                if let artwork = musicService.artwork {
-                    Image(nsImage: artwork)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geo.size.width, height: geo.size.width)
-                        .clipShape(
-                            RoundedRectangle(
-                                cornerRadius: closedCornerRadius
-                            )
-                        )
-                        .clipped()
-                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                }
-            }
-            .frame(
-                width: scaledArtSize,
-                height: scaledArtSize
-            )
-
-            // Fixed-width middle section matching physical notch width
-            Rectangle()
-                .fill(Color.clear)
-                .frame(width: vm.closedNotchSize.width)
-
-            HStack {
-                AudioSpectrumView(
-                    isPlaying: musicService.playbackState.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicService.avgColor).ensureMinimumBrightness(factor: 0.5)
-                    : Color.gray
-                )
-                .frame(width: 16, height: 12)
-            }
-            .frame(
-                width: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                        + gestureProgress / 2
-                ),
-                height: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                ),
-                alignment: .center
-            )
-            .padding(.trailing, 10)
-        }
-        .frame(
-            height: displayClosedNotchHeight,
-            alignment: .center
-        )
-    }
-}
-
 // MARK: - Preview Provider
 
 #if DEBUG
@@ -381,7 +272,7 @@ struct NotchContentRouter_Previews: PreviewProvider {
             albumArtNamespace: namespace,
             coordinator: BoringViewCoordinator.shared,
             // musicManager: MusicManager.shared, // Removed
-            batteryModel: BatteryStatusViewModel.shared,
+            // batteryModel: BatteryStatusViewModel.shared, // Removed
             closedNotchHeight: CGFloat(32),
             cornerRadiusScaleFactor: 1.0,
             cornerRadiusInsets: CornerRadiusInsets(opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))

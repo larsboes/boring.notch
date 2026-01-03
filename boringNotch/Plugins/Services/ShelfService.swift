@@ -1,31 +1,51 @@
 //
-//  ShelfStateViewModel.swift
+//  ShelfService.swift
 //  boringNotch
 //
-//  Created by Alexander on 2025-10-09.
+//  Created by Agent on 01/01/26.
+//
 
 import Foundation
 import AppKit
+import Combine
 
+/// Concrete implementation of ShelfServiceProtocol.
+/// Manages the state and persistence of shelf items.
 @MainActor
-@Observable final class ShelfStateViewModel {
-    static let shared = ShelfStateViewModel()
-
+@Observable
+final class ShelfService: ShelfServiceProtocol {
+    // MARK: - Properties
+    
     private(set) var items: [ShelfItem] = [] {
         didSet { schedulePersistence() }
     }
-
+    
+    let selection = ShelfSelectionModel()
+    
     var isLoading: Bool = false
-
+    
     var isEmpty: Bool { items.isEmpty }
-
+    
     // Debounced persistence
     private var persistenceTask: Task<Void, Never>?
     private let persistenceDelay: Duration = .seconds(1)
-
-    private init() {
+    
+    // Injected helpers
+    let imageProcessor: any ShelfImageProcessorProtocol
+    let fileHandler: any ShelfFileHandlerProtocol
+    
+    // MARK: - Initialization
+    
+    init(
+        imageProcessor: any ShelfImageProcessorProtocol,
+        fileHandler: any ShelfFileHandlerProtocol
+    ) {
+        self.imageProcessor = imageProcessor
+        self.fileHandler = fileHandler
         items = ShelfPersistenceService.shared.load()
     }
+    
+    // MARK: - Methods
     
     private func schedulePersistence() {
         persistenceTask?.cancel()
@@ -35,7 +55,7 @@ import AppKit
             await ShelfPersistenceService.shared.saveAsync(self.items)
         }
     }
-
+    
     func add(_ newItems: [ShelfItem]) {
         guard !newItems.isEmpty else { return }
         var merged = items
@@ -50,31 +70,32 @@ import AppKit
         }
         items = merged
     }
-
+    
     func remove(_ item: ShelfItem) {
-        item.cleanupStoredData()
+        item.cleanupStoredData(storage: fileHandler.temporaryFileStorage)
         items.removeAll { $0.id == item.id }
     }
-
+    
     func updateBookmark(for item: ShelfItem, bookmark: Data) {
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         if case .file = items[idx].kind {
             items[idx] = ShelfItem(kind: .file(bookmark: bookmark), isTemporary: items[idx].isTemporary)
         }
     }
-
+    
     func load(_ providers: [NSItemProvider]) {
         guard !providers.isEmpty else { return }
         isLoading = true
         Task { [weak self] in
-            let dropped = await ShelfDropService.items(from: providers)
+            guard let self else { return }
+            let dropped = await ShelfDropService.items(from: providers, storage: self.fileHandler.temporaryFileStorage)
             await MainActor.run {
-                self?.add(dropped)
-                self?.isLoading = false
+                self.add(dropped)
+                self.isLoading = false
             }
         }
     }
-
+    
     func cleanupInvalidItems() {
         Task { [weak self] in
             guard let self else { return }
@@ -86,7 +107,7 @@ import AppKit
                     if await bookmark.validate() {
                         keep.append(item)
                     } else {
-                        item.cleanupStoredData()
+                        item.cleanupStoredData(storage: self.fileHandler.temporaryFileStorage)
                     }
                 default:
                     keep.append(item)
@@ -95,9 +116,7 @@ import AppKit
             await MainActor.run { self.items = keep }
         }
     }
-
-    /// Resolves the file URL for an item and updates the bookmark if stale.
-    /// Use this for user-initiated actions where bookmark refresh is desired.
+    
     func resolveAndUpdateBookmark(for item: ShelfItem) -> URL? {
         guard case .file(let bookmarkData) = item.kind else { return nil }
         let bookmark = Bookmark(data: bookmarkData)
@@ -108,17 +127,16 @@ import AppKit
         }
         return result.url
     }
-
+    
     func resolveFileURLs(for items: [ShelfItem]) -> [URL] {
         items.compactMap { $0.fileURL }
     }
-
-    @MainActor
+    
     func flushSync() {
         // Cancel any scheduled persistence task (we'll save synchronously now)
         persistenceTask?.cancel()
         persistenceTask = nil
-
+        
         // Perform a synchronous, atomic save to disk
         ShelfPersistenceService.shared.save(self.items)
     }

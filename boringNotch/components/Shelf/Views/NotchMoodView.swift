@@ -10,7 +10,7 @@ import SwiftUI
 
 struct NotchMoodView: View {
     @Environment(\.settings) var settings
-    @ObservedObject var faceManager = NotchFaceManager.shared
+    var faceManager = NotchFaceManager.shared
     @State private var blink = false
     @State private var breathe = false
     

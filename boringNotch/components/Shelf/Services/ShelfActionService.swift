@@ -41,8 +41,8 @@ enum ShelfActionService {
         }
     }
 
-    static func remove(_ item: ShelfItem) {
-        ShelfStateViewModel.shared.remove(item)
+    static func remove(_ item: ShelfItem, service: ShelfServiceProtocol) {
+        service.remove(item)
     }
 }
 
@@ -50,8 +50,8 @@ enum ShelfActionService {
 
 @MainActor
 final class ShelfContextMenuHandler {
-    static func present(event: NSEvent, in view: NSView, item: ShelfItem) {
-        ensureContextMenuSelection(item: item)
+    static func present(event: NSEvent, in view: NSView, item: ShelfItem, service: ShelfServiceProtocol) {
+        ensureContextMenuSelection(item: item, service: service)
         let menu = NSMenu()
 
         func addMenuItem(title: String) {
@@ -59,8 +59,8 @@ final class ShelfContextMenuHandler {
             menu.addItem(mi)
         }
 
-        let selection = ShelfSelectionModel.shared
-        let selectedItems = selection.selectedItems(in: ShelfStateViewModel.shared.items)
+        let selection = service.selection
+        let selectedItems = selection.selectedItems(in: service.items)
         let selectedFileURLs = selectedItems.compactMap { $0.fileURL }
         let selectedLinkURLs: [URL] = selectedItems.compactMap { itm in
             if case .link(let url) = itm.kind { return url }
@@ -164,7 +164,7 @@ final class ShelfContextMenuHandler {
         addMenuItem(title: "Share…")
         
         // Add image processing options for image files grouped under "Image Actions"
-        let imageProcessor = ShelfImageProcessor.shared
+        let imageProcessor = service.imageProcessor
         let imageURLs = selectedFileURLs.filter { imageProcessor.isImageFile($0) }
         if !imageURLs.isEmpty {
             menu.addItem(NSMenuItem.separator())
@@ -214,7 +214,7 @@ final class ShelfContextMenuHandler {
         menu.addItem(NSMenuItem.separator())
         addMenuItem(title: "Remove")
 
-        let actionTarget = ShelfMenuActionTarget(item: item, view: view)
+        let actionTarget = ShelfMenuActionTarget(item: item, view: view, service: service)
 
         for menuItem in menu.items {
             if menuItem.isSeparatorItem { continue }
@@ -236,8 +236,8 @@ final class ShelfContextMenuHandler {
         NSMenu.popUpContextMenu(menu, with: event, for: view)
     }
     
-    private static func ensureContextMenuSelection(item: ShelfItem) {
-        let selection = ShelfSelectionModel.shared
+    private static func ensureContextMenuSelection(item: ShelfItem, service: ShelfServiceProtocol) {
+        let selection = service.selection
         if !selection.isSelected(item.id) { selection.selectSingle(item) }
     }
     
@@ -272,19 +272,20 @@ final class ShelfContextMenuHandler {
 final class ShelfMenuActionTarget: NSObject {
     let item: ShelfItem
     weak var view: NSView?
+    let service: ShelfServiceProtocol
 
     // Keep associated objects (like accessory view handlers) without magic keys
     private static var sliderHandlerAssoc = AssociatedObject<AnyObject>()
 
-    init(item: ShelfItem, view: NSView) {
+    init(item: ShelfItem, view: NSView, service: ShelfServiceProtocol) {
         self.item = item
         self.view = view
+        self.service = service
     }
 
     @MainActor @objc func handle(_ sender: NSMenuItem) {
         let title = sender.title
-        let fileHandler = ShelfFileHandler.shared
-        let imageProcessor = ShelfImageProcessor.shared
+        let fileHandler = service.fileHandler
 
         if let marker = sender.representedObject as? String, marker == "__OTHER__" {
             openWithPanel()
@@ -292,14 +293,14 @@ final class ShelfMenuActionTarget: NSObject {
         }
 
         if let appURL = sender.representedObject as? URL {
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let selected = service.selection.selectedItems(in: service.items)
             fileHandler.open(items: selected, with: appURL)
             return
         }
 
         switch title {
         case "Quick Look":
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let selected = service.selection.selectedItems(in: service.items)
             let urls: [URL] = selected.compactMap { item in
                 if let fileURL = item.fileURL {
                     return fileURL
@@ -314,31 +315,31 @@ final class ShelfMenuActionTarget: NSObject {
             }
 
         case "Open":
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            fileHandler.open(items: selected)
+            let selected = service.selection.selectedItems(in: service.items)
+            fileHandler.open(items: selected, with: nil)
 
         case "Share…":
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            QuickShareService.shared.share(items: selected, from: view)
+            let selected = service.selection.selectedItems(in: service.items)
+            QuickShareService.shared.share(items: selected, from: view, service: service)
 
         case "Rename":
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let selected = service.selection.selectedItems(in: service.items)
             if selected.count == 1, let single = selected.first { showRenameDialog(for: single) }
 
         case "Show in Finder":
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            fileHandler.showInFinder(items: selected)
+            let selected = service.selection.selectedItems(in: service.items)
+            fileHandler.showInFinder(items: selected, service: service)
 
         case "Copy Path":
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let selected = service.selection.selectedItems(in: service.items)
             fileHandler.copyPath(items: selected)
 
         case "Copy":
             handleCopy()
 
         case "Remove":
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            for it in selected { ShelfActionService.remove(it) }
+            let selected = service.selection.selectedItems(in: service.items)
+            for it in selected { ShelfActionService.remove(it, service: service) }
             
         case "Remove Background":
             handleRemoveBackground()
@@ -350,8 +351,8 @@ final class ShelfMenuActionTarget: NSObject {
             handleCreatePDF()
         
         case "Compress":
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            fileHandler.compress(items: selected)
+            let selected = service.selection.selectedItems(in: service.items)
+            fileHandler.compress(items: selected, service: service)
             
         default:
             break
@@ -361,7 +362,7 @@ final class ShelfMenuActionTarget: NSObject {
     // MARK: - Action Implementations
     
     private func handleCopy() {
-        let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+        let selected = service.selection.selectedItems(in: service.items)
         let pb = NSPasteboard.general
         
         // We need a place to store copiedURLs. ShelfItemViewModel had it as static.
@@ -375,7 +376,7 @@ final class ShelfMenuActionTarget: NSObject {
         Task {
             let fileURLs = await selected.asyncCompactMap { item -> URL? in
                 if case .file = item.kind {
-                    return ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
+                    return service.resolveAndUpdateBookmark(for: item)
                 }
                 return nil
             }
@@ -564,7 +565,7 @@ final class ShelfMenuActionTarget: NSObject {
     
     @MainActor
     private func showRenameDialog(for item: ShelfItem) {
-        ShelfFileHandler.shared.rename(item: item, newName: "") { _ in } // Placeholder to access rename logic if needed, but actually we need the dialog logic.
+        service.fileHandler.rename(item: item, newName: "", service: service) { _ in } // Placeholder to access rename logic if needed, but actually we need the dialog logic.
         // Re-implementing dialog logic here as it was in ViewModel
         guard case let .file(bookmarkData) = item.kind else { return }
         Task {
@@ -580,7 +581,7 @@ final class ShelfMenuActionTarget: NSObject {
                 savePanel.directoryURL = fileURL.deletingLastPathComponent()
                 savePanel.begin { response in
                     if response == .OK, let newURL = savePanel.url {
-                        ShelfFileHandler.shared.rename(item: item, newName: newURL.lastPathComponent) { success in
+                        self.service.fileHandler.rename(item: item, newName: newURL.lastPathComponent, service: self.service) { success in
                             if !success {
                                 print("❌ Failed to rename file via handler")
                             }
@@ -594,14 +595,14 @@ final class ShelfMenuActionTarget: NSObject {
     
     @MainActor
     private func handleRemoveBackground() {
-        let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-        let imageURLs = selected.compactMap { $0.fileURL }.filter { ShelfImageProcessor.shared.isImageFile($0) }
+        let selected = service.selection.selectedItems(in: service.items)
+        let imageURLs = selected.compactMap { $0.fileURL }.filter { service.imageProcessor.isImageFile($0) }
         
         guard let imageURL = imageURLs.first else { return }
         
         // Find the item corresponding to this URL
         if let item = selected.first(where: { $0.fileURL == imageURL }) {
-            ShelfImageProcessor.shared.removeBackground(from: item) { error in
+            service.imageProcessor.removeBackground(from: item, service: service) { error in
                 if let error = error {
                     // self.showErrorAlert(title: "Background Removal Failed", message: error.localizedDescription)
                     // We need a way to show alerts. For now, print.
@@ -613,8 +614,8 @@ final class ShelfMenuActionTarget: NSObject {
     
     @MainActor
     private func handleCreatePDF() {
-        let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-        ShelfImageProcessor.shared.createPDF(from: selected) { error in
+        let selected = service.selection.selectedItems(in: service.items)
+        service.imageProcessor.createPDF(from: selected, service: service) { error in
             if let error = error {
                 print("❌ PDF Creation Failed: \(error.localizedDescription)")
             }
@@ -623,8 +624,8 @@ final class ShelfMenuActionTarget: NSObject {
     
     @MainActor
     private func showConvertImageDialog() {
-        let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-        let imageURLs = selected.compactMap { $0.fileURL }.filter { ShelfImageProcessor.shared.isImageFile($0) }
+        let selected = service.selection.selectedItems(in: service.items)
+        let imageURLs = selected.compactMap { $0.fileURL }.filter { service.imageProcessor.isImageFile($0) }
         
         guard let imageURL = imageURLs.first else { return }
         guard let item = selected.first(where: { $0.fileURL == imageURL }) else { return }
@@ -807,7 +808,7 @@ final class ShelfMenuActionTarget: NSObject {
                 removeMetadata: removeMetadata
             )
             
-            ShelfImageProcessor.shared.convertImage(item: item, options: options) { error in
+            service.imageProcessor.convertImage(item: item, options: options, service: service) { error in
                 if let error = error {
                     print("❌ Image Conversion Failed: \(error.localizedDescription)")
                 }

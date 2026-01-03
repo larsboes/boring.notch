@@ -16,7 +16,24 @@ protocol MusicServiceProtocol: Observable {
     var isShuffled: Bool { get }
     var repeatMode: RepeatMode { get }
     var isFavorite: Bool { get }
-
+    
+    // Lyrics Support
+    var currentLyrics: String { get }
+    var isFetchingLyrics: Bool { get }
+    var syncedLyrics: [(time: Double, text: String)] { get }
+    
+    // Advanced Playback Info
+    var songDuration: TimeInterval { get }
+    var elapsedTime: TimeInterval { get }
+    var timestampDate: Date { get }
+    var playbackRate: Double { get }
+    var bundleIdentifier: String? { get }
+    var canFavoriteTrack: Bool { get }
+    var isPlayerIdle: Bool { get }
+    var isNowPlayingDeprecated: Bool { get }
+    var volumeControlSupported: Bool { get }
+    
+    // Actions
     func play() async
     func pause() async
     func togglePlayPause() async
@@ -27,8 +44,27 @@ protocol MusicServiceProtocol: Observable {
     func toggleShuffle() async
     func toggleRepeat() async
     func toggleFavorite() async
+    func openMusicApp() async
+    func syncVolumeFromActiveApp() async
+    func destroy()
+    func forceUpdate()
+    
+    // Utilities
+    func estimatedPlaybackPosition(at date: Date) -> TimeInterval
 
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> { get }
+    var sneakPeekPublisher: AnyPublisher<SneakPeekRequest, Never> { get }
+}
+
+/// Request to show a sneak peek
+struct SneakPeekRequest: Equatable {
+    let style: SneakPeekStyle
+    let type: SneakContentType
+    
+    public init(style: SneakPeekStyle, type: SneakContentType) {
+        self.style = style
+        self.type = type
+    }
 }
 
 /// Track information for music playback

@@ -6,17 +6,15 @@
 import AppKit
 
 @MainActor
-final class BrightnessManager: ObservableObject {
-	static let shared = BrightnessManager()
-
-	@Published private(set) var rawBrightness: Float = 0
-	@Published private(set) var animatedBrightness: Float = 0
-	@Published private(set) var lastChangeAt: Date = .distantPast
+@Observable final class BrightnessManager: BrightnessServiceProtocol {
+	var rawBrightness: Float = 0
+	var animatedBrightness: Float = 0
+	var lastChangeAt: Date = .distantPast
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
 
-	private init() { refresh() }
+	init() { refresh() }
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
@@ -67,16 +65,14 @@ final class BrightnessManager: ObservableObject {
 
 // MARK: - Keyboard Backlight Controller
 @MainActor
-final class KeyboardBacklightManager: ObservableObject {
-	static let shared = KeyboardBacklightManager()
-
-	@Published private(set) var rawBrightness: Float = 0
-	@Published private(set) var lastChangeAt: Date = .distantPast
+@Observable final class KeyboardBacklightManager: KeyboardBacklightServiceProtocol {
+	var rawBrightness: Float = 0
+	var lastChangeAt: Date = .distantPast
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
 
-	private init() { refresh() }
+	init() { refresh() }
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 

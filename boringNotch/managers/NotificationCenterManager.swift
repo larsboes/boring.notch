@@ -3,11 +3,12 @@ import Defaults
 import SwiftUI
 import UserNotifications
 
-class NotificationCenterManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
+@Observable
+class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNotificationCenterDelegate {
     static let shared = NotificationCenterManager()
 
-    @Published var notifications: [NotchNotification] = []
-    @Published var authorizationStatus: UNAuthorizationStatus = .notDetermined
+    var notifications: [NotchNotification] = []
+    var authorizationStatus: UNAuthorizationStatus = .notDetermined
 
     private let center = UNUserNotificationCenter.current()
     private var cancellables = Set<AnyCancellable>()
@@ -22,7 +23,7 @@ class NotificationCenterManager: NSObject, ObservableObject, UNUserNotificationC
 
     func requestAuthorization() {
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.checkAuthorizationStatus()
                 if granted {
                     print("Notification permission granted")
@@ -35,7 +36,7 @@ class NotificationCenterManager: NSObject, ObservableObject, UNUserNotificationC
 
     func checkAuthorizationStatus() {
         center.getNotificationSettings { settings in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self.authorizationStatus = settings.authorizationStatus
             }
         }
@@ -111,7 +112,7 @@ class NotificationCenterManager: NSObject, ObservableObject, UNUserNotificationC
 
     // MARK: - UNUserNotificationCenterDelegate
 
-    func userNotificationCenter(
+    nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void

@@ -9,27 +9,31 @@ import SwiftUI
 
 struct WeatherView: View {
     @Environment(BoringViewModel.self) var vm
-    @ObservedObject private var weatherManager = WeatherManager.shared
+    @Environment(\.pluginManager) var pluginManager
     
     var body: some View {
         VStack(spacing: 8) {
-            if weatherManager.isLoading {
-                loadingView
-            } else if let error = weatherManager.errorMessage {
-                errorView(message: error)
-            } else if let weather = weatherManager.currentWeather {
-                weatherContent(weather: weather)
+            if let weatherService = pluginManager?.services.weather {
+                if weatherService.isLoading {
+                    loadingView
+                } else if let error = weatherService.errorMessage {
+                    errorView(message: error)
+                } else if let weather = weatherService.currentWeather {
+                    weatherContent(weather: weather)
+                } else {
+                    emptyStateView
+                }
             } else {
                 emptyStateView
             }
         }
         .frame(height: 120)
         .onAppear {
-            weatherManager.checkLocationAuthorization()
+            pluginManager?.services.weather.checkLocationAuthorization()
         }
         .onChange(of: vm.notchState) { _, _ in
             if vm.notchState == .open {
-                weatherManager.fetchWeather()
+                pluginManager?.services.weather.fetchWeather()
             }
         }
     }
@@ -56,7 +60,7 @@ struct WeatherView: View {
                 .foregroundColor(Color(white: 0.65))
                 .multilineTextAlignment(.center)
             
-            if weatherManager.locationAuthorizationStatus == .denied {
+            if pluginManager?.services.weather.locationAuthorizationStatus == .denied {
                 Button("Open Settings") {
                     if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
                         NSWorkspace.shared.open(url)

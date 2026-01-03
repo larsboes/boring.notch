@@ -3923,6 +3923,9 @@
         }
       }
     },
+    "Calendar Access Denied" : {
+
+    },
     "Calendar access is denied. Please enable it in System Settings." : {
       "localizations" : {
         "ar" : {
@@ -4022,6 +4025,9 @@
           }
         }
       }
+    },
+    "Calendar Access Required" : {
+
     },
     "Calendars" : {
       "localizations" : {
@@ -7150,9 +7156,6 @@
         }
       }
     },
-    "Display" : {
-
-    },
     "Download" : {
       "localizations" : {
         "ar" : {
@@ -7653,9 +7656,6 @@
           }
         }
       }
-    },
-    "Duration: %.1fs" : {
-
     },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
       "localizations" : {
@@ -8468,9 +8468,6 @@
           }
         }
       }
-    },
-    "Enable sneak peek" : {
-
     },
     "Enable window shadow" : {
       "localizations" : {
@@ -10084,6 +10081,9 @@
           }
         }
       }
+    },
+    "Grant Access" : {
+
     },
     "Hide all-day events" : {
       "localizations" : {
@@ -13738,6 +13738,12 @@
         }
       }
     },
+    "Music Service Unavailable" : {
+
+    },
+    "Music Settings" : {
+
+    },
     "Music Source" : {
       "localizations" : {
         "ar" : {
@@ -14542,9 +14548,6 @@
           }
         }
       }
-    },
-    "No music playing" : {
-
     },
     "No weather data" : {
 
@@ -17288,7 +17291,13 @@
         }
       }
     },
+    "Request Calendar Access" : {
+
+    },
     "Request permission" : {
+
+    },
+    "Request Reminders Access" : {
 
     },
     "Reset to Defaults" : {
@@ -18880,9 +18889,6 @@
         }
       }
     },
-    "Show lyrics" : {
-
-    },
     "Show lyrics below artist name" : {
       "localizations" : {
         "ar" : {
@@ -19993,9 +19999,6 @@
       }
     },
     "Sneak peak duration" : {
-
-    },
-    "Sneak Peek" : {
 
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {

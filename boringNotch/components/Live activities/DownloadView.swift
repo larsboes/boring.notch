@@ -20,12 +20,15 @@ struct DownloadFile {
     var browser: Browser
 }
 
-class DownloadWatcher: ObservableObject {
-    @Published var downloadFiles: [DownloadFile] = []
+import Observation
+
+@Observable
+class DownloadWatcher {
+    var downloadFiles: [DownloadFile] = []
 }
 
 struct DownloadArea: View {
-    @EnvironmentObject var watcher: DownloadWatcher
+    @Environment(DownloadWatcher.self) var watcher
 
     var body: some View {
         HStack(alignment: .center) {

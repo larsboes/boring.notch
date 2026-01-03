@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 // MARK: - WeekDayPicker
 /// Fixed 6-day week view (Mon-Sat) with compact styling
@@ -88,7 +89,7 @@ struct WeekDayPicker: View {
 struct CalendarView: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
-    @ObservedObject private var calendarManager = CalendarManager.shared
+    @Environment(\.pluginManager) var pluginManager
     @State private var selectedDate = Date()
 
     var body: some View {
@@ -112,33 +113,38 @@ struct CalendarView: View {
             }
             .padding(.horizontal, 8)
 
-            let filteredEvents = EventListView.filteredEvents(
-                events: calendarManager.events,
-                settings: settings
-            )
-            if filteredEvents.isEmpty {
+            if let calendarService = pluginManager?.services.calendar {
+                let filteredEvents = EventListView.filteredEvents(
+                    events: calendarService.events,
+                    settings: settings
+                )
+                if filteredEvents.isEmpty {
+                    EmptyEventsView(selectedDate: selectedDate)
+                    Spacer(minLength: 0)
+                } else {
+                    EventListView(events: calendarService.events)
+                }
+            } else {
                 EmptyEventsView(selectedDate: selectedDate)
                 Spacer(minLength: 0)
-            } else {
-                EventListView(events: calendarManager.events)
             }
         }
         .listRowBackground(Color.clear)
         .frame(height: 120)
         .onChange(of: selectedDate) {
             Task {
-                await calendarManager.updateCurrentDate(selectedDate)
+                await pluginManager?.services.calendar.updateCurrentDate(selectedDate)
             }
         }
         .onChange(of: vm.notchState) { _, _ in
             Task {
-                await calendarManager.updateCurrentDate(Date.now)
+                await pluginManager?.services.calendar.updateCurrentDate(Date.now)
                 selectedDate = Date.now
             }
         }
         .onAppear {
             Task {
-                await calendarManager.updateCurrentDate(Date.now)
+                await pluginManager?.services.calendar.updateCurrentDate(Date.now)
                 selectedDate = Date.now
             }
         }
@@ -147,18 +153,86 @@ struct CalendarView: View {
 
 struct EmptyEventsView: View {
     let selectedDate: Date
-    
+    @Environment(\.pluginManager) var pluginManager
+
     var body: some View {
-        VStack {
-            Image(systemName: "calendar.badge.checkmark")
-                .font(.title)
-                .foregroundColor(Color(white: 0.65))
-            Text(Calendar.current.isDateInToday(selectedDate) ? "No events today" : "No events")
-                .font(.subheadline)
-                .foregroundColor(.white)
-            Text("Enjoy your free time!")
-                .font(.caption)
-                .foregroundColor(Color(white: 0.65))
+        if let service = pluginManager?.services.calendar {
+            switch service.calendarAuthorizationStatus {
+            case .notDetermined:
+                // Permission not yet requested
+                VStack(spacing: 8) {
+                    Image(systemName: "calendar.badge.exclamationmark")
+                        .font(.title)
+                        .foregroundColor(.orange)
+                    Text("Calendar Access Required")
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    Button(action: {
+                        Task {
+                            await service.checkCalendarAuthorization()
+                        }
+                    }) {
+                        Text("Grant Access")
+                            .font(.caption)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.effectiveAccent)
+                            .foregroundColor(.white)
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            case .denied, .restricted:
+                // Permission denied
+                VStack(spacing: 8) {
+                    Image(systemName: "calendar.badge.exclamationmark")
+                        .font(.title)
+                        .foregroundColor(.red)
+                    Text("Calendar Access Denied")
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    Button(action: {
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }) {
+                        Text("Open Settings")
+                            .font(.caption)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(white: 0.3))
+                            .foregroundColor(.white)
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            default:
+                // Permission granted, just no events
+                VStack {
+                    Image(systemName: "calendar.badge.checkmark")
+                        .font(.title)
+                        .foregroundColor(Color(white: 0.65))
+                    Text(Calendar.current.isDateInToday(selectedDate) ? "No events today" : "No events")
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    Text("Enjoy your free time!")
+                        .font(.caption)
+                        .foregroundColor(Color(white: 0.65))
+                }
+            }
+        } else {
+            // No calendar service available
+            VStack {
+                Image(systemName: "calendar.badge.checkmark")
+                    .font(.title)
+                    .foregroundColor(Color(white: 0.65))
+                Text(Calendar.current.isDateInToday(selectedDate) ? "No events today" : "No events")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                Text("Enjoy your free time!")
+                    .font(.caption)
+                    .foregroundColor(Color(white: 0.65))
+            }
         }
     }
 }
@@ -166,7 +240,7 @@ struct EmptyEventsView: View {
 struct EventListView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.settings) var settings
-    @ObservedObject private var calendarManager = CalendarManager.shared
+    @Environment(\.pluginManager) var pluginManager
     let events: [EventModel]
 
     static func filteredEvents(events: [EventModel], settings: NotchSettings) -> [EventModel] {
@@ -254,7 +328,7 @@ struct EventListView: View {
                             get: { isCompleted },
                             set: { newValue in
                                 Task {
-                                    await calendarManager.setReminderCompleted(
+                                    await pluginManager?.services.calendar.setReminderCompleted(
                                         reminderID: event.id, completed: newValue
                                     )
                                 }

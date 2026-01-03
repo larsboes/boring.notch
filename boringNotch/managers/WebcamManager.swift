@@ -4,15 +4,26 @@
 //
 //  Created by Harsh Vardhan  Goswami  on 19/08/24.
 //
-import AVFoundation
+@preconcurrency import AVFoundation
 import SwiftUI
 
-@Observable class WebcamManager: NSObject {
-    static let shared = WebcamManager()
+@MainActor class WebcamManager: NSObject, WebcamServiceProtocol {
     
     var previewLayer: AVCaptureVideoPreviewLayer?
     
-    private var captureSession: AVCaptureSession?
+    // Wrapper to handle non-Sendable AVCaptureSession safely across actors
+    private final class SessionContainer: @unchecked Sendable {
+        var session: AVCaptureSession?
+    }
+    
+    nonisolated private let sessionContainer = SessionContainer()
+    
+    // Computed property for easier access (internal usage only)
+    private var captureSession: AVCaptureSession? {
+        get { sessionContainer.session }
+        set { sessionContainer.session = newValue }
+    }
+
     var isSessionRunning: Bool = false
     
     var authorizationStatus: AVAuthorizationStatus = .notDetermined
@@ -44,7 +55,7 @@ import SwiftUI
     
     // MARK: - Properties
     
-    private override init() {
+    override init() {
         super.init()
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasDisconnected), name: AVCaptureDevice.wasDisconnectedNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deviceWasConnected), name: AVCaptureDevice.wasConnectedNotification, object: nil)
@@ -54,14 +65,12 @@ import SwiftUI
     deinit {
         NotificationCenter.default.removeObserver(self)
         
-        if let session = captureSession {
+        if let session = sessionContainer.session {
             if session.isRunning {
                 session.stopRunning()
             }
         }
-        captureSession = nil
-            
-        previewLayer = nil
+        // No need to nil out sessionContainer, it will be deallocated
     }
 
     // MARK: - Camera Management
@@ -88,7 +97,7 @@ import SwiftUI
     /// Requests access to the camera
     private func requestVideoAccess() {
         AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.authorizationStatus = granted ? .authorized : .denied
                 if granted {
                     self?.checkCameraAvailability() // Check availability if access granted
@@ -113,7 +122,7 @@ import SwiftUI
     }
     
     /// Sets up the capture session with a completion handler
-    private func setupCaptureSession(completion: @escaping (Bool) -> Void) {
+    nonisolated private func setupCaptureSession(completion: @escaping @Sendable (Bool) -> Void) {
         sessionQueue.async { [weak self] in
             guard let self = self else { 
                 completion(false)
@@ -165,7 +174,8 @@ import SwiftUI
                 }
                 session.commitConfiguration()
                 
-                self.captureSession = session
+                // Update session container
+                self.sessionContainer.session = session
                 
                 // Create and set up preview layer on main thread
                 DispatchQueue.main.async {
@@ -192,8 +202,8 @@ import SwiftUI
     }
     
     /// Cleans up an existing capture session, removing all inputs and outputs
-    private func cleanupExistingSession() {
-        if let existingSession = self.captureSession {
+    nonisolated private func cleanupExistingSession() {
+        if let existingSession = self.sessionContainer.session {
             // First stop the session if running
             if existingSession.isRunning {
                 existingSession.stopRunning()
@@ -211,7 +221,7 @@ import SwiftUI
             }
             
             existingSession.commitConfiguration()
-            self.captureSession = nil
+            self.sessionContainer.session = nil
             
             // Clear preview layer on main thread
             DispatchQueue.main.async {
@@ -222,9 +232,12 @@ import SwiftUI
 
     @objc private func deviceWasDisconnected(notification: Notification) {
         NSLog("Camera device was disconnected")
-        sessionQueue.async { [weak self] in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            self.stopSession()
+            self.sessionContainer.session?.stopRunning()
+            Task { @MainActor in
+                self.isSessionRunning = self.sessionContainer.session?.isRunning ?? false
+            }
             DispatchQueue.main.async {
                 self.cameraAvailable = false
             }
@@ -235,12 +248,14 @@ import SwiftUI
         NSLog("Camera device was connected")
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
-            self.checkCameraAvailability()
+            Task { @MainActor in
+                self.checkCameraAvailability()
+            }
         }
     }
 
-    private func updateSessionState() {
-        let isRunning = self.captureSession?.isRunning ?? false
+    nonisolated private func updateSessionState() {
+        let isRunning = self.sessionContainer.session?.isRunning ?? false
         DispatchQueue.main.async {
             self.isSessionRunning = isRunning
         }
@@ -251,7 +266,7 @@ import SwiftUI
             guard let self = self else { return }
             
             // If no session exists, create new session
-            if self.captureSession == nil {
+            if self.sessionContainer.session == nil {
                 self.setupCaptureSession { success in
                     if success {
                         // Only start the session if setup was successful
@@ -265,9 +280,9 @@ import SwiftUI
         }
     }
     
-    private func startRunningCaptureSession() {
+    nonisolated private func startRunningCaptureSession() {
         sessionQueue.async { [weak self] in
-            guard let self = self, let session = self.captureSession, !session.isRunning else {
+            guard let self = self, let session = self.sessionContainer.session, !session.isRunning else {
                 return
             }
             

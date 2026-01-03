@@ -68,8 +68,11 @@ class SettingsWindowController: NSWindowController {
 
         // Create the SwiftUI content with required environment objects
         // BoringViewCoordinator.shared is available at this point
+        let appDelegate = NSApp.delegate as? AppDelegate
         let settingsView = SettingsView(updaterController: updaterController)
             .environment(BoringViewCoordinator.shared)
+            .environment(\.pluginManager, appDelegate?.pluginManager)
+            .environment(\.bindableSettings, DefaultsNotchSettings.shared)
         let hostingView = NSHostingView(rootView: settingsView)
         window.contentView = hostingView
         hasSetupContent = true

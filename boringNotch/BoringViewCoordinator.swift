@@ -107,6 +107,10 @@ struct ExpandedItem {
     private var accessibilityObserver: Any?
     private var hudReplacementCancellable: AnyCancellable?
     private var musicSneakPeekCancellable: AnyCancellable?
+    
+    // Injected service
+    var shelfService: ShelfServiceProtocol?
+    private var mediaKeyInterceptor: MediaKeyInterceptor?
 
     private init() {
         // Subscribe to MusicManager's sneak peek requests
@@ -143,7 +147,7 @@ struct ExpandedItem {
         ) { _ in
             Task { @MainActor in
                 if Defaults[.hudReplacement] {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                    await self.mediaKeyInterceptor?.start(promptIfNeeded: false)
                 }
             }
         }
@@ -163,13 +167,13 @@ struct ExpandedItem {
                             if Task.isCancelled { return }
 
                             if granted {
-                                await MediaKeyInterceptor.shared.start()
+                                await self.mediaKeyInterceptor?.start()
                             } else {
                                 Defaults[.hudReplacement] = false
                             }
                         }
                     } else {
-                        MediaKeyInterceptor.shared.stop()
+                        self.mediaKeyInterceptor?.stop()
                     }
                 }
             }
@@ -179,7 +183,8 @@ struct ExpandedItem {
             for await value in Defaults.updates(.alwaysShowTabs) {
                 if !value {
                     openLastTabByDefault = false
-                    if ShelfStateViewModel.shared.isEmpty || !Defaults[.openShelfByDefault] {
+                    let isShelfEmpty = self.shelfService?.isEmpty ?? true
+                    if isShelfEmpty || !Defaults[.openShelfByDefault] {
                         currentView = .home
                     }
                 }
@@ -221,7 +226,7 @@ struct ExpandedItem {
                 if !authorized {
                     Defaults[.hudReplacement] = false
                 } else {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                    await mediaKeyInterceptor?.start(promptIfNeeded: false)
                 }
             }
         }
@@ -349,21 +354,27 @@ struct ExpandedItem {
         currentView = .home
     }
 
-    // MARK: - Music Manager Integration
+    // MARK: - Plugin Integration
+
+    /// Configure the coordinator with the plugin event bus and dependencies.
+    /// This replaces direct coupling to managers.
+    func configure(eventBus: PluginEventBus, mediaKeyInterceptor: MediaKeyInterceptor) {
+        self.mediaKeyInterceptor = mediaKeyInterceptor
+        musicSneakPeekCancellable = eventBus.subscribe(to: SneakPeekRequestedEvent.self) { [weak self] event in
+            guard let self = self else { return }
+            let request = event.request
+            if request.style == .standard {
+                self.toggleSneakPeek(status: true, type: request.type)
+            } else {
+                self.toggleExpandingView(status: true, type: request.type)
+            }
+        }
+    }
 
     /// Subscribe to MusicManager's sneak peek requests.
-    /// This maintains separation of concerns: MusicManager publishes requests,
-    /// coordinator handles the UI updates.
+    /// Deprecated: Use configure(eventBus:) instead.
     private func setupMusicSneakPeekSubscription() {
-        musicSneakPeekCancellable = MusicManager.shared.sneakPeekPublisher
-            .receive(on: RunLoop.main)
-            .sink { [weak self] request in
-                guard let self = self else { return }
-                if request.style == .standard {
-                    self.toggleSneakPeek(status: true, type: request.type)
-                } else {
-                    self.toggleExpandingView(status: true, type: request.type)
-                }
-            }
+        // Removed direct subscription to MusicManager.shared
+        // Logic moved to configure(eventBus:)
     }
 }

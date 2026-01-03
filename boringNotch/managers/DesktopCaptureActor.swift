@@ -90,7 +90,7 @@ actor DesktopCaptureActor {
     ///   - frameRate: Target frame rate (default 30)
     func startCapture(
         screen: NSScreen,
-        excludingWindow: NSWindow?,
+        excludingWindowID: CGWindowID?,
         captureRect: CGRect,
         frameRate: Int = 30
     ) async throws {
@@ -116,8 +116,7 @@ actor DesktopCaptureActor {
         
         // Get windows to exclude
         var excludedWindows: [SCWindow] = []
-        if let window = excludingWindow {
-            let windowID = CGWindowID(window.windowNumber)
+        if let windowID = excludingWindowID {
             if let scWindow = content.windows.first(where: { $0.windowID == windowID }) {
                 excludedWindows.append(scWindow)
             }

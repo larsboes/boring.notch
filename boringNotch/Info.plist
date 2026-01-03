@@ -25,5 +25,17 @@
 	<string>We need your location to show local weather information in the notch</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>We need your location to show local weather information in the notch</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>We need access to your calendar to show events in the notch.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>We need full access to your calendar to show and manage events in the notch.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>We need access to your reminders to show tasks in the notch.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>We need full access to your reminders to show and manage tasks in the notch.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>We need Bluetooth access to show connected device battery levels.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>We need Bluetooth access to show connected device battery levels.</string>
 </dict>
 </plist>

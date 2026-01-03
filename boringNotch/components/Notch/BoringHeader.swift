@@ -10,13 +10,14 @@ import SwiftUI
 struct BoringHeader: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
-    var batteryModel = BatteryStatusViewModel.shared
+    @Environment(\.pluginManager) var pluginManager
+    // var batteryModel = BatteryStatusViewModel.shared // Removed
     @Bindable var coordinator = BoringViewCoordinator.shared
-    @State var tvm = ShelfStateViewModel.shared
+
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
+                if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
                     TabSelectionView()
                         .padding(.leading, 8)
                 } else if vm.notchState == .open {
@@ -89,15 +90,15 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if settings.showBatteryIndicator {
+                        if settings.showBatteryIndicator, let batteryService = pluginManager?.services.battery {
                             BoringBatteryView(
                                 batteryWidth: 30,
-                                isCharging: batteryModel.isCharging,
-                                isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                isPluggedIn: batteryModel.isPluggedIn,
-                                levelBattery: batteryModel.levelBattery,
-                                maxCapacity: batteryModel.maxCapacity,
-                                timeToFullCharge: batteryModel.timeToFullCharge,
+                                isCharging: batteryService.isCharging,
+                                isInLowPowerMode: batteryService.isInLowPowerMode,
+                                isPluggedIn: batteryService.isPluggedIn,
+                                levelBattery: batteryService.levelBattery,
+                                maxCapacity: batteryService.maxCapacity,
+                                timeToFullCharge: batteryService.timeToFullCharge,
                                 isForNotification: false
                             )
                         }

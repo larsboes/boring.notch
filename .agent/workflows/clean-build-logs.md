@@ -10,9 +10,7 @@ This workflow removes build log files that are generated during Xcode builds.
 
 // turbo
 1. Remove all build log files:
-```bash
-rm -f build_log*.txt
-```
+rm -f build_log*.txt build_output*.txt build.log
 
 ## When to Use
 

@@ -6,7 +6,7 @@
 //  Centralizes state determination logic from ContentView.
 //
 
-import Foundation
+import Observation
 import SwiftUI
 import Defaults
 
@@ -14,7 +14,7 @@ import Defaults
 
 /// Represents what the notch should display at any given moment.
 /// This enum centralizes the branching logic currently scattered in ContentView.
-enum NotchDisplayState: Equatable {
+enum NotchDisplayState: Equatable, Sendable {
     case closed(content: ClosedContent)
     case open(view: NotchViews)
     case helloAnimation
@@ -22,10 +22,9 @@ enum NotchDisplayState: Equatable {
     case expanding(type: SneakContentType)
 
     /// Content displayed when the notch is closed
-    enum ClosedContent: Equatable {
+    enum ClosedContent: Equatable, Sendable {
         case idle
-        case musicLiveActivity
-        case batteryNotification
+        case plugin(String) // Generic plugin content
         case face
         case inlineHUD(type: SneakContentType, value: CGFloat, icon: String)
         case sneakPeek(type: SneakContentType, value: CGFloat, icon: String)
@@ -45,17 +44,18 @@ struct NotchStateInput: Equatable {
     var helloAnimationRunning: Bool
     var sneakPeek: sneakPeek
     var expandingView: ExpandedItem
-    var musicLiveActivityEnabled: Bool
+    
+    // The ID of the plugin that should be shown in the closed notch (from PluginManager)
+    var activePluginId: String?
 
-    // Music state
-    var isPlaying: Bool
+    // Music state (Legacy - to be removed once MusicPlugin is fully autonomous)
     var isPlayerIdle: Bool
+    var isPlaying: Bool
 
     // View model state
     var hideOnClosed: Bool
 
     // Settings (can be injected for testing)
-    var showPowerStatusNotifications: Bool
     var showInlineHUD: Bool
     var showNotHumanFace: Bool
     var sneakPeekStyle: SneakPeekStyle
@@ -68,11 +68,10 @@ struct NotchStateInput: Equatable {
         lhs.sneakPeek.type == rhs.sneakPeek.type &&
         lhs.expandingView.show == rhs.expandingView.show &&
         lhs.expandingView.type == rhs.expandingView.type &&
-        lhs.musicLiveActivityEnabled == rhs.musicLiveActivityEnabled &&
-        lhs.isPlaying == rhs.isPlaying &&
+        lhs.activePluginId == rhs.activePluginId &&
         lhs.isPlayerIdle == rhs.isPlayerIdle &&
+        lhs.isPlaying == rhs.isPlaying &&
         lhs.hideOnClosed == rhs.hideOnClosed &&
-        lhs.showPowerStatusNotifications == rhs.showPowerStatusNotifications &&
         lhs.showInlineHUD == rhs.showInlineHUD &&
         lhs.showNotHumanFace == rhs.showNotHumanFace &&
         lhs.sneakPeekStyle == rhs.sneakPeekStyle
@@ -84,11 +83,12 @@ struct NotchStateInput: Equatable {
 /// Centralizes state determination logic.
 /// This class extracts the complex if-else chains from ContentView into a testable component.
 @MainActor
-class NotchStateMachine: ObservableObject {
+@Observable
+class NotchStateMachine {
     static let shared = NotchStateMachine()
 
-    @Published private(set) var displayState: NotchDisplayState = .closed(content: .idle)
-    @Published private(set) var lastInput: NotchStateInput?
+    private(set) var displayState: NotchDisplayState = .closed(content: .idle)
+    private(set) var lastInput: NotchStateInput?
 
     /// Settings provider - can be injected for testing
     private let settings: NotchSettings?
@@ -125,14 +125,8 @@ class NotchStateMachine: ObservableObject {
         }
 
         // From here, we're in closed state
-        // Priority 3: Battery notification
-        if input.expandingView.type == .battery &&
-           input.expandingView.show &&
-           input.showPowerStatusNotifications {
-            return .closed(content: .batteryNotification)
-        }
 
-        // Priority 4: Inline HUD (non-music, non-battery sneak peek with inline HUD enabled)
+        // Priority 3: Inline HUD (non-music, non-battery sneak peek with inline HUD enabled)
         if input.sneakPeek.show &&
            input.showInlineHUD &&
            input.sneakPeek.type != .music &&
@@ -144,15 +138,16 @@ class NotchStateMachine: ObservableObject {
             ))
         }
 
-        // Priority 5: Music Live Activity
-        if (!input.expandingView.show || input.expandingView.type == .music) &&
-           (input.isPlaying || !input.isPlayerIdle) &&
-           input.musicLiveActivityEnabled &&
-           !input.hideOnClosed {
-            return .closed(content: .musicLiveActivity)
+        // Priority 4: Active Plugin Content (replaces MusicLiveActivity and BatteryNotification)
+        // Checks if a plugin requested display and explicit sneak peek isn't overriding it
+        if let pluginId = input.activePluginId,
+           !input.hideOnClosed,
+           (!input.expandingView.show || input.expandingView.type == .music || input.expandingView.type == .battery) {
+            return .closed(content: .plugin(pluginId))
         }
 
-        // Priority 6: Face animation (when not playing and face enabled)
+        // Priority 5: Face animation (when not playing and face enabled)
+        // Legacy check relying on input.isPlayerIdle - eventually Face should be a plugin too
         if !input.expandingView.show &&
            !input.isPlaying &&
            input.isPlayerIdle &&
@@ -161,7 +156,7 @@ class NotchStateMachine: ObservableObject {
             return .closed(content: .face)
         }
 
-        // Priority 7: Standard sneak peek (non-inline HUD)
+        // Priority 6: Standard sneak peek (non-inline HUD)
         if input.sneakPeek.show &&
            !input.showInlineHUD &&
            input.sneakPeek.type != .music &&
@@ -173,7 +168,7 @@ class NotchStateMachine: ObservableObject {
             ))
         }
 
-        // Priority 8: Music sneak peek (standard style)
+        // Priority 7: Music sneak peek (standard style)
         if input.sneakPeek.show &&
            input.sneakPeek.type == .music &&
            !input.hideOnClosed &&
@@ -202,7 +197,8 @@ class NotchStateMachine: ObservableObject {
         notchState: NotchState,
         currentView: NotchViews,
         coordinator: BoringViewCoordinator,
-        musicManager: MusicManager,
+        musicService: any MusicServiceProtocol,
+        pluginManager: PluginManager?,
         hideOnClosed: Bool
     ) -> NotchStateInput {
         NotchStateInput(
@@ -211,11 +207,10 @@ class NotchStateMachine: ObservableObject {
             helloAnimationRunning: coordinator.helloAnimationRunning,
             sneakPeek: coordinator.sneakPeek,
             expandingView: coordinator.expandingView,
-            musicLiveActivityEnabled: coordinator.musicLiveActivityEnabled,
-            isPlaying: musicManager.isPlaying,
-            isPlayerIdle: musicManager.isPlayerIdle,
+            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin(),
+            isPlayerIdle: musicService.isPlayerIdle,
+            isPlaying: musicService.playbackState.isPlaying,
             hideOnClosed: hideOnClosed,
-            showPowerStatusNotifications: Defaults[.showPowerStatusNotifications],
             showInlineHUD: Defaults[.inlineHUD],
             showNotHumanFace: Defaults[.showNotHumanFace],
             sneakPeekStyle: Defaults[.sneakPeekStyles]
@@ -235,9 +230,9 @@ extension NotchStateMachine {
         switch displayState {
         case .closed(let content):
             switch content {
-            case .batteryNotification:
-                return 640
-            case .musicLiveActivity, .face:
+            // Plugin content usually needs wider chin, similar to music/face
+            // Future: Ask the plugin for its preferred width
+            case .plugin, .face:
                 return baseWidth + (2 * max(0, displayClosedNotchHeight - 12) + 20)
             default:
                 return baseWidth

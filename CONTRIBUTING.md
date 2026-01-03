@@ -14,7 +14,7 @@ You can contribute in many ways: writing code, improving documentation, reportin
   - [Setting Up Your Environment](#setting-up-your-environment)
   - [Making Changes](#making-changes)
   - [Pull Requests](#pull-requests)
-<!-- - [Code Style Guidelines](#code-style-guidelines) -->
+- [Architectural Guidelines](#architectural-guidelines)
 - [Reporting Bugs](#reporting-bugs)
 - [Feature Requests](#feature-requests)
 - [Getting Help](#getting-help)
@@ -29,7 +29,6 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
 
 - **Check existing issues**: Before creating a new issue or starting work, search existing issues to avoid duplicates.
 - **Discuss major changes**: For significant features or major changes, please open an issue first to discuss your approach with maintainers and the community.
-<!-- - **Review the code style**: Familiarize yourself with our code style guidelines below to ensure consistency. -->
 
 ### Setting Up Your Environment
 
@@ -56,10 +55,8 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
 
 ### Making Changes
 
-1. **Make your changes**: Implement your feature or bug fix. Write clean, well-documented code <!-- following the project's style guidelines. -->
-
+1. **Make your changes**: Implement your feature or bug fix. Write clean, well-documented code.
 2. **Test your changes**: Ensure your changes work as expected and don't break existing functionality.
-
 3. **Commit your changes**:
    ```bash
    git add .
@@ -75,6 +72,31 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
    git push origin feature/{your-feature-name}
    ```
 
+### Creating a New Plugin
+
+Boring Notch uses a plugin-first architecture. Adding a new feature usually means creating a new plugin.
+
+1.  **Create the Plugin File**: Add a new Swift file in `Plugins/BuiltIn/{YourFeature}Plugin/`.
+2.  **Implement `NotchPlugin`**:
+    ```swift
+    struct YourFeaturePlugin: NotchPlugin {
+        var metadata: PluginMetadata {
+            PluginMetadata(
+                name: "Your Feature",
+                icon: "star.fill",
+                id: "com.boringnotch.yourfeature"
+            )
+        }
+
+        var view: AnyView {
+            AnyView(YourFeatureView())
+        }
+    }
+    ```
+3.  **Register the Plugin**: Add your plugin instance to the `builtInPlugins` array in `AppDelegate.swift`.
+
+For more details, see the [Architecture Guide](docs/ARCHITECTURE.md).
+
 ### Pull Requests
 
 1. **Create a pull request**: Go to the original repository and click "New Pull Request." Select your feature branch and set the base branch to `dev`.
@@ -89,13 +111,41 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
 
 4. **Be patient**: Reviews take time. Maintainers will get to your PR as soon as they can.
 
-<!-- ## Code Style Guidelines
+## Architectural Guidelines
 
-- Follow the existing code style and conventions used in the project
-- Write clear, self-documenting code with meaningful variable and function names
-- Add comments for complex logic or non-obvious implementations
-- Ensure your code is properly formatted before committing
-- Remove any debugging code, console logs, or commented-out code before submitting -->
+The project has recently undergone a major refactoring. Please adhere to these guidelines for all new code:
+
+### 1. No Singletons in Views
+❌ **Don't** use `.shared` instances directly in SwiftUI views.
+```swift
+// Avoid this
+struct MyView: View {
+    @ObservedObject var music = MusicManager.shared 
+}
+```
+
+✅ **Do** inject dependencies via `@Environment` or initialization.
+```swift
+// Do this
+struct MyView: View {
+    @Environment(PluginManager.self) var pluginManager
+    
+    var body: some View {
+        let music = pluginManager.services.music
+        // ...
+    }
+}
+```
+
+### 2. Use the Service Container
+All core logic (Music, Calendar, Shelf, etc.) interacts with the system via the `ServiceContainer`.
+*   If you need a system service, access it via `context.services` in your Plugin or `pluginManager.services` in Views.
+*   If you need a new system capability, define a protocol for it (e.g., `BluetoothServiceProtocol`), implement it, and add it to the container.
+
+### 3. Use `@Observable`
+We are migrating to Swift 5.9's `@Observable` macro.
+❌ **Avoid** `ObservableObject` and `@Published` for new models.
+✅ **Use** `@Observable` for all new state objects.
 
 ## Reporting Bugs
 

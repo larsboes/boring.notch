@@ -37,6 +37,9 @@ final class WindowCoordinator {
     
     /// Plugin Manager
     private let pluginManager: PluginManager
+    
+    /// Fullscreen Media Detector
+    private let detector: FullscreenMediaDetector
 
     /// Track screen lock state
     var isScreenLocked: Bool = false
@@ -53,12 +56,14 @@ final class WindowCoordinator {
         primaryViewModel: BoringViewModel,
         coordinator: BoringViewCoordinator,
         settings: NotchSettings,
-        pluginManager: PluginManager
+        pluginManager: PluginManager,
+        detector: FullscreenMediaDetector
     ) {
         self.primaryViewModel = primaryViewModel
         self.coordinator = coordinator
         self.settings = settings
         self.pluginManager = pluginManager
+        self.detector = detector
     }
 
     // MARK: - Window Lifecycle
@@ -177,7 +182,14 @@ final class WindowCoordinator {
             guard let uuid = screen.displayUUID else { continue }
 
             if windows[uuid] == nil {
-                let viewModel = BoringViewModel(screenUUID: uuid)
+                let viewModel = BoringViewModel(
+                    screenUUID: uuid,
+                    coordinator: coordinator,
+                    detector: detector,
+                    webcamService: pluginManager.services.webcam,
+                    musicService: pluginManager.services.music,
+                    soundService: pluginManager.services.sound
+                )
                 let window = createBoringNotchWindow(for: screen, with: viewModel)
 
                 windows[uuid] = window

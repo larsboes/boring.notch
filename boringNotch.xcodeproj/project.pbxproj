@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		060D66B5EB78228493165B74 /* SharingServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78873E8CC7AFD5E64EB1A4C7 /* SharingServiceProtocol.swift */; };
+		07041588749FDA3C744A7627 /* KeyboardBacklightServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48889B03C285D8776DF877FA /* KeyboardBacklightServiceProtocol.swift */; };
+		0A1428F5A575F87666661AA2 /* ThumbnailServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F01D6547B225895F18806E /* ThumbnailServiceProtocol.swift */; };
+		0F6FC24F85B930F05C4D2972 /* CalendarDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22890E9D4CCA59DD8BB5D1A6 /* CalendarDataProvider.swift */; };
+		0FDBD863A6927FF382640064 /* BluetoothServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34B886EB323251D5E5225E9 /* BluetoothServiceProtocol.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -47,7 +52,6 @@
 		1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1160F8D72DD98230006FBB94 /* NotchShape.swift */; };
 		1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988C2DF5CAB40052E6AF /* EventModel.swift */; };
 		1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988E2DF5CC870052E6AF /* CalendarModel.swift */; };
-		116398962DF5D6C00052E6AF /* CalendarServiceProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116398952DF5D6C00052E6AF /* CalendarServiceProviding.swift */; };
 		117AB5172E30E09C00558921 /* MediaRemoteAdapter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		118D1FD12E98FF5F00A2FF63 /* SharingStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */; };
 		118EBE252E92DCCB00D54B5A /* AssociatedObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118EBE242E92DCCB00D54B5A /* AssociatedObject.swift */; };
@@ -55,7 +59,6 @@
 		118EBE292E946B3F00D54B5A /* ShareServiceFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118EBE282E946B3F00D54B5A /* ShareServiceFinder.swift */; };
 		118EBE2D2E97165600D54B5A /* Bookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118EBE2C2E97165600D54B5A /* Bookmark.swift */; };
 		118EBE312E9717DB00D54B5A /* URL+SecurityScoped.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118EBE302E9717DB00D54B5A /* URL+SecurityScoped.swift */; };
-		118EBE3B2E9720C500D54B5A /* ShelfStateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118EBE3A2E9720C500D54B5A /* ShelfStateViewModel.swift */; };
 		1194E87C2EA19E09009C82D6 /* ImageProcessingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1194E87B2EA19E09009C82D6 /* ImageProcessingService.swift */; };
 		1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */ = {isa = PBXBuildFile; productRef = 1194E8842EA57D23009C82D6 /* SkyLightWindow */; };
 		1194E8872EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1194E8862EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift */; };
@@ -98,6 +101,7 @@
 		11F749072ECB27DC00F841DB /* NotificationsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F749062ECB27DC00F841DB /* NotificationsSettingsView.swift */; };
 		11F749102ECB27DC00F841DB /* BluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F749112ECB27DC00F841DB /* BluetoothManager.swift */; };
 		11F749122ECB27DC00F841DB /* BluetoothSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F749132ECB27DC00F841DB /* BluetoothSettingsView.swift */; };
+		1364DBA2B4CCA6A05350DD01 /* VolumeServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575467BE87C1DAEB460F623D /* VolumeServiceProtocol.swift */; };
 		14288DDC2C6E015000B9F80C /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DD62C6E015000B9F80C /* AudioPlayer.swift */; };
 		14288DE82C6E01C800B9F80C /* ProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */; };
 		14288E0C2C6F8EC000B9F80C /* AppIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14288E0B2C6F8EC000B9F80C /* AppIcons.swift */; };
@@ -109,7 +113,6 @@
 		149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B992C737D40006418B1 /* WebcamView.swift */; };
 		14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */; };
 		14A7E5972C65FD31008C1BE9 /* boring.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 14A7E5962C65FD31008C1BE9 /* boring.m4a */; };
-		14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */; };
 		14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C08BB82C8DE4B1000F8AA0 /* BoringCalendar.swift */; };
 		14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C08BC02C8E03AD000F8AA0 /* NSImage+Extensions.swift */; };
 		14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4152C5CAED300855D72 /* boringNotchApp.swift */; };
@@ -124,36 +127,48 @@
 		14D570C22C5EAFBF0011E668 /* EmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C12C5EAFBF0011E668 /* EmptyState.swift */; };
 		14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C52C5F38210011E668 /* BoringHeader.swift */; };
 		14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C82C5F38890011E668 /* BoringViewModel.swift */; };
-		14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */; };
 		14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CC2C5F4BB70011E668 /* BoringBattery.swift */; };
 		14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */; };
 		14E9FEAA2C70BF610062E83F /* DownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEA92C70BF610062E83F /* DownloadView.swift */; };
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		188251B684624A7B3F1B1908 /* DesktopCaptureActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B398BECCBF1BC69FE20C6E /* DesktopCaptureActor.swift */; };
-		1C731A0AF2F2B500F26F353C /* MusicServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFB4F62C4D5CED6C9876D0D5 /* MusicServiceProtocol.swift */; };
 		1D8F9B3FE403A62DB74576D2 /* MusicService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E760B7C08145028E6BBD646 /* MusicService.swift */; };
-		1F0C2D9AEB1D6AA4205AE6BC /* CustomSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C9017F5C7B7BB0AF31032E /* CustomSlider.swift */; };
 		2366C78544EFA3F2F86534D0 /* MusicPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A2434E0A7AFD3298FA102E /* MusicPlugin.swift */; };
 		312FE24D4629E8B2C243E9DD /* NotchVolumeControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11C468AF4F351C6BC408CD9 /* NotchVolumeControl.swift */; };
+		327DF2F76B387F76C31A0A0D /* ShelfService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA640EF0042EB0B31405E86D /* ShelfService.swift */; };
 		3A958AB02A879E0D96009DDE /* CustomSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829177F6B342E6E24252B640 /* CustomSlider.swift */; };
+		3F1B4B74D9701CD2DD1953B1 /* WeatherPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14FD01625CE8143D53FEC0A /* WeatherPlugin.swift */; };
+		426D4DEBAE2AA9F82C21238C /* CalendarPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AA596DFD28EB3FD8FCEAD7B /* CalendarPlugin.swift */; };
 		43173D18B907E3803848651D /* ShelfImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB66B42FA987BF318C8E959 /* ShelfImageProcessor.swift */; };
 		481109FFAE8F7A980C360A0E /* NotchStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FB60B94B79A390572281D8 /* NotchStateMachineTests.swift */; };
+		4BBABD32D55184F2A6F53A9A /* CalendarServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20664216D6CD2C0B26724A29 /* CalendarServiceProtocol.swift */; };
 		4BFA132A0DDA984A968DD2CC /* PluginEventBus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EC2F5D40F20677C9756788 /* PluginEventBus.swift */; };
+		4F804814C52DD7ECEC50E40A /* MusicSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8837776161EBE6B0242F17B4 /* MusicSettingsView.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
+		53DEF8885FE1102CE70C35A9 /* ShelfPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B8AFD68B6AAECCE38D5DC9A /* ShelfPlugin.swift */; };
 		53E7785AF1DCA810D08F7AE7 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B54DA3AC64D543BF957D381C /* Cocoa.framework */; };
+		5819D2843501CE4366B4BB74 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF5C4C63E0F27E2A6677E18 /* BatteryService.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
 		59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D8C23B2E589FAA00147B33 /* VolumeManager.swift */; };
+		615B455C5D0F2819CBCA5572 /* WeatherServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = F491EC9D73B1F259D53064AC /* WeatherServiceProtocol.swift */; };
+		63BC41D1EDB2213C67F4E484 /* BatteryServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 767E48B9C257ED12868CDA4A /* BatteryServiceProtocol.swift */; };
 		64EB8D3E0876D56E48A9E86B /* PluginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C19C5AA1D42422A94A2ABF5 /* PluginManager.swift */; };
 		655476AD1F6237D65C80B08A /* LiquidGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62B884125C4CFF4A46B9D35A /* LiquidGlass.swift */; };
-		67D4400A2F01B2C40017F574 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D440092F01B2C40017F574 /* WeatherManager.swift */; };
 		67D4400D2F01B2DD0017F574 /* BoringWeather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D4400B2F01B2DD0017F574 /* BoringWeather.swift */; };
 		67D4400F2F01B2DD0017F574 /* WeatherSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D4400E2F01B2DD0017F574 /* WeatherSettingsView.swift */; };
 		69257F4376503D0FB364F429 /* LiquidGlassManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6763F86F47BB03296443EAB3 /* LiquidGlassManager.swift */; };
-		7143EC2853AAF85B1817FE47 /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1889C6F8871C876D25CADD60 /* ServiceContainer.swift */; };
+		6CB2C84C645AE61F5E6ABD26 /* ShelfFileHandlerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1072DF514CC71270555DB8 /* ShelfFileHandlerProtocol.swift */; };
+		75B3730C9CFC122A7F77A870 /* MusicLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4EDF4731BD96E501B155CE /* MusicLiveActivity.swift */; };
+		75CD9C316A673CD3AAD74DCA /* ShelfServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF96700A438BC96CFF49FF4 /* ShelfServiceProtocol.swift */; };
+		764BEEC59255D1B2CA09C574 /* WebcamServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CACE7DEA4E976DE4839D196 /* WebcamServiceProtocol.swift */; };
+		840F921A2F55A77265BD17E5 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E13568776669AA2F49C92C7 /* WeatherService.swift */; };
+		8AA13D1BB2137664881B7471 /* LyricsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E48EEF2B6852A428C2972 /* LyricsServiceProtocol.swift */; };
 		914B183904FCABE089C9E486 /* ShelfFileHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9352235724B3B3ABCDB187 /* ShelfFileHandler.swift */; };
 		93D024BC47CD687EDC2B7001 /* PluginSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB48750D2215B0E835773A42 /* PluginSettings.swift */; };
+		93E0E1B59843287BBC8E5873 /* TemporaryFileStorageServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08186422A6054FE4510EEEBF /* TemporaryFileStorageServiceProtocol.swift */; };
+		95365A6125F209E37C4F1398 /* WeatherData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6477CA8CD665D8AA43BAF4D3 /* WeatherData.swift */; };
 		98353B0AEA82C500652BAD9C /* MetalBlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E27686E3B1A45920C007980 /* MetalBlurView.swift */; };
 		983DC038179F79A34190AD82 /* MusicServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58585AE37E089675B27F26A4 /* MusicServiceProtocol.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
@@ -161,12 +176,11 @@
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
 		9A987A102C73CA8D005CA465 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9A987A0F2C73CA8D005CA465 /* Collections */; };
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
-		9D2B6BE6F58E0744DCCF0C81 /* NotchVolumeControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 882F084B247D6A273F3C511A /* NotchVolumeControl.swift */; };
-		A38C696E5AE9F8E204A3C37E /* NotchMusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB94C36201A4CE7B6F0ABA9 /* NotchMusicPlayer.swift */; };
 		A586125A1FACADE16F1739FB /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28F91445E8D5B3F781EC0C6 /* ServiceContainer.swift */; };
+		A685D05F9F9DF984E020668F /* WebcamPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3B53CD55F2D18D3E7E8D43 /* WebcamPlugin.swift */; };
 		A8BCF47561234639B227CBA1 /* MetalBlurRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA14905692EA231F59402E50 /* MetalBlurRenderer.swift */; };
+		A8C3C75AC97AF614FBD8C2BA /* ShelfImageProcessorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E761B75A325145648DAD23 /* ShelfImageProcessorProtocol.swift */; };
 		AA889B8C05EFD8812C677CC7 /* NotchPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A68AE1FC48195998FAE41FCC /* NotchPlugin.swift */; };
-		AC55D33D1E4AAA95DD1446FA /* MusicService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074800A0A6A43BF72038648F /* MusicService.swift */; };
 		B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10348D82C74E56000475897 /* ConditionalModifier.swift */; };
 		B10F84A32C6C9596009F3026 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10F84A22C6C9596009F3026 /* TestView.swift */; };
 		B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */; };
@@ -193,20 +207,25 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		B3C58FEAD0776223DEA709DB /* BoringAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49CA0BEB7AAC63E91195B276 /* BoringAppState.swift */; };
+		BAA7AF39257A101CDCA86D82 /* BrightnessServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF97E971A6C5DED2CE3683B4 /* BrightnessServiceProtocol.swift */; };
+		CAA4959B6ACB9B680D57DAF1 /* ImageProcessingServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD9872FE16EBBDFCE59B56B /* ImageProcessingServiceProtocol.swift */; };
 		CD271D9AB85A84A81F8CC377 /* PluginCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72C8F2DF69DAFB2AAED51A0 /* PluginCapabilities.swift */; };
-		CORE31EF0223028E353E29C7 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORE2F7CAD0193F9EC750364 /* DependencyContainer.swift */; };
 		CORE7611A205450229DA1164 /* DragDetectionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = COREB975ACB42A54F436FFC7 /* DragDetectionCoordinator.swift */; };
 		CORE7D01BAFD084C2B227CF7 /* NotchStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORE25C498B543A2ADBFDECF /* NotchStateMachine.swift */; };
 		CORE89A44E21D1AC72878A66 /* NotchSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORE457224804A82A2352DBE /* NotchSettings.swift */; };
 		CORE8D09BB5546AB7720BDC8 /* WindowCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORE3F55BA7EA2F6A5D760B5 /* WindowCoordinator.swift */; };
 		COREA9786F124ECC053D5728 /* KeyboardShortcutCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORED61D3A8138B800C9D30B /* KeyboardShortcutCoordinator.swift */; };
 		COREF3006D72890ED4E637F9 /* NotchContentRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = COREF142E52CA79745702171 /* NotchContentRouter.swift */; };
-		D0E3CDFAB02D99A3B500196F /* BoringAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B10D1B072E14AF97A34786 /* BoringAppState.swift */; };
+		D14D4BF5047BEC7A799F2B1E /* NotificationsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F57440ED49A9EFC6952A58 /* NotificationsPlugin.swift */; };
+		D30F75A64E8DACE773A73917 /* PluginMusicPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF9E85A0ABF3F3293A94E679 /* PluginMusicPlayerView.swift */; };
+		D4D3516859C933FB2E62B917 /* BatteryPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9855B76C6370E6C3E6E1DF3 /* BatteryPlugin.swift */; };
 		DB5E54FD2F02D24A00293861 /* MacroVisionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 111BEA502ECFBF7F0079DD4E /* MacroVisionKit */; };
 		DB5E54FE2F02D24A00293861 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 110029372E86940F00035A57 /* SQLite */; };
-		DF0D5C10FC947A95173BFF2E /* ShelfDropHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AE4932AC6EBD39EB5C8F3D /* ShelfDropHandler.swift */; };
-		E1C248FA4B942870A82FECFE /* NotchMusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCC2292BBF1B94B0D6DC7E50 /* NotchMusicPlayer.swift */; };
-		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		DE1BF0D59B7B27D831273F50 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E3691B05BAE6AB1B8C16F0 /* CalendarService.swift */; };
+		E6E1EF49CF913C248BB1A096 /* ClipboardPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = E367E0D4D53A466BC3EBB7F9 /* ClipboardPlugin.swift */; };
+		EC78DFD49DA2EABB1C843587 /* NotificationServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C4F7F2C2A1E21C93605870 /* NotificationServiceProtocol.swift */; };
+		F15AC62F518003BEBB86C2A3 /* PluginEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4AFECF49A120AB6C87BC16 /* PluginEnvironment.swift */; };
+		FDCA6D651407B3AC40CF68EF /* SoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7691289F9F7BD942891A7BAD /* SoundService.swift */; };
 		FFBFA7A0C2A7138FEDA8B6C3 /* PluginContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7231CBEA1B26EC990993D858 /* PluginContext.swift */; };
 /* End PBXBuildFile section */
 
@@ -253,8 +272,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		03E761B75A325145648DAD23 /* ShelfImageProcessorProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfImageProcessorProtocol.swift; path = boringNotch/Plugins/Services/ShelfImageProcessorProtocol.swift; sourceTree = "<group>"; };
+		04F57440ED49A9EFC6952A58 /* NotificationsPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationsPlugin.swift; path = boringNotch/Plugins/BuiltIn/NotificationsPlugin/NotificationsPlugin.swift; sourceTree = "<group>"; };
 		074800A0A6A43BF72038648F /* MusicService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicService.swift; path = boringNotch/Plugins/Services/MusicService.swift; sourceTree = "<group>"; };
+		08186422A6054FE4510EEEBF /* TemporaryFileStorageServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TemporaryFileStorageServiceProtocol.swift; path = boringNotch/Plugins/Services/TemporaryFileStorageServiceProtocol.swift; sourceTree = "<group>"; };
+		0B8AFD68B6AAECCE38D5DC9A /* ShelfPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfPlugin.swift; path = boringNotch/Plugins/BuiltIn/ShelfPlugin/ShelfPlugin.swift; sourceTree = "<group>"; };
 		0BB66B42FA987BF318C8E959 /* ShelfImageProcessor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShelfImageProcessor.swift; sourceTree = "<group>"; };
+		0CACE7DEA4E976DE4839D196 /* WebcamServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WebcamServiceProtocol.swift; path = boringNotch/Plugins/Services/WebcamServiceProtocol.swift; sourceTree = "<group>"; };
 		0E760B7C08145028E6BBD646 /* MusicService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicService.swift; path = Plugins/Services/MusicService.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
@@ -294,14 +318,12 @@
 		1160F8D72DD98230006FBB94 /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
 		1163988C2DF5CAB40052E6AF /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
 		1163988E2DF5CC870052E6AF /* CalendarModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarModel.swift; sourceTree = "<group>"; };
-		116398952DF5D6C00052E6AF /* CalendarServiceProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarServiceProviding.swift; sourceTree = "<group>"; };
 		118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharingStateManager.swift; sourceTree = "<group>"; };
 		118EBE242E92DCCB00D54B5A /* AssociatedObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociatedObject.swift; sourceTree = "<group>"; };
 		118EBE262E92DE7400D54B5A /* NSMenu+AssociatedObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSMenu+AssociatedObject.swift"; sourceTree = "<group>"; };
 		118EBE282E946B3F00D54B5A /* ShareServiceFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareServiceFinder.swift; sourceTree = "<group>"; };
 		118EBE2C2E97165600D54B5A /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
 		118EBE302E9717DB00D54B5A /* URL+SecurityScoped.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+SecurityScoped.swift"; sourceTree = "<group>"; };
-		118EBE3A2E9720C500D54B5A /* ShelfStateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfStateViewModel.swift; sourceTree = "<group>"; };
 		1194E87B2EA19E09009C82D6 /* ImageProcessingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessingService.swift; sourceTree = "<group>"; };
 		1194E8862EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotchSkyLightWindow.swift; sourceTree = "<group>"; };
 		1194E93F2EACC652009C82D6 /* Color+AccentColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+AccentColor.swift"; sourceTree = "<group>"; };
@@ -354,7 +376,6 @@
 		149E0B992C737D40006418B1 /* WebcamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamView.swift; sourceTree = "<group>"; };
 		14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloAnimation.swift; sourceTree = "<group>"; };
 		14A7E5962C65FD31008C1BE9 /* boring.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = boring.m4a; sourceTree = "<group>"; };
-		14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
 		14C08BB82C8DE4B1000F8AA0 /* BoringCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringCalendar.swift; sourceTree = "<group>"; };
 		14C08BC02C8E03AD000F8AA0 /* NSImage+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSImage+Extensions.swift"; sourceTree = "<group>"; };
 		14CEF4122C5CAED300855D72 /* boringNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = boringNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -371,43 +392,62 @@
 		14D570C12C5EAFBF0011E668 /* EmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyState.swift; sourceTree = "<group>"; };
 		14D570C52C5F38210011E668 /* BoringHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringHeader.swift; sourceTree = "<group>"; };
 		14D570C82C5F38890011E668 /* BoringViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringViewModel.swift; sourceTree = "<group>"; };
-		14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryStatusViewModel.swift; sourceTree = "<group>"; };
 		14D570CC2C5F4BB70011E668 /* BoringBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringBattery.swift; sourceTree = "<group>"; };
 		14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringExtrasMenu.swift; sourceTree = "<group>"; };
 		14E9FEA92C70BF610062E83F /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
 		1889C6F8871C876D25CADD60 /* ServiceContainer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServiceContainer.swift; path = boringNotch/Plugins/Services/ServiceContainer.swift; sourceTree = "<group>"; };
+		20664216D6CD2C0B26724A29 /* CalendarServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CalendarServiceProtocol.swift; path = boringNotch/Plugins/Services/CalendarServiceProtocol.swift; sourceTree = "<group>"; };
+		22890E9D4CCA59DD8BB5D1A6 /* CalendarDataProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CalendarDataProvider.swift; path = boringNotch/Providers/CalendarDataProvider.swift; sourceTree = "<group>"; };
 		27B398BECCBF1BC69FE20C6E /* DesktopCaptureActor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DesktopCaptureActor.swift; sourceTree = "<group>"; };
+		2CF96700A438BC96CFF49FF4 /* ShelfServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfServiceProtocol.swift; path = boringNotch/Plugins/Services/ShelfServiceProtocol.swift; sourceTree = "<group>"; };
 		30F907D5C61FB27219A2F24B /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		49CA0BEB7AAC63E91195B276 /* BoringAppState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BoringAppState.swift; path = BoringAppState.swift; sourceTree = "<group>"; };
+		3E1072DF514CC71270555DB8 /* ShelfFileHandlerProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfFileHandlerProtocol.swift; path = boringNotch/Plugins/Services/ShelfFileHandlerProtocol.swift; sourceTree = "<group>"; };
+		48889B03C285D8776DF877FA /* KeyboardBacklightServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = KeyboardBacklightServiceProtocol.swift; path = boringNotch/Plugins/Services/KeyboardBacklightServiceProtocol.swift; sourceTree = "<group>"; };
+		49CA0BEB7AAC63E91195B276 /* BoringAppState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoringAppState.swift; sourceTree = "<group>"; };
 		4F9352235724B3B3ABCDB187 /* ShelfFileHandler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShelfFileHandler.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		55C9017F5C7B7BB0AF31032E /* CustomSlider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CustomSlider.swift; path = boringNotch/components/CustomSlider.swift; sourceTree = "<group>"; };
+		575467BE87C1DAEB460F623D /* VolumeServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VolumeServiceProtocol.swift; path = boringNotch/Plugins/Services/VolumeServiceProtocol.swift; sourceTree = "<group>"; };
 		58585AE37E089675B27F26A4 /* MusicServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicServiceProtocol.swift; path = Plugins/Services/MusicServiceProtocol.swift; sourceTree = "<group>"; };
 		58B10D1B072E14AF97A34786 /* BoringAppState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BoringAppState.swift; path = boringNotch/Core/BoringAppState.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
+		5F3B53CD55F2D18D3E7E8D43 /* WebcamPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WebcamPlugin.swift; path = boringNotch/Plugins/BuiltIn/WebcamPlugin/WebcamPlugin.swift; sourceTree = "<group>"; };
 		62B884125C4CFF4A46B9D35A /* LiquidGlass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiquidGlass.swift; path = Effects/LiquidGlass.swift; sourceTree = "<group>"; };
+		6477CA8CD665D8AA43BAF4D3 /* WeatherData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherData.swift; path = boringNotch/models/WeatherData.swift; sourceTree = "<group>"; };
 		64EC2F5D40F20677C9756788 /* PluginEventBus.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginEventBus.swift; path = boringNotch/Plugins/Core/PluginEventBus.swift; sourceTree = "<group>"; };
 		6763F86F47BB03296443EAB3 /* LiquidGlassManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiquidGlassManager.swift; sourceTree = "<group>"; };
-		67D440092F01B2C40017F574 /* WeatherManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherManager.swift; sourceTree = "<group>"; };
 		67D4400B2F01B2DD0017F574 /* BoringWeather.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringWeather.swift; sourceTree = "<group>"; };
 		67D4400E2F01B2DD0017F574 /* WeatherSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherSettingsView.swift; sourceTree = "<group>"; };
 		6C19C5AA1D42422A94A2ABF5 /* PluginManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginManager.swift; path = boringNotch/Plugins/Core/PluginManager.swift; sourceTree = "<group>"; };
+		6CF5C4C63E0F27E2A6677E18 /* BatteryService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BatteryService.swift; path = boringNotch/Plugins/Services/BatteryService.swift; sourceTree = "<group>"; };
+		6E13568776669AA2F49C92C7 /* WeatherService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherService.swift; path = boringNotch/Plugins/Services/WeatherService.swift; sourceTree = "<group>"; };
 		7231CBEA1B26EC990993D858 /* PluginContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginContext.swift; path = boringNotch/Plugins/Core/PluginContext.swift; sourceTree = "<group>"; };
+		74E3691B05BAE6AB1B8C16F0 /* CalendarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CalendarService.swift; path = boringNotch/Plugins/Services/CalendarService.swift; sourceTree = "<group>"; };
+		767E48B9C257ED12868CDA4A /* BatteryServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BatteryServiceProtocol.swift; path = boringNotch/Plugins/Services/BatteryServiceProtocol.swift; sourceTree = "<group>"; };
+		7691289F9F7BD942891A7BAD /* SoundService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SoundService.swift; path = boringNotch/Plugins/Services/SoundService.swift; sourceTree = "<group>"; };
+		78873E8CC7AFD5E64EB1A4C7 /* SharingServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SharingServiceProtocol.swift; path = boringNotch/Plugins/Services/SharingServiceProtocol.swift; sourceTree = "<group>"; };
+		7AA596DFD28EB3FD8FCEAD7B /* CalendarPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CalendarPlugin.swift; path = boringNotch/Plugins/BuiltIn/CalendarPlugin/CalendarPlugin.swift; sourceTree = "<group>"; };
 		7E27686E3B1A45920C007980 /* MetalBlurView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MetalBlurView.swift; path = Effects/MetalBlurView.swift; sourceTree = "<group>"; };
-		829177F6B342E6E24252B640 /* CustomSlider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CustomSlider.swift; path = CustomSlider.swift; sourceTree = "<group>"; };
+		80C4F7F2C2A1E21C93605870 /* NotificationServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationServiceProtocol.swift; path = boringNotch/Plugins/Services/NotificationServiceProtocol.swift; sourceTree = "<group>"; };
+		829177F6B342E6E24252B640 /* CustomSlider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomSlider.swift; sourceTree = "<group>"; };
 		882F084B247D6A273F3C511A /* NotchVolumeControl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchVolumeControl.swift; path = boringNotch/components/Music/NotchVolumeControl.swift; sourceTree = "<group>"; };
+		8837776161EBE6B0242F17B4 /* MusicSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicSettingsView.swift; path = boringNotch/Plugins/BuiltIn/MusicPlugin/Views/MusicSettingsView.swift; sourceTree = "<group>"; };
+		88F01D6547B225895F18806E /* ThumbnailServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThumbnailServiceProtocol.swift; path = boringNotch/Plugins/Services/ThumbnailServiceProtocol.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
 		9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotchHomeView.swift; sourceTree = "<group>"; };
+		A51E48EEF2B6852A428C2972 /* LyricsServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LyricsServiceProtocol.swift; path = boringNotch/Plugins/Services/LyricsServiceProtocol.swift; sourceTree = "<group>"; };
 		A5A2434E0A7AFD3298FA102E /* MusicPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicPlugin.swift; path = boringNotch/Plugins/BuiltIn/MusicPlugin/MusicPlugin.swift; sourceTree = "<group>"; };
 		A68AE1FC48195998FAE41FCC /* NotchPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchPlugin.swift; path = boringNotch/Plugins/Core/NotchPlugin.swift; sourceTree = "<group>"; };
 		AA14905692EA231F59402E50 /* MetalBlurRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetalBlurRenderer.swift; sourceTree = "<group>"; };
+		AA640EF0042EB0B31405E86D /* ShelfService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfService.swift; path = boringNotch/Plugins/Services/ShelfService.swift; sourceTree = "<group>"; };
 		AB48750D2215B0E835773A42 /* PluginSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginSettings.swift; path = boringNotch/Plugins/Core/PluginSettings.swift; sourceTree = "<group>"; };
+		ABD9872FE16EBBDFCE59B56B /* ImageProcessingServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageProcessingServiceProtocol.swift; path = boringNotch/Plugins/Services/ImageProcessingServiceProtocol.swift; sourceTree = "<group>"; };
 		B10348D82C74E56000475897 /* ConditionalModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalModifier.swift; sourceTree = "<group>"; };
 		B10F84A22C6C9596009F3026 /* TestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestView.swift; sourceTree = "<group>"; };
 		B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleView.swift; sourceTree = "<group>"; };
@@ -432,22 +472,26 @@
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		B28F91445E8D5B3F781EC0C6 /* ServiceContainer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServiceContainer.swift; path = Plugins/Services/ServiceContainer.swift; sourceTree = "<group>"; };
 		B54DA3AC64D543BF957D381C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		BCC2292BBF1B94B0D6DC7E50 /* NotchMusicPlayer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchMusicPlayer.swift; path = boringNotch/components/Music/NotchMusicPlayer.swift; sourceTree = "<group>"; };
+		BD4EDF4731BD96E501B155CE /* MusicLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicLiveActivity.swift; path = boringNotch/Plugins/BuiltIn/MusicPlugin/Views/MusicLiveActivity.swift; sourceTree = "<group>"; };
+		BF97E971A6C5DED2CE3683B4 /* BrightnessServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BrightnessServiceProtocol.swift; path = boringNotch/Plugins/Services/BrightnessServiceProtocol.swift; sourceTree = "<group>"; };
+		BF9E85A0ABF3F3293A94E679 /* PluginMusicPlayerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginMusicPlayerView.swift; path = boringNotch/Plugins/BuiltIn/MusicPlugin/Views/PluginMusicPlayerView.swift; sourceTree = "<group>"; };
 		BFB4F62C4D5CED6C9876D0D5 /* MusicServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicServiceProtocol.swift; path = boringNotch/Plugins/Services/MusicServiceProtocol.swift; sourceTree = "<group>"; };
+		C9855B76C6370E6C3E6E1DF3 /* BatteryPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BatteryPlugin.swift; path = boringNotch/Plugins/BuiltIn/BatteryPlugin/BatteryPlugin.swift; sourceTree = "<group>"; };
 		CORE25C498B543A2ADBFDECF /* NotchStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchStateMachine.swift; sourceTree = "<group>"; };
-		CORE2F7CAD0193F9EC750364 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyContainer.swift; sourceTree = "<group>"; };
 		CORE3F55BA7EA2F6A5D760B5 /* WindowCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCoordinator.swift; sourceTree = "<group>"; };
 		CORE457224804A82A2352DBE /* NotchSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchSettings.swift; sourceTree = "<group>"; };
 		COREB975ACB42A54F436FFC7 /* DragDetectionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragDetectionCoordinator.swift; sourceTree = "<group>"; };
 		CORED61D3A8138B800C9D30B /* KeyboardShortcutCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcutCoordinator.swift; sourceTree = "<group>"; };
 		COREF142E52CA79745702171 /* NotchContentRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchContentRouter.swift; sourceTree = "<group>"; };
-		D0AE4932AC6EBD39EB5C8F3D /* ShelfDropHandler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShelfDropHandler.swift; sourceTree = "<group>"; };
-		D11C468AF4F351C6BC408CD9 /* NotchVolumeControl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchVolumeControl.swift; path = NotchVolumeControl.swift; sourceTree = "<group>"; };
+		D11C468AF4F351C6BC408CD9 /* NotchVolumeControl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchVolumeControl.swift; sourceTree = "<group>"; };
+		D14FD01625CE8143D53FEC0A /* WeatherPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherPlugin.swift; path = boringNotch/Plugins/BuiltIn/WeatherPlugin/WeatherPlugin.swift; sourceTree = "<group>"; };
+		D34B886EB323251D5E5225E9 /* BluetoothServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BluetoothServiceProtocol.swift; path = boringNotch/Plugins/Services/BluetoothServiceProtocol.swift; sourceTree = "<group>"; };
+		E367E0D4D53A466BC3EBB7F9 /* ClipboardPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ClipboardPlugin.swift; path = boringNotch/Plugins/BuiltIn/ClipboardPlugin/ClipboardPlugin.swift; sourceTree = "<group>"; };
 		E6FB60B94B79A390572281D8 /* NotchStateMachineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = boringNotchTests/NotchStateMachineTests.swift; sourceTree = SOURCE_ROOT; };
 		EA3972B2992CD0247A6A32A1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = boringNotchTests/Info.plist; sourceTree = SOURCE_ROOT; };
-		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		EC4AFECF49A120AB6C87BC16 /* PluginEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginEnvironment.swift; path = boringNotch/Plugins/Core/PluginEnvironment.swift; sourceTree = "<group>"; };
+		F491EC9D73B1F259D53064AC /* WeatherServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherServiceProtocol.swift; path = boringNotch/Plugins/Services/WeatherServiceProtocol.swift; sourceTree = "<group>"; };
 		F72C8F2DF69DAFB2AAED51A0 /* PluginCapabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginCapabilities.swift; path = boringNotch/Plugins/Core/PluginCapabilities.swift; sourceTree = "<group>"; };
-		FEB94C36201A4CE7B6F0ABA9 /* NotchMusicPlayer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchMusicPlayer.swift; path = NotchMusicPlayer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -525,6 +569,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		05CAC0662814536867C1DC0C /* NotificationsPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				04F57440ED49A9EFC6952A58 /* NotificationsPlugin.swift */,
+			);
+			name = NotificationsPlugin;
+			sourceTree = "<group>";
+		};
+		0B9B217730F26B3A863CC877 /* CalendarPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				7AA596DFD28EB3FD8FCEAD7B /* CalendarPlugin.swift */,
+			);
+			name = CalendarPlugin;
+			sourceTree = "<group>";
+		};
 		1113ABB82E80E27000EC13B2 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -548,7 +608,6 @@
 				1113ABBE2E80E27000EC13B2 /* ShelfPersistenceService.swift */,
 				4F9352235724B3B3ABCDB187 /* ShelfFileHandler.swift */,
 				0BB66B42FA987BF318C8E959 /* ShelfImageProcessor.swift */,
-				D0AE4932AC6EBD39EB5C8F3D /* ShelfDropHandler.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -556,7 +615,6 @@
 		1113ABC22E80E27000EC13B2 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				118EBE3A2E9720C500D54B5A /* ShelfStateViewModel.swift */,
 				11EFCD6F2E8E92D600D0B974 /* ShelfItemViewModel.swift */,
 				1113ABC02E80E27000EC13B2 /* ShelfSelectionModel.swift */,
 			);
@@ -612,7 +670,6 @@
 		116398942DF5D6B40052E6AF /* Providers */ = {
 			isa = PBXGroup;
 			children = (
-				116398952DF5D6C00052E6AF /* CalendarServiceProviding.swift */,
 			);
 			path = Providers;
 			sourceTree = "<group>";
@@ -623,7 +680,6 @@
 				E6FB60B94B79A390572281D8 /* NotchStateMachineTests.swift */,
 				EA3972B2992CD0247A6A32A1 /* Info.plist */,
 			);
-			name = boringNotchTests;
 			path = boringNotchTests;
 			sourceTree = SOURCE_ROOT;
 		};
@@ -720,16 +776,13 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
-				67D440092F01B2C40017F574 /* WeatherManager.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
-				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				11F749002ECB27DC00F841DB /* NotificationCenterManager.swift */,
 				11F749112ECB27DC00F841DB /* BluetoothManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
-				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
 				B1F0A0012E60000100000001 /* BrightnessManager.swift */,
 				59D8C23B2E589FAA00147B33 /* VolumeManager.swift */,
 				110029342E86940F00035A57 /* NotchFaceManager.swift */,
@@ -859,7 +912,6 @@
 				B19016232CC15B4D00E3F12E /* Constants.swift */,
 				11F749022ECB27DC00F841DB /* NotchNotification.swift */,
 				14D570C82C5F38890011E668 /* BoringViewModel.swift */,
-				14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */,
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 			);
 			path = models;
@@ -874,6 +926,7 @@
 				6C19C5AA1D42422A94A2ABF5 /* PluginManager.swift */,
 				AB48750D2215B0E835773A42 /* PluginSettings.swift */,
 				64EC2F5D40F20677C9756788 /* PluginEventBus.swift */,
+				EC4AFECF49A120AB6C87BC16 /* PluginEnvironment.swift */,
 			);
 			name = Core;
 			sourceTree = "<group>";
@@ -896,6 +949,14 @@
 			name = Plugins;
 			sourceTree = "<group>";
 		};
+		48A956D97DEDDC000BC5C09E /* WeatherPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				D14FD01625CE8143D53FEC0A /* WeatherPlugin.swift */,
+			);
+			name = WeatherPlugin;
+			sourceTree = "<group>";
+		};
 		67D4400C2F01B2DD0017F574 /* Weather */ = {
 			isa = PBXGroup;
 			children = (
@@ -904,12 +965,29 @@
 			path = Weather;
 			sourceTree = "<group>";
 		};
+		711AD3409DFB2106E4B3BD61 /* BatteryPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				C9855B76C6370E6C3E6E1DF3 /* BatteryPlugin.swift */,
+			);
+			name = BatteryPlugin;
+			sourceTree = "<group>";
+		};
 		76E16DCBD7312ADF5DE36293 /* MusicPlugin */ = {
 			isa = PBXGroup;
 			children = (
 				A5A2434E0A7AFD3298FA102E /* MusicPlugin.swift */,
+				FCFF889C11AFA281613D2F11 /* Views */,
 			);
 			name = MusicPlugin;
+			sourceTree = "<group>";
+		};
+		7950D9765C1BB8DB254D503E /* models */ = {
+			isa = PBXGroup;
+			children = (
+				6477CA8CD665D8AA43BAF4D3 /* WeatherData.swift */,
+			);
+			name = models;
 			sourceTree = "<group>";
 		};
 		8B8DCFA6F7AB8979C99CD5BD /* OS X */ = {
@@ -934,6 +1012,28 @@
 				1889C6F8871C876D25CADD60 /* ServiceContainer.swift */,
 				BFB4F62C4D5CED6C9876D0D5 /* MusicServiceProtocol.swift */,
 				074800A0A6A43BF72038648F /* MusicService.swift */,
+				767E48B9C257ED12868CDA4A /* BatteryServiceProtocol.swift */,
+				6CF5C4C63E0F27E2A6677E18 /* BatteryService.swift */,
+				20664216D6CD2C0B26724A29 /* CalendarServiceProtocol.swift */,
+				74E3691B05BAE6AB1B8C16F0 /* CalendarService.swift */,
+				F491EC9D73B1F259D53064AC /* WeatherServiceProtocol.swift */,
+				6E13568776669AA2F49C92C7 /* WeatherService.swift */,
+				2CF96700A438BC96CFF49FF4 /* ShelfServiceProtocol.swift */,
+				AA640EF0042EB0B31405E86D /* ShelfService.swift */,
+				03E761B75A325145648DAD23 /* ShelfImageProcessorProtocol.swift */,
+				3E1072DF514CC71270555DB8 /* ShelfFileHandlerProtocol.swift */,
+				ABD9872FE16EBBDFCE59B56B /* ImageProcessingServiceProtocol.swift */,
+				88F01D6547B225895F18806E /* ThumbnailServiceProtocol.swift */,
+				0CACE7DEA4E976DE4839D196 /* WebcamServiceProtocol.swift */,
+				BF97E971A6C5DED2CE3683B4 /* BrightnessServiceProtocol.swift */,
+				48889B03C285D8776DF877FA /* KeyboardBacklightServiceProtocol.swift */,
+				08186422A6054FE4510EEEBF /* TemporaryFileStorageServiceProtocol.swift */,
+				D34B886EB323251D5E5225E9 /* BluetoothServiceProtocol.swift */,
+				A51E48EEF2B6852A428C2972 /* LyricsServiceProtocol.swift */,
+				80C4F7F2C2A1E21C93605870 /* NotificationServiceProtocol.swift */,
+				78873E8CC7AFD5E64EB1A4C7 /* SharingServiceProtocol.swift */,
+				575467BE87C1DAEB460F623D /* VolumeServiceProtocol.swift */,
+				7691289F9F7BD942891A7BAD /* SoundService.swift */,
 			);
 			name = Services;
 			sourceTree = "<group>";
@@ -990,7 +1090,6 @@
 		AC49799E408EF02C3E7A306D /* Music */ = {
 			isa = PBXGroup;
 			children = (
-				BCC2292BBF1B94B0D6DC7E50 /* NotchMusicPlayer.swift */,
 				882F084B247D6A273F3C511A /* NotchVolumeControl.swift */,
 			);
 			name = Music;
@@ -1034,7 +1133,6 @@
 			isa = PBXGroup;
 			children = (
 				147163972C5D35B70068B555 /* MusicVisualizer.swift */,
-				FEB94C36201A4CE7B6F0ABA9 /* NotchMusicPlayer.swift */,
 				D11C468AF4F351C6BC408CD9 /* NotchVolumeControl.swift */,
 			);
 			path = Music;
@@ -1097,10 +1195,33 @@
 			path = Tips;
 			sourceTree = "<group>";
 		};
+		C6AC6271CF21C0B507BAF300 /* WebcamPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				5F3B53CD55F2D18D3E7E8D43 /* WebcamPlugin.swift */,
+			);
+			name = WebcamPlugin;
+			sourceTree = "<group>";
+		};
+		C75D0973476EB85CA759E6AA /* ClipboardPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				E367E0D4D53A466BC3EBB7F9 /* ClipboardPlugin.swift */,
+			);
+			name = ClipboardPlugin;
+			sourceTree = "<group>";
+		};
 		CEFF00CD59A4152E00347405 /* BuiltIn */ = {
 			isa = PBXGroup;
 			children = (
 				76E16DCBD7312ADF5DE36293 /* MusicPlugin */,
+				0B9B217730F26B3A863CC877 /* CalendarPlugin */,
+				48A956D97DEDDC000BC5C09E /* WeatherPlugin */,
+				E82A1EE9800D5EB8FCFF9C4C /* ShelfPlugin */,
+				C6AC6271CF21C0B507BAF300 /* WebcamPlugin */,
+				05CAC0662814536867C1DC0C /* NotificationsPlugin */,
+				711AD3409DFB2106E4B3BD61 /* BatteryPlugin */,
+				C75D0973476EB85CA759E6AA /* ClipboardPlugin */,
 			);
 			name = BuiltIn;
 			sourceTree = "<group>";
@@ -1108,7 +1229,6 @@
 		CORE00000165BEF6F3D1F399 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				CORE2F7CAD0193F9EC750364 /* DependencyContainer.swift */,
 				COREB975ACB42A54F436FFC7 /* DragDetectionCoordinator.swift */,
 				CORED61D3A8138B800C9D30B /* KeyboardShortcutCoordinator.swift */,
 				COREF142E52CA79745702171 /* NotchContentRouter.swift */,
@@ -1127,14 +1247,42 @@
 			name = Core;
 			sourceTree = "<group>";
 		};
+		E516CA516CCFFCD6CBA581EE /* Providers */ = {
+			isa = PBXGroup;
+			children = (
+				22890E9D4CCA59DD8BB5D1A6 /* CalendarDataProvider.swift */,
+			);
+			name = Providers;
+			sourceTree = "<group>";
+		};
+		E82A1EE9800D5EB8FCFF9C4C /* ShelfPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				0B8AFD68B6AAECCE38D5DC9A /* ShelfPlugin.swift */,
+			);
+			name = ShelfPlugin;
+			sourceTree = "<group>";
+		};
 		FC9277A8FCAB09DA7424F29F /* boringNotch */ = {
 			isa = PBXGroup;
 			children = (
 				946D6B6F6D3B193502EF441C /* Plugins */,
 				A4909ABC76980C7DA9F3BBAE /* components */,
 				90D1952EF1A54BD7FAFEEDA5 /* Core */,
+				E516CA516CCFFCD6CBA581EE /* Providers */,
+				7950D9765C1BB8DB254D503E /* models */,
 			);
 			name = boringNotch;
+			sourceTree = "<group>";
+		};
+		FCFF889C11AFA281613D2F11 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BD4EDF4731BD96E501B155CE /* MusicLiveActivity.swift */,
+				BF9E85A0ABF3F3293A94E679 /* PluginMusicPlayerView.swift */,
+				8837776161EBE6B0242F17B4 /* MusicSettingsView.swift */,
+			);
+			name = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1222,7 +1370,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					11F7484E2EC9AABA00F841DB = {
 						CreatedOnToolsVersion = 16.4;
@@ -1310,7 +1458,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CORE31EF0223028E353E29C7 /* DependencyContainer.swift in Sources */,
 				CORE7611A205450229DA1164 /* DragDetectionCoordinator.swift in Sources */,
 				COREA9786F124ECC053D5728 /* KeyboardShortcutCoordinator.swift in Sources */,
 				COREF3006D72890ED4E637F9 /* NotchContentRouter.swift in Sources */,
@@ -1334,12 +1481,10 @@
 				B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */,
 				1194E87C2EA19E09009C82D6 /* ImageProcessingService.swift in Sources */,
 				1194E8872EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift in Sources */,
-				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
 				9A0887322C7A693000C160EA /* TabButton.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
 				1194E9402EACC652009C82D6 /* Color+AccentColor.swift in Sources */,
 				B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */,
-				116398962DF5D6C00052E6AF /* CalendarServiceProviding.swift in Sources */,
 				59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */,
 				1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */,
 				14D570B92C5E98A20011E668 /* drop.swift in Sources */,
@@ -1407,9 +1552,7 @@
 				11F749072ECB27DC00F841DB /* NotificationsSettingsView.swift in Sources */,
 				11F749122ECB27DC00F841DB /* BluetoothSettingsView.swift in Sources */,
 				14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */,
-				67D4400A2F01B2C40017F574 /* WeatherManager.swift in Sources */,
 				B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */,
-				14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */,
 				14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */,
 				B10F84A32C6C9596009F3026 /* TestView.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
@@ -1427,9 +1570,7 @@
 				11CFC65F2E097F2F00748C80 /* OnboardingView.swift in Sources */,
 				14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */,
 				B17266DF2C64DFA00031BA0D /* BundleInfos.swift in Sources */,
-				118EBE3B2E9720C500D54B5A /* ShelfStateViewModel.swift in Sources */,
 				11F747CE2EC75CEA00F841DB /* DragPreviewView.swift in Sources */,
-				F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */,
 				B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */,
 				118D1FD12E98FF5F00A2FF63 /* SharingStateManager.swift in Sources */,
 				14D570C22C5EAFBF0011E668 /* EmptyState.swift in Sources */,
@@ -1466,8 +1607,6 @@
 				655476AD1F6237D65C80B08A /* LiquidGlass.swift in Sources */,
 				914B183904FCABE089C9E486 /* ShelfFileHandler.swift in Sources */,
 				43173D18B907E3803848651D /* ShelfImageProcessor.swift in Sources */,
-				DF0D5C10FC947A95173BFF2E /* ShelfDropHandler.swift in Sources */,
-				A38C696E5AE9F8E204A3C37E /* NotchMusicPlayer.swift in Sources */,
 				312FE24D4629E8B2C243E9DD /* NotchVolumeControl.swift in Sources */,
 				3A958AB02A879E0D96009DDE /* CustomSlider.swift in Sources */,
 				AA889B8C05EFD8812C677CC7 /* NotchPlugin.swift in Sources */,
@@ -1481,13 +1620,41 @@
 				983DC038179F79A34190AD82 /* MusicServiceProtocol.swift in Sources */,
 				1D8F9B3FE403A62DB74576D2 /* MusicService.swift in Sources */,
 				B3C58FEAD0776223DEA709DB /* BoringAppState.swift in Sources */,
-				E1C248FA4B942870A82FECFE /* NotchMusicPlayer.swift in Sources */,
-				9D2B6BE6F58E0744DCCF0C81 /* NotchVolumeControl.swift in Sources */,
-				1F0C2D9AEB1D6AA4205AE6BC /* CustomSlider.swift in Sources */,
-				7143EC2853AAF85B1817FE47 /* ServiceContainer.swift in Sources */,
-				1C731A0AF2F2B500F26F353C /* MusicServiceProtocol.swift in Sources */,
-				AC55D33D1E4AAA95DD1446FA /* MusicService.swift in Sources */,
-				D0E3CDFAB02D99A3B500196F /* BoringAppState.swift in Sources */,
+				63BC41D1EDB2213C67F4E484 /* BatteryServiceProtocol.swift in Sources */,
+				5819D2843501CE4366B4BB74 /* BatteryService.swift in Sources */,
+				0F6FC24F85B930F05C4D2972 /* CalendarDataProvider.swift in Sources */,
+				4BBABD32D55184F2A6F53A9A /* CalendarServiceProtocol.swift in Sources */,
+				DE1BF0D59B7B27D831273F50 /* CalendarService.swift in Sources */,
+				615B455C5D0F2819CBCA5572 /* WeatherServiceProtocol.swift in Sources */,
+				840F921A2F55A77265BD17E5 /* WeatherService.swift in Sources */,
+				95365A6125F209E37C4F1398 /* WeatherData.swift in Sources */,
+				75CD9C316A673CD3AAD74DCA /* ShelfServiceProtocol.swift in Sources */,
+				327DF2F76B387F76C31A0A0D /* ShelfService.swift in Sources */,
+				A8C3C75AC97AF614FBD8C2BA /* ShelfImageProcessorProtocol.swift in Sources */,
+				6CB2C84C645AE61F5E6ABD26 /* ShelfFileHandlerProtocol.swift in Sources */,
+				CAA4959B6ACB9B680D57DAF1 /* ImageProcessingServiceProtocol.swift in Sources */,
+				0A1428F5A575F87666661AA2 /* ThumbnailServiceProtocol.swift in Sources */,
+				764BEEC59255D1B2CA09C574 /* WebcamServiceProtocol.swift in Sources */,
+				BAA7AF39257A101CDCA86D82 /* BrightnessServiceProtocol.swift in Sources */,
+				07041588749FDA3C744A7627 /* KeyboardBacklightServiceProtocol.swift in Sources */,
+				93E0E1B59843287BBC8E5873 /* TemporaryFileStorageServiceProtocol.swift in Sources */,
+				0FDBD863A6927FF382640064 /* BluetoothServiceProtocol.swift in Sources */,
+				8AA13D1BB2137664881B7471 /* LyricsServiceProtocol.swift in Sources */,
+				EC78DFD49DA2EABB1C843587 /* NotificationServiceProtocol.swift in Sources */,
+				060D66B5EB78228493165B74 /* SharingServiceProtocol.swift in Sources */,
+				1364DBA2B4CCA6A05350DD01 /* VolumeServiceProtocol.swift in Sources */,
+				75B3730C9CFC122A7F77A870 /* MusicLiveActivity.swift in Sources */,
+				D30F75A64E8DACE773A73917 /* PluginMusicPlayerView.swift in Sources */,
+				4F804814C52DD7ECEC50E40A /* MusicSettingsView.swift in Sources */,
+				F15AC62F518003BEBB86C2A3 /* PluginEnvironment.swift in Sources */,
+				426D4DEBAE2AA9F82C21238C /* CalendarPlugin.swift in Sources */,
+				3F1B4B74D9701CD2DD1953B1 /* WeatherPlugin.swift in Sources */,
+				53DEF8885FE1102CE70C35A9 /* ShelfPlugin.swift in Sources */,
+				A685D05F9F9DF984E020668F /* WebcamPlugin.swift in Sources */,
+				D14D4BF5047BEC7A799F2B1E /* NotificationsPlugin.swift in Sources */,
+				D4D3516859C933FB2E62B917 /* BatteryPlugin.swift in Sources */,
+				E6E1EF49CF913C248BB1A096 /* ClipboardPlugin.swift in Sources */,
+				FDCA6D651407B3AC40CF68EF /* SoundService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1523,7 +1690,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = boringNotchTests/Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = me.theboringteam.boringNotchTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1539,7 +1706,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = boringNotchTests/Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = me.theboringteam.boringNotchTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1558,11 +1725,12 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 271;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BoringNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				MACOSX_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 2.7.3;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1583,11 +1751,12 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 271;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BoringNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				MACOSX_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 2.7.3;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1652,11 +1821,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = targeted;
@@ -1712,10 +1882,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_STRICT_CONCURRENCY = targeted;
 				SWIFT_VERSION = 5.0;
@@ -1728,6 +1899,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				AUTOMATION_APPLE_EVENTS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = boringNotch/boringNotch.entitlements;
@@ -1739,19 +1911,21 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = YES;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/mediaremote-adapter",
@@ -1763,15 +1937,22 @@
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need Bluetooth access to show connected device battery levels.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "We need Bluetooth access to show connected device battery levels.";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "We need full access to your calendar to show and manage events in the notch.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to show local weather information in the notch";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "We need your location to show local weather information in the notch";
+				INFOPLIST_KEY_NSLocationUsageDescription = "We need your location to show local weather information in the notch";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "We need full access to your reminders to show and manage tasks in the notch.";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 2.7.3;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1793,6 +1974,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				AUTOMATION_APPLE_EVENTS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = boringNotch/boringNotch.entitlements;
@@ -1804,16 +1986,20 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
-				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
-				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
-				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = YES;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/mediaremote-adapter",
@@ -1825,15 +2011,22 @@
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "We need Bluetooth access to show connected device battery levels.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "We need Bluetooth access to show connected device battery levels.";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "We need full access to your calendar to show and manage events in the notch.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to show local weather information in the notch";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "We need your location to show local weather information in the notch";
+				INFOPLIST_KEY_NSLocationUsageDescription = "We need your location to show local weather information in the notch";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "We need full access to your reminders to show and manage tasks in the notch.";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 2.7.3;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1992,7 +2185,7 @@
 			repositoryURL = "https://github.com/1998code/SwiftGlass.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 26.0.1;
+				minimumVersion = 1.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

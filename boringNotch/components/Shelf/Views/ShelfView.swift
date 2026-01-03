@@ -10,9 +10,13 @@ import AppKit
 
 struct ShelfView: View {
     @Environment(BoringViewModel.self) var vm
-    @State var tvm = ShelfStateViewModel.shared
-    @State var selection = ShelfSelectionModel.shared
-    @ObservedObject private var quickLookService = QuickLookService.shared
+    @Environment(\.pluginManager) var pluginManager
+    
+    private var selection: ShelfSelectionModel {
+        pluginManager?.services.shelf.selection ?? ShelfSelectionModel()
+    }
+    
+    private var quickLookService = QuickLookService.shared
     private let spacing: CGFloat = 8
 
     var body: some View {
@@ -37,14 +41,14 @@ struct ShelfView: View {
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard !selection.isDragging else { return false }
         vm.dropEvent = true
-        ShelfStateViewModel.shared.load(providers)
+        pluginManager!.services.shelf.load(providers)
         return true
     }
     
     private func updateQuickLookSelection() {
         guard quickLookService.isQuickLookOpen && !selection.selectedIDs.isEmpty else { return }
         
-        let selectedItems = selection.selectedItems(in: tvm.items)
+        let selectedItems = selection.selectedItems(in: pluginManager!.services.shelf.items)
         let urls: [URL] = selectedItems.compactMap { item in
             if let fileURL = item.fileURL {
                 return fileURL
@@ -82,7 +86,7 @@ struct ShelfView: View {
     var content: some View {
         @Bindable var vm = vm
         return Group {
-            if tvm.isEmpty {
+            if pluginManager!.services.shelf.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "tray.and.arrow.down")
                         .symbolVariant(.fill)
@@ -98,10 +102,10 @@ struct ShelfView: View {
             } else {
                 ScrollView(.horizontal) {
                     LazyHStack(spacing: spacing) {
-                        ForEach(tvm.items) { item in
+                        ForEach(pluginManager!.services.shelf.items) { item in
                             ShelfItemView(item: item)
                                 .environment(vm)
-                                .environmentObject(quickLookService)
+                                .environment(quickLookService)
                         }
                     }
                 }
@@ -113,7 +117,7 @@ struct ShelfView: View {
             }
         }
         .onAppear {
-            ShelfStateViewModel.shared.cleanupInvalidItems()
+            pluginManager!.services.shelf.cleanupInvalidItems()
         }
     }
 }

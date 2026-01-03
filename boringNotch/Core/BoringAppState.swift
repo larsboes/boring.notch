@@ -7,9 +7,12 @@ import Combine
 final class BoringAppState: AppStateProviding {
     var isScreenLocked: Bool = false
 
-    /// Use nonisolated(unsafe) to allow cleanup in deinit
-    /// This is safe because we only access it to remove observers
-    nonisolated(unsafe) private var observers: [Any] = []
+    // Wrapper to handle non-Sendable observers safely
+    private final class ObserverContainer: @unchecked Sendable {
+        var observers: [Any] = []
+    }
+    
+    @ObservationIgnored nonisolated private let observerContainer = ObserverContainer()
 
     init() {
         setupObservers()
@@ -17,7 +20,7 @@ final class BoringAppState: AppStateProviding {
 
     deinit {
         let center = DistributedNotificationCenter.default()
-        for observer in observers {
+        for observer in observerContainer.observers {
             center.removeObserver(observer)
         }
     }
@@ -25,20 +28,24 @@ final class BoringAppState: AppStateProviding {
     private func setupObservers() {
         let center = DistributedNotificationCenter.default()
 
-        observers.append(center.addObserver(
+        observerContainer.observers.append(center.addObserver(
             forName: NSNotification.Name(rawValue: "com.apple.screenIsLocked"),
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.isScreenLocked = true
+            Task { @MainActor in
+                self?.isScreenLocked = true
+            }
         })
 
-        observers.append(center.addObserver(
+        observerContainer.observers.append(center.addObserver(
             forName: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"),
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.isScreenLocked = false
+            Task { @MainActor in
+                self?.isScreenLocked = false
+            }
         })
     }
 }

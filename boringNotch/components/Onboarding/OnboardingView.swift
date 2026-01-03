@@ -20,7 +20,7 @@ enum OnboardingStep {
     case finished
 }
 
-private let calendarService = CalendarService()
+private let calendarService = CalendarDataProvider()
 
 struct OnboardingView: View {
     @State var step: OnboardingStep = .welcome
@@ -166,6 +166,8 @@ struct OnboardingView: View {
         .frame(width: 400, height: 600)
     }
 
+    @Environment(\.pluginManager) var pluginManager
+
     // MARK: - Permission Request Logic
 
     func requestCameraPermission() async {
@@ -181,7 +183,7 @@ struct OnboardingView: View {
     }
     
     func requestWeatherPermission() {
-        WeatherManager.shared.checkLocationAuthorization()
+        pluginManager?.services.weather.checkLocationAuthorization()
     }
     
     func requestAccessibilityPermission() async {

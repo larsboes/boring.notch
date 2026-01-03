@@ -12,6 +12,7 @@ import SwiftUI
 
 /// Protocol abstracting all notch-related settings.
 /// This enables dependency injection and mocking for tests.
+@MainActor
 protocol NotchSettings {
     // MARK: - HUD Settings
     var showInlineHUD: Bool { get }
@@ -509,6 +510,7 @@ final class DefaultsNotchSettings: NotchSettings {
 /// Mock implementation for unit testing.
 /// All properties are mutable with sensible defaults.
 struct MockNotchSettings: NotchSettings {
+    nonisolated init() {}
     // MARK: - HUD Settings
     var showInlineHUD: Bool = false
     var hudReplacement: Bool = false
@@ -624,7 +626,7 @@ struct MockNotchSettings: NotchSettings {
 
 /// Read-only environment key for protocol-based DI (testable with MockNotchSettings)
 private struct NotchSettingsKey: EnvironmentKey {
-    nonisolated(unsafe) static let defaultValue: any NotchSettings = DefaultsNotchSettings.shared
+    nonisolated(unsafe) static let defaultValue: any NotchSettings = MockNotchSettings()
 }
 
 extension EnvironmentValues {

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct Shelf: View {
     @Environment(\.bindableSettings) var settings
-    @StateObject private var quickShareService = QuickShareService.shared
+    private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
         quickShareService.availableProviders.first(where: { $0.id == settings.quickShareProvider })

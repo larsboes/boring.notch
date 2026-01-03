@@ -1,8 +1,12 @@
 import SwiftUI
 
 struct NotificationsView: View {
-    @StateObject private var manager = NotificationCenterManager.shared
+    @Environment(\.pluginManager) var pluginManager
     @Namespace private var animation
+    
+    private var manager: any NotificationServiceProtocol {
+        pluginManager?.services.notifications ?? NotificationCenterManager.shared
+    }
 
     var body: some View {
         VStack(spacing: 0) {

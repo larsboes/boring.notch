@@ -12,7 +12,8 @@ import UniformTypeIdentifiers
 struct FileShareView: View {
     @Environment(BoringViewModel.self) private var vm
     @Environment(\.settings) var settings
-    @StateObject private var quickShare = QuickShareService.shared
+    @Environment(\.pluginManager) var pluginManager
+    private var quickShare = QuickShareService.shared
 
     @State private var hostView: NSView?
     @State private var interactionNonce: UUID = .init()
@@ -110,7 +111,7 @@ struct FileShareView: View {
     private func handleDrop(_ providers: [NSItemProvider]) async {
         isProcessing = true
         defer { isProcessing = false }
-        await quickShare.shareDroppedFiles(providers, using: selectedProvider, from: hostView)
+        await quickShare.shareDroppedFiles(providers, using: selectedProvider, from: hostView, service: pluginManager!.services.shelf)
     }
     
     private func handleClick() async {

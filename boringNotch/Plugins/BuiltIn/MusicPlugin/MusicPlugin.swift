@@ -66,7 +66,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin {
 
     // MARK: - Private Properties
 
-    private var musicService: (any MusicServiceProtocol)?
+    var musicService: (any MusicServiceProtocol)?
     private var settings: PluginSettings?
     private var eventBus: PluginEventBus?
     private var cancellables = Set<AnyCancellable>()
@@ -131,25 +131,50 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin {
 
     // MARK: - UI Slots
 
+    var displayRequest: DisplayRequest? {
+        guard isEnabled, state.isActive,
+              let service = musicService,
+              (service.playbackState.isPlaying || !service.isPlayerIdle),
+              // Use settings to check if Live Activity is enabled
+              (settings?.get("showLiveActivity", default: true) ?? true)
+        else {
+            return nil
+        }
+        
+        return DisplayRequest(priority: .high, category: DisplayRequest.music)
+    }
+
     func closedNotchContent() -> AnyView? {
         guard isEnabled, state.isActive else { return nil }
-        guard let nowPlaying = nowPlaying else { return nil }
-
+        guard let service = musicService else { return nil }
+        // Only show if playing or we have track info?
+        // Original logic was driven by NotchStateMachine.
+        // For now, if the state machine asks for this plugin, we return the view.
+        
         return AnyView(
-            MusicClosedNotchView(
-                nowPlaying: nowPlaying,
-                onTap: { [weak self] in
-                    Task { await self?.togglePlayPause() }
-                }
-            )
+            MusicLiveActivity(service: service)
         )
     }
 
     func expandedPanelContent() -> AnyView? {
         guard isEnabled, state.isActive else { return nil }
 
+        // Use the refactored PluginMusicPlayerView which accesses the service internally
+        // We pass the namespace via environment or constructor - wait, the namespace comes from the parent view (NotchHomeView)
+        // This is a challenge: The expandedPanelContent signature doesn't accept a Namespace.ID.
+        // We might need to adjust the protocol or use an EnvironmentObject for the namespace.
+        // For now, let's look at how NotchHomeView passes it.
+        // It passes `albumArtNamespace: albumArtNamespace` to `MusicPlayerView`.
+        
+        // TEMPORARY FIX: We can't pass the namespace here because the protocol doesn't support it.
+        // We will return a wrapper that expects the namespace to be injected or available.
+        // But NotchPlugin protocol returns AnyView, meaning the type is erased.
+        //
+        // Solution: The plugin system needs a way to pass context like Namespace.
+        // For Phase 2, we will use a dedicated EnvironmentKey for the album art namespace.
+        
         return AnyView(
-            MusicExpandedView(plugin: self)
+            MusicExpandedViewWrapper(plugin: self)
         )
     }
 
@@ -183,161 +208,28 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin {
                 self.eventBus?.emit(event)
             }
             .store(in: &cancellables)
+            
+        // Emit events when sneak peek is requested
+        service.sneakPeekPublisher
+            .sink { [weak self] request in
+                guard let self = self else { return }
+                let event = SneakPeekRequestedEvent(
+                    sourcePluginId: self.id,
+                    request: request
+                )
+                self.eventBus?.emit(event)
+            }
+            .store(in: &cancellables)
     }
 }
 
-// MARK: - Closed Notch View
+// MARK: - View Wrappers
 
-struct MusicClosedNotchView: View {
-    let nowPlaying: NowPlayingInfo
-    let onTap: () -> Void
-
-    var body: some View {
-        HStack(spacing: 8) {
-            // Album artwork
-            if let artwork = nowPlaying.artwork {
-                Image(nsImage: artwork)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 24, height: 24)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-            }
-
-            // Track info
-            VStack(alignment: .leading, spacing: 0) {
-                Text(nowPlaying.track.title)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .lineLimit(1)
-
-                Text(nowPlaying.track.artist)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            // Play/pause indicator
-            Image(systemName: nowPlaying.isPlaying ? "pause.fill" : "play.fill")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .contentShape(Rectangle())
-        .onTapGesture(perform: onTap)
-    }
-}
-
-// MARK: - Expanded View
-
-struct MusicExpandedView: View {
+struct MusicExpandedViewWrapper: View {
     let plugin: MusicPlugin
+    @Environment(\.albumArtNamespace) var namespace: Namespace.ID?
 
     var body: some View {
-        VStack(spacing: 16) {
-            if let nowPlaying = plugin.nowPlaying {
-                // Album artwork (large)
-                if let artwork = nowPlaying.artwork {
-                    Image(nsImage: artwork)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: 200, maxHeight: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .shadow(radius: 8)
-                }
-
-                // Track info
-                VStack(spacing: 4) {
-                    Text(nowPlaying.track.title)
-                        .font(.headline)
-                        .lineLimit(1)
-
-                    Text(nowPlaying.track.artist)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
-                // Progress bar
-                ProgressView(value: nowPlaying.progress)
-                    .progressViewStyle(.linear)
-                    .padding(.horizontal)
-
-                // Playback controls
-                HStack(spacing: 32) {
-                    Button {
-                        Task { await plugin.previous() }
-                    } label: {
-                        Image(systemName: "backward.fill")
-                            .font(.title2)
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        Task { await plugin.togglePlayPause() }
-                    } label: {
-                        Image(systemName: nowPlaying.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.title)
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        Task { await plugin.next() }
-                    } label: {
-                        Image(systemName: "forward.fill")
-                            .font(.title2)
-                    }
-                    .buttonStyle(.plain)
-                }
-            } else {
-                // No music playing
-                VStack(spacing: 8) {
-                    Image(systemName: "music.note")
-                        .font(.largeTitle)
-                        .foregroundStyle(.secondary)
-
-                    Text("No music playing")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .padding()
+        PluginMusicPlayerView(plugin: plugin, albumArtNamespace: namespace)
     }
 }
-
-// MARK: - Settings View
-
-struct MusicSettingsView: View {
-    let plugin: MusicPlugin
-
-    @State private var showLyrics = true
-    @State private var enableSneakPeek = true
-    @State private var sneakPeekDuration = 3.0
-
-    var body: some View {
-        Form {
-            Section("Display") {
-                Toggle("Show lyrics", isOn: $showLyrics)
-            }
-
-            Section("Sneak Peek") {
-                Toggle("Enable sneak peek", isOn: $enableSneakPeek)
-
-                if enableSneakPeek {
-                    Slider(value: $sneakPeekDuration, in: 1...10, step: 0.5) {
-                        Text("Duration: \(sneakPeekDuration, specifier: "%.1f")s")
-                    }
-                }
-            }
-        }
-        .formStyle(.grouped)
-    }
-}
-
-// MARK: - Preview
-
-#if DEBUG
-#Preview("Music Expanded") {
-    MusicExpandedView(plugin: MusicPlugin())
-        .frame(width: 300, height: 400)
-}
-#endif

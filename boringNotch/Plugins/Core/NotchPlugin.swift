@@ -50,6 +50,40 @@ protocol NotchPlugin: Identifiable, Observable, AnyObject {
     /// Settings UI for this plugin
     @ViewBuilder
     func settingsContent() -> AnyView?
+
+    // MARK: - Display Requests
+
+    /// The current request for the plugin to be displayed in the closed notch.
+    /// Returns nil if the plugin doesn't need to be shown.
+    var displayRequest: DisplayRequest? { get }
+}
+
+// MARK: - Display Request Types
+
+struct DisplayRequest: Equatable, Sendable {
+    let priority: DisplayPriority
+    /// Optional context to help the state machine decide (e.g., "music", "timer")
+    let category: DisplayCategory
+
+    static let music = DisplayCategory(rawValue: "music")
+    static let notification = DisplayCategory(rawValue: "notification")
+    static let utility = DisplayCategory(rawValue: "utility")
+    static let system = DisplayCategory(rawValue: "system")
+}
+
+struct DisplayCategory: RawRepresentable, Equatable, Sendable {
+    let rawValue: String
+}
+
+enum DisplayPriority: Int, Comparable, Sendable {
+    case background = 0    // Only if nothing else is showing
+    case normal = 10       // Standard content (e.g., weather)
+    case high = 20         // Active content (e.g., music playing)
+    case critical = 30     // Urgent (e.g., battery low)
+
+    static func < (lhs: DisplayPriority, rhs: DisplayPriority) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
 }
 
 // MARK: - Default Implementations
@@ -63,6 +97,9 @@ extension NotchPlugin {
 
     /// Default: no custom settings (uses auto-generated toggle)
     func settingsContent() -> AnyView? { nil }
+
+    /// Default: no display request
+    var displayRequest: DisplayRequest? { nil }
 }
 
 // MARK: - Plugin Metadata
@@ -167,6 +204,7 @@ enum PluginError: Error, LocalizedError, Sendable, Equatable {
 @MainActor
 struct AnyNotchPlugin: Identifiable {
     let id: String
+    let underlying: any NotchPlugin
     private let _metadata: () -> PluginMetadata
     private let _isEnabled: () -> Bool
     private let _setEnabled: (Bool) -> Void
@@ -176,9 +214,11 @@ struct AnyNotchPlugin: Identifiable {
     private let _closedNotchContent: () -> AnyView?
     private let _expandedPanelContent: () -> AnyView?
     private let _settingsContent: () -> AnyView?
+    private let _displayRequest: () -> DisplayRequest?
 
     init<P: NotchPlugin>(_ plugin: P) {
         self.id = plugin.id
+        self.underlying = plugin
         self._metadata = { plugin.metadata }
         self._isEnabled = { plugin.isEnabled }
         self._setEnabled = { plugin.isEnabled = $0 }
@@ -188,6 +228,7 @@ struct AnyNotchPlugin: Identifiable {
         self._closedNotchContent = { plugin.closedNotchContent() }
         self._expandedPanelContent = { plugin.expandedPanelContent() }
         self._settingsContent = { plugin.settingsContent() }
+        self._displayRequest = { plugin.displayRequest }
     }
 
     var metadata: PluginMetadata { _metadata() }
@@ -208,4 +249,5 @@ struct AnyNotchPlugin: Identifiable {
     func closedNotchContent() -> AnyView? { _closedNotchContent() }
     func expandedPanelContent() -> AnyView? { _expandedPanelContent() }
     func settingsContent() -> AnyView? { _settingsContent() }
+    var displayRequest: DisplayRequest? { _displayRequest() }
 }

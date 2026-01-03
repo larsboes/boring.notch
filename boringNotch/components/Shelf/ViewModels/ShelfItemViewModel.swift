@@ -21,55 +21,41 @@ final class ShelfItemViewModel {
     var isRenaming: Bool = false
     var draftTitle: String = ""
     
-    // Sharing state
-    // Removed as sharing logic moved to QuickShareService
-
-    private let selection = ShelfSelectionModel.shared
-    
-    // Services
-    private let fileHandler = ShelfFileHandler.shared
-    private let imageProcessor = ShelfImageProcessor.shared
-    private let dropHandler = ShelfDropHandler.shared
+    // Services are now accessed via injection in methods
 
     init(item: ShelfItem) {
         self.item = item
         self.draftTitle = item.displayName
-        Task { await loadThumbnail() }
+        // Thumbnail loading moved to onAppear with service injection
     }
 
-    var isSelected: Bool { selection.isSelected(item.id) }
-
-    func loadThumbnail() async {
+    func loadThumbnail(service: ShelfServiceProtocol) async {
         guard let url = item.fileURL else { return }
-        self.thumbnail = await imageProcessor.loadThumbnail(for: url)
-    }
-
-    // MARK: - Drag & Drop helpers
-    func dragItemProvider() -> NSItemProvider {
-        return dropHandler.dragItemProvider(for: item, selection: selection)
+        self.thumbnail = await service.imageProcessor.loadThumbnail(for: url, size: CGSize(width: 56, height: 56))
     }
 
     // MARK: - Actions
-    func handleClick(event: NSEvent, view: NSView) {
+    func handleClick(event: NSEvent, view: NSView, items: [ShelfItem], service: ShelfServiceProtocol) {
+        let selection = service.selection
         let flags = event.modifierFlags
         if flags.contains(.shift) {
-            selection.shiftSelect(to: item, in: ShelfStateViewModel.shared.items)
+            selection.shiftSelect(to: item, in: items)
         } else if flags.contains(.command) {
             selection.toggle(item)
         } else if flags.contains(.control) {
-            handleRightClick(event: event, view: view)
+            handleRightClick(event: event, view: view, service: service)
         } else {
             if !selection.isSelected(item.id) { selection.selectSingle(item) }
         }
-        if event.clickCount == 2 { handleDoubleClick() }
+        if event.clickCount == 2 { handleDoubleClick(items: items, service: service) }
     }
 
-    func handleRightClick(event: NSEvent, view: NSView) {
-        ShelfContextMenuHandler.present(event: event, in: view, item: item)
+    func handleRightClick(event: NSEvent, view: NSView, service: ShelfServiceProtocol) {
+        ShelfContextMenuHandler.present(event: event, in: view, item: item, service: service)
     }
 
-    func handleDoubleClick() {
-        let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-        fileHandler.open(items: selected)
+    func handleDoubleClick(items: [ShelfItem], service: ShelfServiceProtocol) {
+        let selected = service.selection.selectedItems(in: items)
+        service.fileHandler.open(items: selected, with: nil)
     }
 }

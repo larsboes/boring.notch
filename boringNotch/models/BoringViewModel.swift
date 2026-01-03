@@ -48,7 +48,7 @@ import SwiftUI
     var notchSize: CGSize = getClosedNotchSize()
     var closedNotchSize: CGSize = getClosedNotchSize()
     
-    private let webcamManager: WebcamManager
+    private let webcamService: any WebcamServiceProtocol
     var isCameraExpanded: Bool = false
     var isRequestingAuthorization: Bool = false
     
@@ -66,23 +66,31 @@ import SwiftUI
         // Cancellables are automatically cancelled when the set is deallocated
     }
 
-    /// Initialize with optional dependency injection.
-    /// Default parameters use the shared singletons for backwards compatibility.
+    private let musicService: any MusicServiceProtocol
+    private let soundService: any SoundServiceProtocol
+    var shelfService: ShelfServiceProtocol?
+
+    // ... (rest of properties)
+
+    /// Initialize with dependency injection.
     @MainActor
     init(
         screenUUID: String? = nil,
-        coordinator: BoringViewCoordinator? = nil,
-        detector: FullscreenMediaDetector? = nil,
-        webcamManager: WebcamManager? = nil,
-        batteryStatus: BatteryStatusViewModel? = nil,
-        musicManager: MusicManager? = nil
+        coordinator: BoringViewCoordinator,
+        detector: FullscreenMediaDetector,
+        webcamService: any WebcamServiceProtocol,
+        musicService: any MusicServiceProtocol,
+        soundService: any SoundServiceProtocol
     ) {
-        self.coordinator = coordinator ?? .shared
-        self.detector = detector ?? .shared
-        self.webcamManager = webcamManager ?? .shared
-        self.batteryStatus = batteryStatus ?? .shared
-        self.musicManager = musicManager ?? .shared
+        self.coordinator = coordinator
+        self.detector = detector
+        self.webcamService = webcamService
+        self.musicService = musicService
+        self.soundService = soundService
         self.animation = animationLibrary.animation
+        
+        // Shelf service will be injected via property setter
+        self.shelfService = nil
 
         super.init()
 
@@ -91,11 +99,22 @@ import SwiftUI
         closedNotchSize = notchSize
         inactiveNotchSize = getInactiveNotchSize(screenUUID: screenUUID)
 
-
-
         setupDetectorObserver()
         setupBackgroundImageObserver()
         setupNotchHeightObserver()
+    }
+    
+    /// Convenience initializer for previews and legacy support
+    @MainActor
+    override convenience init() {
+        let musicService = MusicService(manager: MusicManager())
+        self.init(
+            coordinator: BoringViewCoordinator.shared,
+            detector: FullscreenMediaDetector(musicService: musicService),
+            webcamService: WebcamManager(),
+            musicService: musicService,
+            soundService: SoundService()
+        )
     }
     
     private func setupNotchHeightObserver() {
@@ -254,8 +273,8 @@ import SwiftUI
         }
     }
 
-    private let batteryStatus: BatteryStatusViewModel
-    private let musicManager: MusicManager
+
+
 
     var effectiveClosedNotchHeight: CGFloat {
         let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
@@ -266,9 +285,9 @@ import SwiftUI
         }
         
         // Check if any live activity is active
-        let hasActiveLiveActivity = musicManager.isPlaying ||
+        let hasActiveLiveActivity = musicService.playbackState.isPlaying ||
                                     coordinator.sneakPeek.show ||
-                                    batteryStatus.hasActiveBatteryNotification
+                                    (coordinator.expandingView.show && coordinator.expandingView.type == .battery)
         
         // Use inactive height when there's no live activity
         if hasActiveLiveActivity {
@@ -302,13 +321,13 @@ import SwiftUI
             return
         }
 
-        switch webcamManager.authorizationStatus {
+        switch webcamService.authorizationStatus {
         case .authorized:
-            if webcamManager.isSessionRunning {
-                webcamManager.stopSession()
+            if webcamService.isSessionRunning {
+                webcamService.stopSession()
                 isCameraExpanded = false
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
+            } else if webcamService.cameraAvailable {
+                webcamService.startSession()
                 isCameraExpanded = true
             }
 
@@ -335,7 +354,7 @@ import SwiftUI
 
         case .notDetermined:
             isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
+            webcamService.checkAndRequestVideoAuthorization()
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.isRequestingAuthorization = false
             }
@@ -365,7 +384,7 @@ import SwiftUI
         }
 
         // Force music information update when notch is opened
-        musicManager.forceUpdate()
+        musicService.forceUpdate()
     }
 
     func close() {
@@ -386,7 +405,8 @@ import SwiftUI
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-        if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+        let isShelfEmpty = shelfService?.isEmpty ?? true
+        if !isShelfEmpty && Defaults[.openShelfByDefault] {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home

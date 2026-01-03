@@ -12,55 +12,133 @@ final class ServiceContainer {
     /// Music playback service (wraps MusicManager)
     let music: any MusicServiceProtocol
 
-    /// Calendar service (wraps CalendarManager) - optional until implemented
-    var calendar: (any CalendarServiceProtocol)?
+    /// Calendar service (wraps CalendarService)
+    public let calendar: any CalendarServiceProtocol
 
-    /// Shelf storage service - optional until implemented
-    var shelf: (any ShelfServiceProtocol)?
+    /// Sound service
+    public let sound: any SoundServiceProtocol
 
-    /// Weather service (wraps WeatherManager) - optional until implemented
-    var weather: (any WeatherServiceProtocol)?
+    /// Shelf storage service (wraps ShelfService)
+    public let shelf: any ShelfServiceProtocol
+
+    /// Weather service (wraps WeatherManager)
+    public let weather: any WeatherServiceProtocol
 
     // MARK: - System Services
 
-    /// Volume control service (wraps VolumeManager) - optional until implemented
-    var volume: (any VolumeServiceProtocol)?
+    /// Volume control service (wraps VolumeManager)
+    public let volume: any VolumeServiceProtocol
 
-    /// Brightness control service (wraps BrightnessManager) - optional until implemented
-    var brightness: (any BrightnessServiceProtocol)?
+    /// Brightness control service (wraps BrightnessManager)
+    public let brightness: any BrightnessServiceProtocol
 
-    /// Battery status service (wraps BatteryStatusViewModel) - optional until implemented
-    var battery: (any BatteryServiceProtocol)?
+    /// Keyboard backlight control service (wraps KeyboardBacklightManager)
+    public let keyboardBacklight: any KeyboardBacklightServiceProtocol
+
+    /// Battery status service (wraps BatteryService)
+    public let battery: any BatteryServiceProtocol
+
+    /// Thumbnail generation service
+    public let thumbnails: any ThumbnailServiceProtocol
+
+    /// Lyrics fetching service
+    public let lyrics: any LyricsServiceProtocol
+
+    /// Sharing state service
+    public let sharing: any SharingServiceProtocol
+
+    /// Image processing service
+    public let imageProcessing: any ImageProcessingServiceProtocol
+
+    /// Temporary file storage service
+    public let temporaryFileStorage: any TemporaryFileStorageServiceProtocol
+
+    /// Webcam service (wraps WebcamManager)
+    public let webcam: any WebcamServiceProtocol
+
+    /// Notifications service (wraps NotificationCenterManager)
+    public let notifications: any NotificationServiceProtocol
 
     /// Bluetooth service (wraps BluetoothManager) - optional until implemented
     var bluetooth: (any BluetoothServiceProtocol)?
+
+    // MARK: - Shelf Helpers
+
+    /// Shelf image processor
+    public let shelfImageProcessor: any ShelfImageProcessorProtocol
+
+    /// Shelf file handler
+    public let shelfFileHandler: any ShelfFileHandlerProtocol
 
     // MARK: - Initialization
 
     /// Default initializer - creates services that are ready
     init() {
-        self.music = MusicService()
+        self.music = MusicService(manager: MusicManager())
+        self.sound = SoundService()
+        self.battery = BatteryService()
+        self.calendar = CalendarService()
+        self.weather = WeatherService()
+        
+        self.temporaryFileStorage = TemporaryFileStorageService()
+        self.imageProcessing = ImageProcessingService(temporaryFileStorage: self.temporaryFileStorage)
+        self.thumbnails = ThumbnailService()
+        
+        // Initialize Shelf helpers first
+        self.shelfImageProcessor = ShelfImageProcessor(imageProcessingService: self.imageProcessing, thumbnailService: self.thumbnails)
+        self.shelfFileHandler = ShelfFileHandler(temporaryFileStorage: self.temporaryFileStorage)
+        self.shelf = ShelfService(imageProcessor: self.shelfImageProcessor, fileHandler: self.shelfFileHandler)
+        
+        self.lyrics = LyricsService()
+        self.webcam = WebcamManager()
+        self.notifications = NotificationCenterManager.shared
+        self.volume = VolumeManager()
+        self.brightness = BrightnessManager()
+        self.keyboardBacklight = KeyboardBacklightManager()
+        self.sharing = SharingStateManager.shared
         // Other services will be added as they're migrated
     }
 
     /// Full initializer for testing or custom configurations
     init(
         music: any MusicServiceProtocol,
-        calendar: (any CalendarServiceProtocol)? = nil,
-        shelf: (any ShelfServiceProtocol)? = nil,
-        weather: (any WeatherServiceProtocol)? = nil,
-        volume: (any VolumeServiceProtocol)? = nil,
-        brightness: (any BrightnessServiceProtocol)? = nil,
-        battery: (any BatteryServiceProtocol)? = nil,
+        sound: any SoundServiceProtocol,
+        calendar: any CalendarServiceProtocol,
+        shelf: any ShelfServiceProtocol,
+        weather: any WeatherServiceProtocol,
+        webcam: any WebcamServiceProtocol,
+        notifications: any NotificationServiceProtocol,
+        volume: any VolumeServiceProtocol,
+        brightness: any BrightnessServiceProtocol,
+        keyboardBacklight: any KeyboardBacklightServiceProtocol,
+        battery: any BatteryServiceProtocol,
+        thumbnails: any ThumbnailServiceProtocol,
+        lyrics: any LyricsServiceProtocol,
+        sharing: any SharingServiceProtocol,
+        imageProcessing: any ImageProcessingServiceProtocol,
+        temporaryFileStorage: any TemporaryFileStorageServiceProtocol,
+        shelfImageProcessor: any ShelfImageProcessorProtocol,
+        shelfFileHandler: any ShelfFileHandlerProtocol,
         bluetooth: (any BluetoothServiceProtocol)? = nil
     ) {
         self.music = music
+        self.sound = sound
         self.calendar = calendar
         self.shelf = shelf
         self.weather = weather
+        self.webcam = webcam
+        self.notifications = notifications
         self.volume = volume
         self.brightness = brightness
+        self.keyboardBacklight = keyboardBacklight
         self.battery = battery
+        self.thumbnails = thumbnails
+        self.lyrics = lyrics
+        self.sharing = sharing
+        self.imageProcessing = imageProcessing
+        self.temporaryFileStorage = temporaryFileStorage
+        self.shelfImageProcessor = shelfImageProcessor
+        self.shelfFileHandler = shelfFileHandler
         self.bluetooth = bluetooth
     }
 }

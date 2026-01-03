@@ -26,8 +26,9 @@ final class PluginSettings: Observable {
     }
 
     init(pluginId: String) {
-        self.pluginId = pluginId
-        self.prefix = "plugin.\(pluginId)."
+        // Sanitize pluginId to ensure valid keys (no dots)
+        self.pluginId = pluginId.replacingOccurrences(of: ".", with: "_")
+        self.prefix = "plugin_\(self.pluginId)_"
     }
 
     // MARK: - Standard Settings
@@ -109,29 +110,33 @@ final class PluginSettings: Observable {
 /// Handles migration from old settings keys to plugin-namespaced keys
 struct PluginSettingsMigration {
     /// Key indicating migration has been completed
-    private static let migrationKey = Defaults.Key<Bool>("pluginSettingsMigrated", default: false)
+    private static let migrationKey = Defaults.Key<Bool>("pluginSettingsMigrated_v2", default: false)
 
     /// Perform migration if needed
     static func migrateIfNeeded() {
         guard !Defaults[migrationKey] else { return }
 
         // Music plugin
-        migrateIfExists(from: "showMusicLiveActivity", to: "plugin.com.boringnotch.music.showLiveActivity")
-        migrateIfExists(from: "enableSneakPeek", to: "plugin.com.boringnotch.music.enableSneakPeek")
-        migrateIfExists(from: "waitInterval", to: "plugin.com.boringnotch.music.waitInterval")
+        migrateIfExists(from: "showMusicLiveActivity", to: "plugin_com_boringnotch_music_showLiveActivity")
+        migrateIfExists(from: "enableSneakPeek", to: "plugin_com_boringnotch_music_enableSneakPeek")
+        migrateIfExists(from: "waitInterval", to: "plugin_com_boringnotch_music_waitInterval")
 
         // Calendar plugin
-        migrateIfExists(from: "showCalendar", to: "plugin.com.boringnotch.calendar.enabled")
+        migrateIfExists(from: "showCalendar", to: "plugin_com_boringnotch_calendar_enabled")
 
         // Shelf plugin
-        migrateIfExists(from: "boringShelf", to: "plugin.com.boringnotch.shelf.enabled")
+        migrateIfExists(from: "boringShelf", to: "plugin_com_boringnotch_shelf_enabled")
 
         // Weather plugin
-        migrateIfExists(from: "showWeather", to: "plugin.com.boringnotch.weather.enabled")
+        migrateIfExists(from: "showWeather", to: "plugin_com_boringnotch_weather_enabled")
 
         // Battery plugin
-        migrateIfExists(from: "showBattery", to: "plugin.com.boringnotch.battery.enabled")
-        migrateIfExists(from: "chargingInfoAllowed", to: "plugin.com.boringnotch.battery.showChargingInfo")
+        migrateIfExists(from: "showBattery", to: "plugin_com_boringnotch_battery_enabled")
+        migrateIfExists(from: "chargingInfoAllowed", to: "plugin_com_boringnotch_battery_showChargingInfo")
+        
+        // Migrate from v1 (dot-separated) to v2 (underscore-separated) if needed
+        // This is a best-effort migration for users who might have used the broken version
+        migrateDotKeysToUnderscore()
 
         Defaults[migrationKey] = true
     }
@@ -140,6 +145,16 @@ struct PluginSettingsMigration {
         guard let value = UserDefaults.standard.object(forKey: oldKey) else { return }
         UserDefaults.standard.set(value, forKey: newKey)
         // Note: We don't delete old keys to allow rollback
+    }
+    
+    private static func migrateDotKeysToUnderscore() {
+        let allKeys = UserDefaults.standard.dictionaryRepresentation().keys
+        for key in allKeys where key.hasPrefix("plugin.") {
+            let newKey = key.replacingOccurrences(of: ".", with: "_")
+            if let value = UserDefaults.standard.object(forKey: key) {
+                UserDefaults.standard.set(value, forKey: newKey)
+            }
+        }
     }
 }
 

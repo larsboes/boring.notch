@@ -73,6 +73,9 @@ final class PluginManager {
         self.services = services
         self.eventBus = eventBus
         self.appState = appState
+        
+        // Inject shelf service into BoringViewCoordinator
+        BoringViewCoordinator.shared.shelfService = services.shelf
 
         // Register built-in plugins
         for plugin in builtInPlugins {
@@ -179,7 +182,7 @@ final class PluginManager {
 
     /// Get a plugin by ID with specific type
     func plugin<T: NotchPlugin>(id: String, as type: T.Type) -> T? {
-        plugins[id] as? T
+        plugins[id]?.underlying as? T
     }
 
     /// Check if a plugin is registered
@@ -232,6 +235,23 @@ final class PluginManager {
         pluginOrder.remove(at: currentIndex)
         pluginOrder.insert(id, at: min(index, pluginOrder.count))
     }
+
+    // MARK: - Display Arbitration
+
+    /// Get the plugin ID that has the highest priority request to be displayed
+    func highestPriorityClosedNotchPlugin() -> String? {
+        // Collect all requests from active plugins
+        let requests = activePlugins.compactMap { plugin -> (id: String, request: DisplayRequest)? in
+            guard let request = plugin.displayRequest else { return nil }
+            return (plugin.id, request)
+        }
+
+        // Sort by priority (descending)
+        // If priorities are equal, stability is not guaranteed (could add timestamp later)
+        let sorted = requests.sorted { $0.request.priority > $1.request.priority }
+
+        return sorted.first?.id
+    }
 }
 
 // MARK: - View Helpers
@@ -267,11 +287,8 @@ extension PluginManager {
 extension PluginManager {
     /// Get all exportable plugins
     var exportablePlugins: [AnyNotchPlugin] {
-        activePlugins.filter { _ in
-            // Would check for ExportablePlugin conformance
-            // For now, return all active plugins
-            true
-        }
+        // For now, return all active plugins
+        return activePlugins
     }
 
     /// Export data from a specific plugin

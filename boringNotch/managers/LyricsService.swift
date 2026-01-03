@@ -10,18 +10,17 @@ import Foundation
 
 /// Service responsible for fetching and parsing lyrics for the currently playing track.
 @MainActor
-class LyricsService: ObservableObject {
-    static let shared = LyricsService()
-    
-    @Published var currentLyrics: String = ""
-    @Published var isFetchingLyrics: Bool = false
-    @Published var syncedLyrics: [(time: Double, text: String)] = []
+@Observable
+class LyricsService: LyricsServiceProtocol {
+    var currentLyrics: String = ""
+    var isFetchingLyrics: Bool = false
+    var syncedLyrics: [(time: Double, text: String)] = []
     
     // Cache to avoid redundant fetches
     private var lyricsCache: [String: (plain: String, synced: [(time: Double, text: String)])] = [:]
     private var currentFetchTask: Task<Void, Never>?
     
-    private init() {}
+    init() {}
     
     // MARK: - Public API
     

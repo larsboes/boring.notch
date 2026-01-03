@@ -17,7 +17,6 @@ let defaultImage: NSImage = .init(
 @MainActor
 @Observable class MusicManager {
     // MARK: - Properties
-    static let shared = MusicManager()
     private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceIdleTask: Task<Void, Never>?
@@ -25,7 +24,7 @@ let defaultImage: NSImage = .init(
 
     // Helper to check if macOS has removed support for NowPlayingController
     // nonisolated to allow static initialization access
-    public nonisolated(unsafe) private(set) var isNowPlayingDeprecated: Bool = false
+    @ObservationIgnored public private(set) var isNowPlayingDeprecated: Bool = false
     static nonisolated(unsafe) var isNowPlayingDeprecatedStatic: Bool = false
     private let mediaChecker = MediaChecker()
 
@@ -94,7 +93,8 @@ let defaultImage: NSImage = .init(
     var canFavoriteTrack: Bool = false
     
     // Lyrics are now managed by LyricsService
-    var lyricsService: LyricsService { LyricsService.shared }
+    private let _lyricsService = LyricsService()
+    var lyricsService: LyricsService { _lyricsService }
     var currentLyrics: String { lyricsService.currentLyrics }
     var isFetchingLyrics: Bool { lyricsService.isFetchingLyrics }
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }

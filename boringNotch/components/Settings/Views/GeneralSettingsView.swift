@@ -29,7 +29,7 @@ struct GeneralSettings: View {
                 Toggle(isOn: $settings.showOnAllDisplays) {
                     Text("Show on all displays")
                 }
-                .onChange(of: settings.showOnAllDisplays) {
+                .onChange(of: settings.showOnAllDisplays) { _, _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
@@ -38,7 +38,7 @@ struct GeneralSettings: View {
                         Text(screen.name).tag(screen.uuid as String?)
                     }
                 }
-                .onChange(of: NSScreen.screens) {
+                .onChange(of: NSScreen.screens) { _, _ in
                     screens = NSScreen.screens.compactMap { screen in
                         guard let uuid = screen.displayUUID else { return nil }
                         return (uuid, screen.localizedName)
@@ -49,7 +49,7 @@ struct GeneralSettings: View {
                 Toggle(isOn: $settings.automaticallySwitchDisplay) {
                     Text("Automatically switch displays")
                 }
-                    .onChange(of: settings.automaticallySwitchDisplay) {
+                    .onChange(of: settings.automaticallySwitchDisplay) { _, _ in
                         NotificationCenter.default.post(
                             name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
                     }
@@ -71,7 +71,7 @@ struct GeneralSettings: View {
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
                 }
-                .onChange(of: settings.notchHeightMode) {
+                .onChange(of: settings.notchHeightMode) { _, _ in
                     switch settings.notchHeightMode {
                     case .matchRealNotchSize:
                         // Get the actual notch height from the built-in display
@@ -88,7 +88,7 @@ struct GeneralSettings: View {
                     Slider(value: $settings.notchHeight, in: 15...45, step: 1) {
                         Text("Custom notch size - \(settings.notchHeight, specifier: "%.0f")")
                     }
-                    .onChange(of: settings.notchHeight) {
+                    .onChange(of: settings.notchHeight) { _, _ in
                         NotificationCenter.default.post(
                             name: Notification.Name.notchHeightChanged, object: nil)
                     }
@@ -99,7 +99,7 @@ struct GeneralSettings: View {
                     Text("Custom height")
                         .tag(WindowHeightMode.custom)
                 }
-                .onChange(of: settings.nonNotchHeightMode) {
+                .onChange(of: settings.nonNotchHeightMode) { _, _ in
                     switch settings.nonNotchHeightMode {
                     case .matchMenuBar:
                         settings.nonNotchHeight = 23
@@ -137,7 +137,7 @@ struct GeneralSettings: View {
                 Toggle(isOn: $settings.useInactiveNotchHeight) {
                     Text("Use smaller height when inactive")
                 }
-                .onChange(of: settings.useInactiveNotchHeight) {
+                .onChange(of: settings.useInactiveNotchHeight) { _, _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
@@ -161,7 +161,7 @@ struct GeneralSettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("General")
-        .onChange(of: settings.openNotchOnHover) {
+        .onChange(of: settings.openNotchOnHover) { _, _ in
             if !settings.openNotchOnHover {
                 settings.enableGestures = true
             }
@@ -229,7 +229,7 @@ struct GeneralSettings: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .onChange(of: settings.minimumHoverDuration) {
+                .onChange(of: settings.minimumHoverDuration) { _, _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
@@ -245,6 +245,15 @@ struct GeneralSettings: View {
             }
         } header: {
             Text("Notch behavior")
+        }
+        .onChange(of: settings.showOnLockScreen, initial: true) { _, newValue in
+            if newValue {
+                // Request accessibility permissions if needed
+                if !AXIsProcessTrusted() {
+                    let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+                    AXIsProcessTrustedWithOptions(options)
+                }
+            }
         }
     }
 }
@@ -278,7 +287,7 @@ struct InactiveNotchHeightSlider: View {
                     localValue = newValue
                 }
             ), in: 1...effectiveMax, step: 1)
-                .onChange(of: localValue) { newValue in
+                .onChange(of: localValue) { _, newValue in
                     let finalValue = min(newValue, effectiveMax)
                     settings.inactiveNotchHeight = finalValue
                     NotificationCenter.default.post(

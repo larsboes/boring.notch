@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WeatherSettings: View {
-    @ObservedObject private var weatherManager = WeatherManager.shared
+    @Environment(\.pluginManager) var pluginManager
     @Environment(\.bindableSettings) var settings
 
     var body: some View {
@@ -20,7 +20,7 @@ struct WeatherSettings: View {
             .onChange(of: settings.showWeather) { _, newValue in
                 if newValue {
                     // When weather is enabled, check and request location if needed
-                    weatherManager.checkLocationAuthorization()
+                    pluginManager?.services.weather.checkLocationAuthorization()
                 }
             }
 
@@ -37,41 +37,43 @@ struct WeatherSettings: View {
             }
 
             Section(header: Text("Location Access")) {
-                if weatherManager.locationAuthorizationStatus == .notDetermined {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Location access is required to show weather information.")
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.leading)
-                        Text("Enable 'Show weather' above to request location permission.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.leading)
-                    }
-                    .padding()
-                } else if weatherManager.locationAuthorizationStatus == .denied || weatherManager.locationAuthorizationStatus == .restricted {
-                    Text("Location access is denied. Please enable it in System Settings.")
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                    Button("Open Location Settings") {
-                        if let settingsURL = URL(
-                            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices"
-                        ) {
-                            NSWorkspace.shared.open(settingsURL)
+                if let weatherService = pluginManager?.services.weather {
+                    if weatherService.locationAuthorizationStatus == .notDetermined {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Location access is required to show weather information.")
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.leading)
+                            Text("Enable 'Show weather' above to request location permission.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.leading)
                         }
+                        .padding()
+                    } else if weatherService.locationAuthorizationStatus == .denied || weatherService.locationAuthorizationStatus == .restricted {
+                        Text("Location access is denied. Please enable it in System Settings.")
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                        Button("Open Location Settings") {
+                            if let settingsURL = URL(
+                                string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices"
+                            ) {
+                                NSWorkspace.shared.open(settingsURL)
+                            }
+                        }
+                    } else {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Location access granted")
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
                     }
-                } else {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Location access granted")
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
                 }
             }
             
-            if let weather = weatherManager.currentWeather {
+            if let weather = pluginManager?.services.weather.currentWeather {
                 Section(header: Text("Current Weather")) {
                     HStack {
                         Text("Location")
@@ -103,7 +105,7 @@ struct WeatherSettings: View {
         .accentColor(.effectiveAccent)
         .navigationTitle("Weather")
         .onAppear {
-            weatherManager.checkLocationAuthorization()
+            pluginManager?.services.weather.checkLocationAuthorization()
         }
     }
 }

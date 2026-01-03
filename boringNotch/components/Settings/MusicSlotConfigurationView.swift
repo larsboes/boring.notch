@@ -11,7 +11,12 @@ import UniformTypeIdentifiers
 
 struct MusicSlotConfigurationView: View {
     @Default(.musicControlSlots) private var musicControlSlots
-    private var musicManager = MusicManager.shared
+    @Environment(\.pluginManager) var pluginManager
+    
+    private var musicService: (any MusicServiceProtocol)? {
+        pluginManager?.services.music
+    }
+    
     @State private var draggedSlot: MusicControlButton?
 
     private let fixedSlotCount: Int = 5
@@ -232,11 +237,11 @@ struct MusicSlotConfigurationView: View {
     private func previewIconColor(for slot: MusicControlButton) -> Color {
         switch slot {
         case .shuffle:
-            return musicManager.isShuffled ? .red : .primary
+            return (musicService?.isShuffled ?? false) ? .red : .primary
         case .repeatMode:
-            return musicManager.repeatMode != .off ? .red : .primary
+            return (musicService?.repeatMode ?? .off) != .off ? .red : .primary
         case .favorite:
-            return musicManager.isFavoriteTrack ? .red : .primary
+            return (musicService?.isFavorite ?? false) ? .red : .primary
         case .playPause:
             return .primary
         default:

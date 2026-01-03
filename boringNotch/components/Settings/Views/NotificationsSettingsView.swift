@@ -2,8 +2,12 @@ import SwiftUI
 
 
 struct NotificationsSettingsView: View {
-    @StateObject private var manager = NotificationCenterManager.shared
+    @Environment(\.pluginManager) var pluginManager
     @Environment(\.bindableSettings) var settings
+    
+    private var manager: any NotificationServiceProtocol {
+        pluginManager?.services.notifications ?? NotificationCenterManager.shared
+    }
 
     var body: some View {
         @Bindable var settings = settings

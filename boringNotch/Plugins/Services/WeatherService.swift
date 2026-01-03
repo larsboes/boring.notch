@@ -1,69 +1,46 @@
 //
-//  WeatherManager.swift
+//  WeatherService.swift
 //  boringNotch
 //
-//  Created by Arsh Anwar on 26/12/25.
+//  Created by Agent on 01/01/26.
 //
 
 import Foundation
 import CoreLocation
-import SwiftUI
 import Combine
-import WeatherKit
 import Defaults
 
-// MARK: - Weather Models
-
-struct WeatherData {
-    let temperature: Double
-    let condition: String
-    let symbolName: String
-    let humidity: Double
-    let windSpeed: Double
-    let feelsLike: Double
-    let high: Double
-    let low: Double
-    let location: String
-    let lastUpdated: Date
-    
-    var temperatureString: String {
-        return String(format: "%.0f°", temperature)
-    }
-    
-    var systemIconName: String {
-        return symbolName
-    }
-    
-    var humidityInt: Int {
-        return Int(humidity * 100)
-    }
-}
-
-// MARK: - WeatherManager
-
+/// Concrete implementation of WeatherServiceProtocol.
+/// Wraps the legacy WeatherManager to provide a modern, testable interface.
 @MainActor
-class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    static let shared = WeatherManager()
+@Observable
+final class WeatherService: NSObject, WeatherServiceProtocol, CLLocationManagerDelegate {
+    // MARK: - Properties
     
-    @Published var currentWeather: WeatherData?
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-    @Published var locationAuthorizationStatus: CLAuthorizationStatus = .notDetermined
+    var currentWeather: WeatherData?
+    var isLoading: Bool = false
+    var errorMessage: String?
+    var locationAuthorizationStatus: CLAuthorizationStatus = .notDetermined
     
     private let locationManager = CLLocationManager()
-    private let weatherService = WeatherService.shared
-    private var updateTimer: Timer?
-    private var cancellables = Set<AnyCancellable>()
-    private let geocoder = CLGeocoder()
+    private var updateTask: Task<Void, Never>?
     private var isRequestingLocation = false
     
-    private override init() {
+    // MARK: - Initialization
+    
+    private let weatherService: OpenWeatherMapService
+    
+    init(settings: WeatherSettingsProtocol = DefaultsWeatherSettings()) {
+        self.weatherService = OpenWeatherMapService(settings: settings)
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
     }
     
+    // MARK: - Methods
+    
     func checkLocationAuthorization() {
+        locationManager.requestWhenInUseAuthorization()
         locationAuthorizationStatus = locationManager.authorizationStatus
         
         switch locationAuthorizationStatus {
@@ -92,18 +69,19 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         fetchWeather()
         
         // Update weather every 30 minutes
-        updateTimer?.invalidate()
-        updateTimer = Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            Task { @MainActor in
-                self.fetchWeather()
+        updateTask?.cancel()
+        updateTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1800 * 1_000_000_000) // 30 minutes
+                if Task.isCancelled { break }
+                self?.fetchWeather()
             }
         }
     }
     
     func stopUpdatingWeather() {
-        updateTimer?.invalidate()
-        updateTimer = nil
+        updateTask?.cancel()
+        updateTask = nil
     }
     
     func fetchWeather() {
@@ -143,26 +121,18 @@ class WeatherManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         Task {
             do {
                 // Fetch weather using OpenWeatherMap (for local testing without Apple Developer Account)
-                let weatherData = try await OpenWeatherMapService.shared.fetchWeather(for: location)
+                let weatherData = try await self.weatherService.fetchWeather(for: location)
                 
-                await MainActor.run {
-                    self.currentWeather = weatherData
-                    self.errorMessage = nil
-                    self.isLoading = false
-                }
+                self.currentWeather = weatherData
+                self.errorMessage = nil
+                self.isLoading = false
                 
             } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                    self.isLoading = false
-                    print("Weather fetch error: \(error)")
-                }
+                self.errorMessage = error.localizedDescription
+                self.isLoading = false
+                print("Weather fetch error: \(error)")
             }
         }
-    }
-    
-    deinit {
-        updateTimer?.invalidate()
     }
 }
 
@@ -195,11 +165,29 @@ private struct OpenWeatherWind: Codable {
     let speed: Double
 }
 
+// MARK: - Settings Protocol
+
+protocol WeatherSettingsProtocol: Sendable {
+    var apiKey: String { get }
+}
+
+struct DefaultsWeatherSettings: WeatherSettingsProtocol {
+    var apiKey: String {
+        Defaults[.openWeatherMapApiKey]
+    }
+}
+
 class OpenWeatherMapService {
     static let shared = OpenWeatherMapService()
+    
+    private let settings: WeatherSettingsProtocol
+    
+    init(settings: WeatherSettingsProtocol = DefaultsWeatherSettings()) {
+        self.settings = settings
+    }
 
     func fetchWeather(for location: CLLocation) async throws -> WeatherData {
-        let apiKey = Defaults[.openWeatherMapApiKey]
+        let apiKey = settings.apiKey
         guard !apiKey.isEmpty else {
             throw NSError(domain: "OpenWeatherMap", code: 401, userInfo: [NSLocalizedDescriptionKey: "Please add your OpenWeatherMap API key in Settings > Weather"])
         }

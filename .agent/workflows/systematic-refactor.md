@@ -19,6 +19,7 @@ Use this workflow when performing structural changes that affect multiple files 
    - Create a plan to update all identified files.
    - Apply the fix to **ALL** files in a single set of tool calls (or sequential calls if too many).
    - Do not wait for a build failure to tell you which file is next.
+   - **Crucial:** If adding or removing files, use `ruby manage_xcode_files.rb` immediately. Do not rely on `xcodebuild` to catch missing file references.
 
 4. **Verify**
    - Run the build only *after* the batch update is complete.

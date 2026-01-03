@@ -33,7 +33,7 @@ final class PluginEventBus: Observable {
     }
 
     /// Emit a simple event with just a type
-    func emit(_ type: PluginEventType, from pluginId: String, data: [String: Any] = [:]) {
+    func emit(_ type: PluginEventType, from pluginId: String, data: [String: any Sendable] = [:]) {
         let event = GenericPluginEvent(type: type, sourcePluginId: pluginId, data: data)
         eventSubject.send(event)
     }
@@ -132,6 +132,7 @@ enum PluginEventType: String, Sendable, Hashable {
     case notchOpened
     case notchClosed
     case notchExpanded
+    case sneakPeekRequested
 
     // Generic
     case custom
@@ -144,18 +145,31 @@ struct GenericPluginEvent: PluginEvent {
     let type: PluginEventType
     let sourcePluginId: String
     let timestamp: Date
-    let data: [String: Any]
+    let data: [String: any Sendable]
 
     init(
         type: PluginEventType,
         sourcePluginId: String,
         timestamp: Date = Date(),
-        data: [String: Any] = [:]
+        data: [String: any Sendable] = [:]
     ) {
         self.type = type
         self.sourcePluginId = sourcePluginId
         self.timestamp = timestamp
         self.data = data
+    }
+}
+
+/// Event requesting a sneak peek
+struct SneakPeekRequestedEvent: PluginEvent {
+    let type = PluginEventType.sneakPeekRequested
+    let sourcePluginId: String
+    let timestamp = Date()
+    let request: SneakPeekRequest
+    
+    init(sourcePluginId: String, request: SneakPeekRequest) {
+        self.sourcePluginId = sourcePluginId
+        self.request = request
     }
 }
 
@@ -197,10 +211,10 @@ struct CalendarEventStartingSoonEvent: PluginEvent {
     let type = PluginEventType.calendarEventStartingSoon
     let sourcePluginId = "com.boringnotch.calendar"
     let timestamp = Date()
-    let event: CalendarEvent
+    let event: EventModel
     let startsIn: TimeInterval
 
-    init(event: CalendarEvent, startsIn: TimeInterval) {
+    init(event: EventModel, startsIn: TimeInterval) {
         self.event = event
         self.startsIn = startsIn
     }

@@ -9,11 +9,14 @@ import EventKit
 import SwiftUI
 
 struct CalendarSettings: View {
-    @ObservedObject private var calendarManager = CalendarManager.shared
+    @Environment(\.pluginManager) var pluginManager
     @Environment(\.bindableSettings) var settings
 
     var body: some View {
         @Bindable var settings = settings
+        // Safe unwrap of calendar service
+        let calendarService = pluginManager?.services.calendar
+        
         Form {
             Toggle(isOn: $settings.showCalendar) {
                 Text("Show calendar")
@@ -31,73 +34,89 @@ struct CalendarSettings: View {
                 Text("Always show full event titles")
             }
             Section(header: Text("Calendars")) {
-                if calendarManager.calendarAuthorizationStatus != .fullAccess {
-                    Text("Calendar access is denied. Please enable it in System Settings.")
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                    Button("Open Calendar Settings") {
-                        if let settingsURL = URL(
-                            string:
-                                "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars"
-                        ) {
-                            NSWorkspace.shared.open(settingsURL)
-                        }
-                    }
-                } else {
-                    List {
-                        ForEach(calendarManager.eventCalendars, id: \.id) { calendar in
-                            Toggle(
-                                isOn: Binding(
-                                    get: { calendarManager.getCalendarSelected(calendar) },
-                                    set: { isSelected in
-                                        Task {
-                                            await calendarManager.setCalendarSelected(
-                                                calendar, isSelected: isSelected)
-                                        }
-                                    }
-                                )
-                            ) {
-                                Text(calendar.title)
+                if let service = calendarService {
+                    if service.calendarAuthorizationStatus == .notDetermined {
+                        Button("Request Calendar Access") {
+                            Task {
+                                await service.checkCalendarAuthorization()
                             }
-                            .accentColor(lighterColor(from: calendar.color))
-                            .disabled(!settings.showCalendar)
+                        }
+                    } else if service.calendarAuthorizationStatus != .fullAccess {
+                        Text("Calendar access is denied. Please enable it in System Settings.")
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                        Button("Open Calendar Settings") {
+                            if let settingsURL = URL(
+                                string:
+                                    "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars"
+                            ) {
+                                NSWorkspace.shared.open(settingsURL)
+                            }
+                        }
+                    } else {
+                        List {
+                            ForEach(service.eventCalendars, id: \.id) { calendar in
+                                Toggle(
+                                    isOn: Binding(
+                                        get: { service.getCalendarSelected(calendar) },
+                                        set: { isSelected in
+                                            Task {
+                                                await service.setCalendarSelected(
+                                                    calendar, isSelected: isSelected)
+                                            }
+                                        }
+                                    )
+                                ) {
+                                    Text(calendar.title)
+                                }
+                                .accentColor(lighterColor(from: calendar.color))
+                                .disabled(!settings.showCalendar)
+                            }
                         }
                     }
                 }
             }
             Section(header: Text("Reminders")) {
-                if calendarManager.reminderAuthorizationStatus != .fullAccess {
-                    Text("Reminder access is denied. Please enable it in System Settings.")
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                    Button("Open Reminder Settings") {
-                        if let settingsURL = URL(
-                            string:
-                                "x-apple.systempreferences:com.apple.preference.security?Privacy_Reminders"
-                        ) {
-                            NSWorkspace.shared.open(settingsURL)
-                        }
-                    }
-                } else {
-                    List {
-                        ForEach(calendarManager.reminderLists, id: \.id) { calendar in
-                            Toggle(
-                                isOn: Binding(
-                                    get: { calendarManager.getCalendarSelected(calendar) },
-                                    set: { isSelected in
-                                        Task {
-                                            await calendarManager.setCalendarSelected(
-                                                calendar, isSelected: isSelected)
-                                        }
-                                    }
-                                )
-                            ) {
-                                Text(calendar.title)
+                if let service = calendarService {
+                    if service.reminderAuthorizationStatus == .notDetermined {
+                        Button("Request Reminders Access") {
+                            Task {
+                                await service.checkReminderAuthorization()
                             }
-                            .accentColor(lighterColor(from: calendar.color))
-                            .disabled(!settings.showCalendar)
+                        }
+                    } else if service.reminderAuthorizationStatus != .fullAccess {
+                        Text("Reminder access is denied. Please enable it in System Settings.")
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                        Button("Open Reminder Settings") {
+                            if let settingsURL = URL(
+                                string:
+                                    "x-apple.systempreferences:com.apple.preference.security?Privacy_Reminders"
+                            ) {
+                                NSWorkspace.shared.open(settingsURL)
+                            }
+                        }
+                    } else {
+                        List {
+                            ForEach(service.reminderLists, id: \.id) { calendar in
+                                Toggle(
+                                    isOn: Binding(
+                                        get: { service.getCalendarSelected(calendar) },
+                                        set: { isSelected in
+                                            Task {
+                                                await service.setCalendarSelected(
+                                                    calendar, isSelected: isSelected)
+                                            }
+                                        }
+                                    )
+                                ) {
+                                    Text(calendar.title)
+                                }
+                                .accentColor(lighterColor(from: calendar.color))
+                                .disabled(!settings.showCalendar)
+                            }
                         }
                     }
                 }
@@ -107,8 +126,14 @@ struct CalendarSettings: View {
         .navigationTitle("Calendar")
         .onAppear {
             Task {
-                await calendarManager.checkCalendarAuthorization()
-                await calendarManager.checkReminderAuthorization()
+                if let service = calendarService {
+                    print("CalendarSettingsView: Checking authorization...")
+                    await service.checkCalendarAuthorization()
+                    await service.checkReminderAuthorization()
+                    print("CalendarSettingsView: Status - Calendar: \(service.calendarAuthorizationStatus.rawValue), Reminders: \(service.reminderAuthorizationStatus.rawValue)")
+                } else {
+                    print("CalendarSettingsView: CalendarService is NIL")
+                }
             }
         }
     }

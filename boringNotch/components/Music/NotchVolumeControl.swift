@@ -9,7 +9,7 @@ import Combine
 import SwiftUI
 
 struct VolumeControlView: View {
-    var musicManager = MusicManager.shared
+    @Environment(\.pluginManager) var pluginManager
     @State private var volumeSliderValue: Double = 0.5
     @State private var dragging: Bool = false
     @State private var showVolumeSlider: Bool = false
@@ -17,72 +17,74 @@ struct VolumeControlView: View {
     private let volumeUpdateThrottle: TimeInterval = 0.1
     
     var body: some View {
-        HStack(spacing: 4) {
-            Button(action: {
-                if musicManager.volumeControlSupported {
-                    withAnimation(.easeInOut(duration: 0.12)) {
-                        showVolumeSlider.toggle()
+        Group {
+            if let service = pluginManager?.services.music {
+                HStack(spacing: 4) {
+                    Button(action: {
+                        if service.volumeControlSupported {
+                            withAnimation(.easeInOut(duration: 0.12)) {
+                                showVolumeSlider.toggle()
+                            }
+                        }
+                    }) {
+                        Image(systemName: volumeIcon(service: service))
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(service.volumeControlSupported ? .white : .gray)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(!service.volumeControlSupported)
+                    .frame(width: 24)
+
+                    if showVolumeSlider && service.volumeControlSupported {
+                        CustomSlider(
+                            value: $volumeSliderValue,
+                            range: 0.0...1.0,
+                            color: .white,
+                            dragging: $dragging,
+                            lastDragged: .constant(Date.distantPast),
+                            onValueChange: { newValue in
+                                Task { await service.setVolume(newValue) }
+                            },
+                            onDragChange: { newValue in
+                                let now = Date()
+                                if now.timeIntervalSince(lastVolumeUpdateTime) > volumeUpdateThrottle {
+                                    Task { await service.setVolume(newValue) }
+                                    lastVolumeUpdateTime = now
+                                }
+                            }
+                        )
+                        .frame(width: 48, height: 8)
+                        .transition(.scale.combined(with: .opacity))
                     }
                 }
-            }) {
-                Image(systemName: volumeIcon)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
-            }
-            .buttonStyle(PlainButtonStyle())
-            .disabled(!musicManager.volumeControlSupported)
-            .frame(width: 24)
-
-            if showVolumeSlider && musicManager.volumeControlSupported {
-                CustomSlider(
-                    value: $volumeSliderValue,
-                    range: 0.0...1.0,
-                    color: .white,
-                    dragging: $dragging,
-                    lastDragged: .constant(Date.distantPast),
-                    onValueChange: { newValue in
-                        MusicManager.shared.setVolume(to: newValue)
-                    },
-                    onDragChange: { newValue in
-                        let now = Date()
-                        if now.timeIntervalSince(lastVolumeUpdateTime) > volumeUpdateThrottle {
-                            MusicManager.shared.setVolume(to: newValue)
-                            lastVolumeUpdateTime = now
+                .clipped()
+                .onChange(of: service.volume) { _, volume in
+                    if !dragging {
+                        volumeSliderValue = volume
+                    }
+                }
+                .onChange(of: service.volumeControlSupported) { _, supported in
+                    if !supported {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showVolumeSlider = false
                         }
                     }
-                )
-                .frame(width: 48, height: 8)
-                .transition(.scale.combined(with: .opacity))
-            }
-        }
-        .clipped()
-        .onChange(of: musicManager.volume) { _, volume in
-            if !dragging {
-                volumeSliderValue = volume
-            }
-        }
-        .onChange(of: musicManager.volumeControlSupported) { _, supported in
-            if !supported {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showVolumeSlider = false
                 }
-            }
-        }
-        .onChange(of: showVolumeSlider) { _, isShowing in
-            if isShowing {
-                // Sync volume from app when slider appears
-                Task {
-                    await MusicManager.shared.syncVolumeFromActiveApp()
+                .onChange(of: showVolumeSlider) { _, isShowing in
+                    if isShowing {
+                        Task {
+                            await service.syncVolumeFromActiveApp()
+                        }
+                    }
                 }
+            } else {
+                EmptyView()
             }
-        }
-        .onDisappear {
-            // volumeUpdateTask?.cancel() // No longer needed
         }
     }
     
-    private var volumeIcon: String {
-        if !musicManager.volumeControlSupported {
+    private func volumeIcon(service: any MusicServiceProtocol) -> String {
+        if !service.volumeControlSupported {
             return "speaker.slash"
         } else if volumeSliderValue == 0 {
             return "speaker.slash.fill"

@@ -15,18 +15,25 @@ struct QuickShareProvider: Identifiable, Hashable, Sendable {
     var supportsRawText: Bool
 }
 
-class QuickShareService: ObservableObject {
-    static let shared = QuickShareService()
+import Observation
+
+@MainActor
+@Observable
+class QuickShareService {
+    static let shared = QuickShareService(temporaryFileStorage: TemporaryFileStorageService())
     
-    @Published var availableProviders: [QuickShareProvider] = []
-    @Published var isPickerOpen = false
+    var availableProviders: [QuickShareProvider] = []
+    var isPickerOpen = false
     private var cachedServices: [String: NSSharingService] = [:]
     private var cachedIcons: [String: NSImage] = [:]
     // Hold security-scoped URLs during sharing
     private var sharingAccessingURLs: [URL] = []
     private var lifecycleDelegate: SharingLifecycleDelegate?
+    
+    private let temporaryFileStorage: any TemporaryFileStorageServiceProtocol
    
-    init() {
+    init(temporaryFileStorage: any TemporaryFileStorageServiceProtocol) {
+        self.temporaryFileStorage = temporaryFileStorage
         Task {
             await discoverAvailableProviders()
         }
@@ -181,7 +188,8 @@ class QuickShareService: ObservableObject {
 
 private class SharingServiceDelegate: NSObject {}
     
-    func shareDroppedFiles(_ providers: [NSItemProvider], using shareProvider: QuickShareProvider, from view: NSView?) async {
+    @MainActor
+    func shareDroppedFiles(_ providers: [NSItemProvider], using shareProvider: QuickShareProvider, from view: NSView?, service: ShelfServiceProtocol) async {
         var itemsToShare: [Any] = []
         var foundText: String?
 
@@ -191,7 +199,7 @@ private class SharingServiceDelegate: NSObject {}
             } else if foundText == nil, let text = await provider.extractText() {
                 foundText = text
             } else if let itemFileURL = await provider.extractItem() {
-                let resolvedURL = await resolveShelfItemBookmark(for: itemFileURL) ?? itemFileURL
+                let resolvedURL = resolveShelfItemBookmark(for: itemFileURL, service: service) ?? itemFileURL
                 itemsToShare.append(resolvedURL)
             }
         }
@@ -201,9 +209,9 @@ private class SharingServiceDelegate: NSObject {}
             if shareProvider.supportsRawText {
                 await shareFilesOrText([text], using: shareProvider, from: view)
             } else {
-                if let tempTextURL = await TemporaryFileStorageService.shared.createTempFile(for: .text(text)) {
+                if let tempTextURL = await self.temporaryFileStorage.createTempFile(for: .text(text)) {
                     await shareFilesOrText([tempTextURL], using: shareProvider, from: view)
-                    TemporaryFileStorageService.shared.removeTemporaryFileIfNeeded(at: tempTextURL)
+                    self.temporaryFileStorage.removeTemporaryFileIfNeeded(at: tempTextURL)
                 } else {
                     await shareFilesOrText([text], using: shareProvider, from: view)
                 }
@@ -214,14 +222,14 @@ private class SharingServiceDelegate: NSObject {}
     }
 
     @MainActor
-    func share(items: [ShelfItem], from view: NSView?) {
+    func share(items: [ShelfItem], from view: NSView?, service: ShelfServiceProtocol) {
         Task {
             var itemsToShare: [Any] = []
             
             for item in items {
                 switch item.kind {
                 case .file:
-                    if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                    if let url = service.resolveAndUpdateBookmark(for: item) {
                         itemsToShare.append(url)
                     }
                 case .text(let string):
@@ -239,11 +247,11 @@ private class SharingServiceDelegate: NSObject {}
         }
     }
 
-    private func resolveShelfItemBookmark(for fileURL: URL) async -> URL? {
-        let items = await ShelfStateViewModel.shared.items
+    private func resolveShelfItemBookmark(for fileURL: URL, service: ShelfServiceProtocol) -> URL? {
+        let items = service.items
 
         for itm in items {
-            if let resolved = await ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: itm) {
+            if let resolved = service.resolveAndUpdateBookmark(for: itm) {
                 if resolved.standardizedFileURL.path == fileURL.standardizedFileURL.path {
                     return resolved
                 }
@@ -257,7 +265,7 @@ private class SharingServiceDelegate: NSObject {}
 // MARK: - App Storage Extension for Provider Selection
 
 extension QuickShareProvider {
-    static var defaultProvider: QuickShareProvider {
+    @MainActor static var defaultProvider: QuickShareProvider {
         let svc = QuickShareService.shared
 
         if let airdrop = svc.availableProviders.first(where: { $0.id == "AirDrop" }) {

@@ -15,8 +15,8 @@ enum TempFileType {
     case url(URL)
 }
 
-class TemporaryFileStorageService {
-    static let shared = TemporaryFileStorageService()
+@MainActor
+class TemporaryFileStorageService: TemporaryFileStorageServiceProtocol {
     
     // MARK: - Public Interface
     

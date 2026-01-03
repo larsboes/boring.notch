@@ -11,14 +11,17 @@ import SwiftUI
 import QuickLookUI
 import AppKit
 
+import Observation
+
 @MainActor
-final class QuickLookService: ObservableObject {
+@Observable
+final class QuickLookService {
     static let shared = QuickLookService()
     
-    @Published var urls: [URL] = []
-    @Published var selectedURL: URL?
+    var urls: [URL] = []
+    var selectedURL: URL?
 
-    @Published var isQuickLookOpen: Bool = false
+    var isQuickLookOpen: Bool = false
 
     private var previewPanel: QLPreviewPanel?
     private var accessingURLs: [URL] = []
@@ -103,9 +106,10 @@ extension QuickLookService {
 }
 
 struct QuickLookPresenter: ViewModifier {
-    @ObservedObject var service: QuickLookService
+    var service: QuickLookService
 
     func body(content: Content) -> some View {
+        @Bindable var service = service
         content
             .quickLookPreview($service.selectedURL, in: service.urls)
     }

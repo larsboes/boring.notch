@@ -12,13 +12,13 @@ import MacroVisionKit
 
 @MainActor
 @Observable final class FullscreenMediaDetector {
-    static let shared = FullscreenMediaDetector()
-    
     var fullscreenStatus: [String: Bool] = [:]
     
+    private let musicService: any MusicServiceProtocol
     private var monitorTask: Task<Void, Never>?
     
-    private init() {
+    init(musicService: any MusicServiceProtocol) {
+        self.musicService = musicService
         startMonitoring()
     }
     
@@ -39,7 +39,7 @@ import MacroVisionKit
         for space in spaces {
             if let uuid = space.screenUUID {
                 let shouldDetect: Bool
-                if Defaults[.hideNotchOption] == .nowPlayingOnly, let musicSourceBundle = MusicManager.shared.bundleIdentifier {
+                if Defaults[.hideNotchOption] == .nowPlayingOnly, let musicSourceBundle = musicService.bundleIdentifier {
                     shouldDetect = space.runningApps.contains(musicSourceBundle)
                 } else {
                     shouldDetect = true
