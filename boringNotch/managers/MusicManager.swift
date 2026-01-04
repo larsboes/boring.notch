@@ -128,7 +128,7 @@ let defaultImage: NSImage = .init(
             do {
                 self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
                 MusicManager.isNowPlayingDeprecatedStatic = self.isNowPlayingDeprecated
-                print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
+                // print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
             } catch {
                 print("Failed to check deprecation status: \(error). Defaulting to false.")
                 self.isNowPlayingDeprecated = false
@@ -198,7 +198,7 @@ let defaultImage: NSImage = .init(
 
     private func setActiveControllerBasedOnPreference() {
         let preferredType = Defaults[.mediaController]
-        print("Preferred Media Controller: \(preferredType)")
+        // print("Preferred Media Controller: \(preferredType)")
 
         // If NowPlaying is deprecated but that's the preference, use Apple Music instead
         let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
@@ -234,7 +234,7 @@ let defaultImage: NSImage = .init(
 
         // Check for playback state changes (playing/paused)
         if state.isPlaying != self.isPlaying {
-            NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
+            // NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
             withAnimation(.smooth) {
                 self.isPlaying = state.isPlaying
                 self.updateIdleState(state: state.isPlaying)

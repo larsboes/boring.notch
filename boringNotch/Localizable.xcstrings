@@ -1303,6 +1303,12 @@
         }
       }
     },
+    "1s" : {
+
+    },
+    "10s" : {
+
+    },
     "About" : {
       "localizations" : {
         "ar" : {
@@ -2713,6 +2719,12 @@
           }
         }
       }
+    },
+    "Auto-close delay" : {
+
+    },
+    "Auto-close delay: %@s" : {
+
     },
     "Auto-scroll to next event" : {
       "localizations" : {

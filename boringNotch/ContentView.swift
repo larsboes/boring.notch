@@ -19,13 +19,10 @@ struct ContentView: View {
     @Environment(\.pluginManager) var pluginManager
 
     @Bindable var coordinator = BoringViewCoordinator.shared
-    // var musicManager = MusicManager.shared // Removed
-    // var batteryModel = BatteryStatusViewModel.shared // Removed
     @State var brightnessManager = BrightnessManager()
     @State var volumeManager = VolumeManager()
     var stateMachine = NotchStateMachine.shared
-    @State private var hoverTask: Task<Void, Never>?
-    @State private var isHovering: Bool = false
+
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
@@ -182,6 +179,7 @@ struct ContentView: View {
                         isDisplayStateOpen ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], isDisplayStateOpen ? 12 : 0)
+                    .clipShape(currentNotchShape)
                     .background {
                         ZStack {
                             if liquidGlassEffect {
@@ -195,15 +193,19 @@ struct ContentView: View {
                                 Color.black
                             }
                             
-                            if isHovering || vm.notchState == .open, let hoverImage = vm.backgroundImage {
+                            if vm.isHoveringNotch || vm.notchState == .open, let hoverImage = vm.backgroundImage {
                                 Image(nsImage: hoverImage)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .clipped()
                             }
                         }
+                        .clipShape(currentNotchShape)
+                        .shadow(
+                            color: ((isDisplayStateOpen || vm.isHoveringNotch) && Defaults[.enableShadow])
+                                ? .black.opacity(0.7) : .clear, radius: 6
+                        )
                     }
-                    .clipShape(currentNotchShape)
                     .overlay {
                         // Luminous border for liquid glass effect (works in both states)
                         if liquidGlassEffect {
@@ -229,28 +231,14 @@ struct ContentView: View {
                                 .frame(height: 1)
                                 .padding(.horizontal, topCornerRadius)
                     }
-                    .shadow(
-                        color: ((isDisplayStateOpen || isHovering) && Defaults[.enableShadow])
-                            ? .black.opacity(0.7) : .clear, radius: 6
-                    )
-                    // Removed conditional bottom padding when using custom 0 notch to keep layout stable
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                     .frame(height: isDisplayStateOpen ? vm.notchSize.height : nil)
-                    .conditionalModifier(true) { view in
-                        view
-                            .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchSize)
-                            .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
-                            .animation(.smooth, value: gestureProgress)
-                    }
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        handleHover(hovering)
-                    }
-                    .onTapGesture {
-                        if vm.notchState == .open {
-                            vm.close()
-                        } else {
-                            doOpen()
+                    // Single animation for phase transitions (animations handled in ViewModel)
+                    // Keep gesture progress animation separate for responsive feedback
+                    .animation(.smooth, value: gestureProgress)
+                    .background {
+                        TrackingAreaView { signal in
+                            vm.handleHoverSignal(signal)
                         }
                     }
                     .conditionalModifier(Defaults[.enableGestures]) { view in
@@ -266,38 +254,9 @@ struct ContentView: View {
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
-                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .onChange(of: vm.notchState) { _, newState in
-                        if newState == .closed && isHovering {
-                            withAnimation {
-                                isHovering = false
-                            }
-                        }
-                    }
-                    .onChange(of: vm.isBatteryPopoverActive) {
-                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
+                        // Cancel any pending close when sharing finishes
+                        if !SharingStateManager.shared.preventNotchClose {
+                            vm.cancelPendingClose()
                         }
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
@@ -316,7 +275,7 @@ struct ContentView: View {
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
-        .compositingGroup()
+
         .scaleEffect(
             x: gestureScale,
             y: gestureScale,
@@ -361,7 +320,6 @@ struct ContentView: View {
             displayState: stateMachine.displayState,
             albumArtNamespace: albumArtNamespace,
             coordinator: coordinator,
-            // batteryModel: batteryModel, // Removed
             closedNotchHeight: displayClosedNotchHeight,
             cornerRadiusScaleFactor: cornerRadiusScaleFactor,
             cornerRadiusInsets: cornerRadiusInsets
@@ -380,7 +338,7 @@ struct ContentView: View {
         NotchStateMachine.shared.update(with: input)
 
         // DEBUG: Trace state changes
-        print("DEBUG: notchState=\(vm.notchState), currentView=\(coordinator.currentView), displayState=\(NotchStateMachine.shared.displayState)")
+        // print("DEBUG: notchState=\(vm.notchState), currentView=\(coordinator.currentView), displayState=\(NotchStateMachine.shared.displayState)")
     }
 
     @ViewBuilder
@@ -415,7 +373,7 @@ struct ContentView: View {
                         )
                     
                     // Optional background image on top of glass
-                    if isHovering || vm.notchState == .open, let hoverImage = vm.backgroundImage {
+                    if vm.isHoveringNotch || vm.notchState == .open, let hoverImage = vm.backgroundImage {
                         Image(nsImage: hoverImage)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -428,7 +386,7 @@ struct ContentView: View {
                     Color.black
                         .ignoresSafeArea()
                     
-                    if isHovering || vm.notchState == .open, let hoverImage = vm.backgroundImage {
+                    if vm.isHoveringNotch || vm.notchState == .open, let hoverImage = vm.backgroundImage {
                         Image(nsImage: hoverImage)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -446,53 +404,9 @@ struct ContentView: View {
     }
 
     // MARK: - Hover Management
-
+    // Deprecated: Now handled by TrackingAreaView and BoringViewModel
     private func handleHover(_ hovering: Bool) {
-        if coordinator.firstLaunch { return }
-        hoverTask?.cancel()
-        
-        if hovering {
-            withAnimation(StandardAnimations.interactive) {
-                isHovering = true
-            }
-            
-            if vm.notchState == .closed && Defaults[.enableHaptics] {
-                haptics.toggle()
-            }
-            
-            guard vm.notchState == .closed,
-                  !coordinator.sneakPeek.show,
-                  Defaults[.openNotchOnHover] else { return }
-            
-            hoverTask = Task {
-                try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
-                guard !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    guard self.vm.notchState == .closed,
-                          self.isHovering,
-                          !self.coordinator.sneakPeek.show,
-                          !self.coordinator.helloAnimationRunning else { return }
-                    
-                    self.doOpen()
-                }
-            }
-        } else {
-            hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(100))
-                guard !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    withAnimation(StandardAnimations.interactive) {
-                        self.isHovering = false
-                    }
-                    
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                        self.vm.close()
-                    }
-                }
-            }
-        }
+        // Kept for compatibility if needed, but logic moved to VM
     }
 
     // MARK: - Gesture Handling
@@ -534,12 +448,10 @@ struct ContentView: View {
         }
 
         if translation > Defaults[.gestureSensitivity] {
-            withAnimation(StandardAnimations.interactive) {
-                isHovering = false
-            }
+
             if !SharingStateManager.shared.preventNotchClose { 
                 gestureProgress = .zero
-                vm.close()
+                vm.close(force: true)
             }
 
             if Defaults[.enableHaptics] {

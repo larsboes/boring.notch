@@ -130,7 +130,12 @@ final class WeatherService: NSObject, WeatherServiceProtocol, CLLocationManagerD
             } catch {
                 self.errorMessage = error.localizedDescription
                 self.isLoading = false
-                print("Weather fetch error: \(error)")
+                
+                // Silence the log for missing API key
+                let nsError = error as NSError
+                if !(nsError.domain == "OpenWeatherMap" && nsError.code == 401) {
+                    print("Weather fetch error: \(error)")
+                }
             }
         }
     }

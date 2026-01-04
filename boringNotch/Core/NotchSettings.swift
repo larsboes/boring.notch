@@ -79,6 +79,7 @@ protocol NotchSettings {
     var copyOnDrag: Bool { get set }
     var autoRemoveShelfItems: Bool { get set }
     var quickShareProvider: String { get set }
+    var shelfHoverDelay: TimeInterval { get set }
 
     // MARK: - Display Settings
     var showOnAllDisplays: Bool { get set }
@@ -356,6 +357,10 @@ final class DefaultsNotchSettings: NotchSettings {
         get { Defaults[.quickShareProvider] }
         set { Defaults[.quickShareProvider] = newValue }
     }
+    var shelfHoverDelay: TimeInterval {
+        get { Defaults[.shelfHoverDelay] }
+        set { Defaults[.shelfHoverDelay] = newValue }
+    }
 
     // MARK: - Display Settings
     var showOnAllDisplays: Bool {
@@ -575,6 +580,7 @@ struct MockNotchSettings: NotchSettings {
     var copyOnDrag: Bool = false
     var autoRemoveShelfItems: Bool = false
     var quickShareProvider: String = "com.apple.share.AirDrop"
+    var shelfHoverDelay: TimeInterval = 4.0
 
     // MARK: - Display Settings
     var showOnAllDisplays: Bool = false

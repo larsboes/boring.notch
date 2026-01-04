@@ -163,7 +163,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             detector: fullscreenDetector,
             webcamService: pluginManager.services.webcam,
             musicService: pluginManager.services.music,
-            soundService: pluginManager.services.sound
+            soundService: pluginManager.services.sound,
+            dragDropService: pluginManager.services.dragDrop
         )
     }()
     

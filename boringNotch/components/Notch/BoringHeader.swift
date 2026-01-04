@@ -11,7 +11,6 @@ struct BoringHeader: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
     @Environment(\.pluginManager) var pluginManager
-    // var batteryModel = BatteryStatusViewModel.shared // Removed
     @Bindable var coordinator = BoringViewCoordinator.shared
 
     var body: some View {
@@ -42,6 +41,7 @@ struct BoringHeader: View {
                         .mask {
                             NotchShape()
                         }
+                        .allowsHitTesting(false)
                 } else {
                     // Invisible spacer to maintain layout when Liquid Glass is enabled
                     // Only on screens WITH hardware notch where we need to leave space for it
@@ -62,15 +62,16 @@ struct BoringHeader: View {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: "web.camera")
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
+                                ZStack {
+                                    Color.black.opacity(0.001)
+                                    Image(systemName: "web.camera")
+                                        .foregroundColor(.white)
+                                        .imageScale(.medium)
+                                        .frame(width: 30, height: 30)
+                                        .background(Capsule().fill(.black))
+                                }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -78,15 +79,16 @@ struct BoringHeader: View {
                             Button(action: {
                                 SettingsWindowController.shared.showWindow()
                             }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: "gear")
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
+                                ZStack {
+                                    Color.black.opacity(0.001)
+                                    Image(systemName: "gear")
+                                        .foregroundColor(.white)
+                                        .imageScale(.medium)
+                                        .frame(width: 30, height: 30)
+                                        .background(Capsule().fill(.black))
+                                }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -105,6 +107,7 @@ struct BoringHeader: View {
                     }
                 }
             }
+            .padding(4)
             .font(.system(.headline, design: .rounded))
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 8)

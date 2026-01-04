@@ -79,7 +79,8 @@ struct NotchContentRouter: View {
             }
 
         case .face:
-            BoringFaceAnimation(height: closedNotchHeight)
+            NotchMoodView(spacing: vm.closedNotchSize.width + 10)
+                .frame(height: closedNotchHeight)
 
         case .inlineHUD(let type, let value, let icon):
             inlineHUDContent(type: type, value: value, icon: icon)
@@ -213,52 +214,7 @@ struct NotchContentRouter: View {
     }
 }
 
-// MARK: - Helper View for Face Animation
 
-struct BoringFaceAnimation: View {
-    var height: CGFloat
-
-    var body: some View {
-        HStack {
-            HStack {
-                Rectangle()
-                    .fill(Color.clear)
-                    .frame(
-                        width: max(0, height - 12),
-                        height: max(0, height - 12)
-                    )
-            }
-            .overlay {
-                MinimalFaceFeatures(
-                    height: max(0, height - 12),
-                    width: max(0, height - 6)
-                )
-            }
-            .padding(.leading, 4)
-
-            Rectangle()
-                .fill(Color.clear)
-                .frame(width: getClosedNotchSize().width)
-
-            HStack {
-                Rectangle()
-                    .fill(Color.clear)
-                    .frame(
-                        width: max(0, height - 12),
-                        height: max(0, height - 12)
-                    )
-            }
-            .overlay {
-                MinimalFaceFeatures(
-                    height: max(0, height - 12),
-                    width: max(0, height - 6)
-                )
-            }
-            .padding(.trailing, 4)
-        }
-        .frame(height: height, alignment: .center)
-    }
-}
 
 // MARK: - Preview Provider
 
@@ -271,8 +227,6 @@ struct NotchContentRouter_Previews: PreviewProvider {
             displayState: NotchDisplayState.closed(content: NotchDisplayState.ClosedContent.idle),
             albumArtNamespace: namespace,
             coordinator: BoringViewCoordinator.shared,
-            // musicManager: MusicManager.shared, // Removed
-            // batteryModel: BatteryStatusViewModel.shared, // Removed
             closedNotchHeight: CGFloat(32),
             cornerRadiusScaleFactor: 1.0,
             cornerRadiusInsets: CornerRadiusInsets(opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))

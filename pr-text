@@ -1,0 +1,23 @@
+### Summary
+This PR introduces a massive architectural overhaul, transitioning the application to a modular, plugin-based system. It also includes a reliable implementation of the Liquid Glass effect (fixes #922) and a fully functional Calendar integration.
+
+### 🏗 Architectural Overhaul
+**Plugin System**: Core features (Music, Battery, Calendar, Shelf, Weather, Webcam) migrated to standalone plugins in `Plugins/BuiltIn/`.
+**Modern Concurrency**: Core state management migrated to Swift 5.9's `@Observable`.
+**Dependency Injection**: Removed singleton usages in Views; dependencies now injected via `ServiceContainer` and `@Environment`.
+**Testability**: Services updated to use protocols.
+
+### ✅ Working Features & Integrations
+- **Liquid Glass**: Fully implemented and reliable (Fixes #922).
+- **Calendar**: Full integration working within the new plugin architecture.
+- **Refactored Architecture**: The foundation is laid out for future features.
+
+### 🚧 Work in Progress / Partial Integrations
+*Note: Some features from recent community PRs (Moods, Animated Face, Screen Recording, Shelf) are present in the codebase but are currently disabled or not fully functional in this refactored branch.*
+
+### Documentation
+- Basic documentation structure added.
+- `README.md` and `CHANGELOG.md` updated.
+
+### ⚠️ Breaking Changes
+- **Minimum Requirement**: This version now requires **macOS 26.0** or later. Please ensure your environment is updated before building or running this branch.

@@ -62,6 +62,12 @@ final class ServiceContainer {
     /// Bluetooth service (wraps BluetoothManager) - optional until implemented
     var bluetooth: (any BluetoothServiceProtocol)?
 
+    /// Face tracking service
+    public let face: any FaceServiceProtocol
+    
+    /// Drag and drop detection service
+    public let dragDrop: any DragDropServiceProtocol
+
     // MARK: - Shelf Helpers
 
     /// Shelf image processor
@@ -79,6 +85,8 @@ final class ServiceContainer {
         self.battery = BatteryService()
         self.calendar = CalendarService()
         self.weather = WeatherService()
+        self.face = FaceService()
+        self.dragDrop = DragDropService()
         
         self.temporaryFileStorage = TemporaryFileStorageService()
         self.imageProcessing = ImageProcessingService(temporaryFileStorage: self.temporaryFileStorage)
@@ -106,6 +114,8 @@ final class ServiceContainer {
         calendar: any CalendarServiceProtocol,
         shelf: any ShelfServiceProtocol,
         weather: any WeatherServiceProtocol,
+        face: any FaceServiceProtocol,
+        dragDrop: any DragDropServiceProtocol,
         webcam: any WebcamServiceProtocol,
         notifications: any NotificationServiceProtocol,
         volume: any VolumeServiceProtocol,
@@ -126,6 +136,8 @@ final class ServiceContainer {
         self.calendar = calendar
         self.shelf = shelf
         self.weather = weather
+        self.face = face
+        self.dragDrop = dragDrop
         self.webcam = webcam
         self.notifications = notifications
         self.volume = volume

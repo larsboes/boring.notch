@@ -40,6 +40,17 @@ struct Shelf: View {
                 Toggle(isOn: $settings.autoRemoveShelfItems) {
                     Text("Remove from shelf after dragging")
                 }
+                
+                VStack(alignment: .leading) {
+                    Text("Auto-close delay: \(String(format: "%.1f", settings.shelfHoverDelay))s")
+                    Slider(value: $settings.shelfHoverDelay, in: 1.0...10.0, step: 0.5) {
+                        Text("Auto-close delay")
+                    } minimumValueLabel: {
+                        Text("1s")
+                    } maximumValueLabel: {
+                        Text("10s")
+                    }
+                }
 
             } header: {
                 HStack {

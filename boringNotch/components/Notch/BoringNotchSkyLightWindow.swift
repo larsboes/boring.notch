@@ -34,7 +34,10 @@ extension SkyLightOperator {
 class BoringNotchSkyLightWindow: NSPanel {
     private let settings: NotchSettings
     private var isSkyLightEnabled: Bool = false
-    
+
+    /// Whether the notch is currently open (enables click handling)
+    var isNotchOpen: Bool = false
+
     init(
         contentRect: NSRect,
         styleMask: NSWindow.StyleMask,
@@ -141,6 +144,8 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     private var observers: Set<AnyCancellable> = []
     
-    override var canBecomeKey: Bool { false }
+    /// Dynamic canBecomeKey: only accept key status when notch is open.
+    /// This enables button clicks while preventing focus stealing when closed.
+    override var canBecomeKey: Bool { isNotchOpen }
     override var canBecomeMain: Bool { false }
 }

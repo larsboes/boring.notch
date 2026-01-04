@@ -10,29 +10,40 @@ import SwiftUI
 
 struct NotchMoodView: View {
     @Environment(\.settings) var settings
-    var faceManager = NotchFaceManager.shared
+    @Environment(\.pluginManager) var pluginManager
+    
+    // Fallback if pluginManager is nil (shouldn't happen in production)
+    var faceService: any FaceServiceProtocol {
+        pluginManager?.services.face ?? FaceService()
+    }
+    
     @State private var blink = false
     @State private var breathe = false
     
+    var spacing: CGFloat = 8
+    
     var body: some View {
-        let currentMood = faceManager.isSleepy ? .sleepy : settings.selectedMood
+        let currentMood = faceService.isSleepy ? .sleepy : settings.selectedMood
+        let isSplit = spacing > 20
         
         ZStack {
             // Eyes
-            HStack(spacing: 8) {
+            HStack(spacing: spacing) {
                 EyeView(mood: currentMood, blink: blink)
-                    .offset(faceManager.eyeOffset)
+                    .offset(faceService.eyeOffset)
                 EyeView(mood: currentMood, blink: blink)
-                    .offset(faceManager.eyeOffset)
+                    .offset(faceService.eyeOffset)
             }
             .offset(y: breathe ? -1 : 0)
             
-            // Mouth
-            MouthView(mood: currentMood)
-                .offset(y: 8 + (breathe ? 0.5 : 0))
+            // Mouth (only show if not split)
+            if !isSplit {
+                MouthView(mood: currentMood)
+                    .offset(y: 8 + (breathe ? 0.5 : 0))
+            }
             
             // Eyebrows
-            HStack(spacing: 12) {
+            HStack(spacing: isSplit ? spacing + 4 : 12) {
                 EyebrowView(mood: currentMood)
                 EyebrowView(mood: currentMood)
             }

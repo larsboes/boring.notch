@@ -16,8 +16,6 @@ struct NotchHomeView: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
     @Environment(\.pluginManager) var pluginManager
-    // var webcamManager = WebcamManager.shared // Removed
-    // var batteryModel = BatteryStatusViewModel.shared // Removed
     @Bindable var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
 

@@ -171,14 +171,16 @@ class QuickShareService {
             let picker = NSSharingServicePicker(items: items)
             picker.delegate = delegate
             delegate.markPickerBegan()
-            if let view {
+            if let view, view.window != nil {
                 picker.show(relativeTo: .zero, of: view, preferredEdge: .minY)
+            } else {
+                print("⚠️ QuickShareService: Cannot show picker - view has no window")
             }
         }
     }
 
     private func stopSharingAccessingURLs() {
-        NSLog("Stopping sharing access to URLs")
+        // NSLog("Stopping sharing access to URLs")
         for url in sharingAccessingURLs {
             url.stopAccessingSecurityScopedResource()
         }

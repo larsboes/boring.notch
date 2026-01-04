@@ -121,6 +121,10 @@ final class WindowCoordinator {
         window.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
 
+        // Setup hover controller with window reference
+        viewModel.setHoverWindow(window)
+        viewModel.setupHoverController()
+
         // Observe when the window's screen changes
         windowScreenDidChangeObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.didChangeScreenNotification,
@@ -188,7 +192,8 @@ final class WindowCoordinator {
                     detector: detector,
                     webcamService: pluginManager.services.webcam,
                     musicService: pluginManager.services.music,
-                    soundService: pluginManager.services.sound
+                    soundService: pluginManager.services.sound,
+                    dragDropService: pluginManager.services.dragDrop
                 )
                 let window = createBoringNotchWindow(for: screen, with: viewModel)
 

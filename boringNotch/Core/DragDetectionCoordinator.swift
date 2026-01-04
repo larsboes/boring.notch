@@ -15,8 +15,8 @@ import Defaults
 final class DragDetectionCoordinator {
     // MARK: - Properties
 
-    /// UUID -> DragDetector mapping for each screen
-    private var dragDetectors: [String: DragDetector] = [:]
+    /// UUID -> DragDropService mapping for each screen
+    private var dragDetectors: [String: DragDropService] = [:]
 
     /// Reference to window coordinator for accessing view models and windows
     private weak var windowCoordinator: WindowCoordinator?
@@ -74,16 +74,17 @@ final class DragDetectionCoordinator {
             height: notchHeight
         )
 
-        let detector = DragDetector(notchRegion: notchRegion)
+        let service = DragDropService()
+        service.updateNotchRegion(notchRegion)
 
-        detector.onDragEntersNotchRegion = { [weak self] in
+        service.onDragEntersNotchRegion = { [weak self] in
             Task { @MainActor in
                 self?.handleDragEntersNotchRegion(onScreen: screen)
             }
         }
 
-        dragDetectors[uuid] = detector
-        detector.startMonitoring()
+        dragDetectors[uuid] = service
+        service.startMonitoring()
     }
 
     // MARK: - Drag Handling
@@ -108,8 +109,8 @@ final class DragDetectionCoordinator {
     // MARK: - Cleanup
 
     func cleanupDragDetectors() {
-        dragDetectors.values.forEach { detector in
-            detector.stopMonitoring()
+        dragDetectors.values.forEach { service in
+            service.stopMonitoring()
         }
         dragDetectors.removeAll()
     }

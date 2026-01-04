@@ -375,6 +375,7 @@ struct ExpandedItem {
     /// Deprecated: Use configure(eventBus:) instead.
     private func setupMusicSneakPeekSubscription() {
         // Removed direct subscription to MusicManager.shared
+        // Music updates are now handled via MusicServiceProtocol in the view model
         // Logic moved to configure(eventBus:)
     }
 }
