@@ -134,6 +134,7 @@
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		188251B684624A7B3F1B1908 /* DesktopCaptureActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B398BECCBF1BC69FE20C6E /* DesktopCaptureActor.swift */; };
 		1D8F9B3FE403A62DB74576D2 /* MusicService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E760B7C08145028E6BBD646 /* MusicService.swift */; };
+		20AD9CCE8934B96D524C73FD /* NotchHoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D01104225AEAADF0C129C4A /* NotchHoverController.swift */; };
 		2366C78544EFA3F2F86534D0 /* MusicPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A2434E0A7AFD3298FA102E /* MusicPlugin.swift */; };
 		312FE24D4629E8B2C243E9DD /* NotchVolumeControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11C468AF4F351C6BC408CD9 /* NotchVolumeControl.swift */; };
 		327DF2F76B387F76C31A0A0D /* ShelfService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA640EF0042EB0B31405E86D /* ShelfService.swift */; };
@@ -167,6 +168,7 @@
 		7D9A65A08B4E19EF00A0F693 /* DragDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92BE3242603FDB6AF50A4C0 /* DragDropService.swift */; };
 		8004638DCB43E61C85FED199 /* FaceServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E486D954B83D289366DBE41A /* FaceServiceProtocol.swift */; };
 		840F921A2F55A77265BD17E5 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E13568776669AA2F49C92C7 /* WeatherService.swift */; };
+		86BA567C9A931249EA00F25B /* NotchObserverSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD480B80D77449E7000763A /* NotchObserverSetup.swift */; };
 		8AA13D1BB2137664881B7471 /* LyricsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E48EEF2B6852A428C2972 /* LyricsServiceProtocol.swift */; };
 		914B183904FCABE089C9E486 /* ShelfFileHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9352235724B3B3ABCDB187 /* ShelfFileHandler.swift */; };
 		93D024BC47CD687EDC2B7001 /* PluginSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB48750D2215B0E835773A42 /* PluginSettings.swift */; };
@@ -180,6 +182,7 @@
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
 		9A987A102C73CA8D005CA465 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9A987A0F2C73CA8D005CA465 /* Collections */; };
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
+		9B33A0C4A3F2E9B78273BA9C /* NotchViewModelSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F996B97FF11027495BA459A /* NotchViewModelSettings.swift */; };
 		A586125A1FACADE16F1739FB /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28F91445E8D5B3F781EC0C6 /* ServiceContainer.swift */; };
 		A685D05F9F9DF984E020668F /* WebcamPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3B53CD55F2D18D3E7E8D43 /* WebcamPlugin.swift */; };
 		A8BCF47561234639B227CBA1 /* MetalBlurRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA14905692EA231F59402E50 /* MetalBlurRenderer.swift */; };
@@ -213,6 +216,7 @@
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		B3C58FEAD0776223DEA709DB /* BoringAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49CA0BEB7AAC63E91195B276 /* BoringAppState.swift */; };
 		BAA7AF39257A101CDCA86D82 /* BrightnessServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF97E971A6C5DED2CE3683B4 /* BrightnessServiceProtocol.swift */; };
+		BE274B771CF8B1186D2D5F14 /* NotchSizeCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F665A091F3653C3DB1AE4FAB /* NotchSizeCalculator.swift */; };
 		C8A0597312262AFB8DE4F664 /* FaceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DA29A9FA8883E97A211654D /* FaceService.swift */; };
 		CAA4959B6ACB9B680D57DAF1 /* ImageProcessingServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD9872FE16EBBDFCE59B56B /* ImageProcessingServiceProtocol.swift */; };
 		CD271D9AB85A84A81F8CC377 /* PluginCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72C8F2DF69DAFB2AAED51A0 /* PluginCapabilities.swift */; };
@@ -410,7 +414,9 @@
 		22890E9D4CCA59DD8BB5D1A6 /* CalendarDataProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CalendarDataProvider.swift; path = boringNotch/Providers/CalendarDataProvider.swift; sourceTree = "<group>"; };
 		27B398BECCBF1BC69FE20C6E /* DesktopCaptureActor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DesktopCaptureActor.swift; sourceTree = "<group>"; };
 		2CF96700A438BC96CFF49FF4 /* ShelfServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfServiceProtocol.swift; path = boringNotch/Plugins/Services/ShelfServiceProtocol.swift; sourceTree = "<group>"; };
+		2F996B97FF11027495BA459A /* NotchViewModelSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchViewModelSettings.swift; sourceTree = "<group>"; };
 		30F907D5C61FB27219A2F24B /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3D01104225AEAADF0C129C4A /* NotchHoverController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchHoverController.swift; sourceTree = "<group>"; };
 		3E1072DF514CC71270555DB8 /* ShelfFileHandlerProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfFileHandlerProtocol.swift; path = boringNotch/Plugins/Services/ShelfFileHandlerProtocol.swift; sourceTree = "<group>"; };
 		405ABF9F81576FD8F394EBCE /* DragDropServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DragDropServiceProtocol.swift; path = boringNotch/Plugins/Services/DragDropServiceProtocol.swift; sourceTree = "<group>"; };
 		48889B03C285D8776DF877FA /* KeyboardBacklightServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = KeyboardBacklightServiceProtocol.swift; path = boringNotch/Plugins/Services/KeyboardBacklightServiceProtocol.swift; sourceTree = "<group>"; };
@@ -424,6 +430,7 @@
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
+		5DD480B80D77449E7000763A /* NotchObserverSetup.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchObserverSetup.swift; sourceTree = "<group>"; };
 		5F3B53CD55F2D18D3E7E8D43 /* WebcamPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WebcamPlugin.swift; path = boringNotch/Plugins/BuiltIn/WebcamPlugin/WebcamPlugin.swift; sourceTree = "<group>"; };
 		62B884125C4CFF4A46B9D35A /* LiquidGlass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiquidGlass.swift; path = Effects/LiquidGlass.swift; sourceTree = "<group>"; };
 		6477CA8CD665D8AA43BAF4D3 /* WeatherData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherData.swift; path = boringNotch/models/WeatherData.swift; sourceTree = "<group>"; };
@@ -505,6 +512,7 @@
 		EA3972B2992CD0247A6A32A1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = boringNotchTests/Info.plist; sourceTree = SOURCE_ROOT; };
 		EC4AFECF49A120AB6C87BC16 /* PluginEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginEnvironment.swift; path = boringNotch/Plugins/Core/PluginEnvironment.swift; sourceTree = "<group>"; };
 		F491EC9D73B1F259D53064AC /* WeatherServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherServiceProtocol.swift; path = boringNotch/Plugins/Services/WeatherServiceProtocol.swift; sourceTree = "<group>"; };
+		F665A091F3653C3DB1AE4FAB /* NotchSizeCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchSizeCalculator.swift; sourceTree = "<group>"; };
 		F72C8F2DF69DAFB2AAED51A0 /* PluginCapabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginCapabilities.swift; path = boringNotch/Plugins/Core/PluginCapabilities.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -927,6 +935,10 @@
 				11F749022ECB27DC00F841DB /* NotchNotification.swift */,
 				14D570C82C5F38890011E668 /* BoringViewModel.swift */,
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
+				2F996B97FF11027495BA459A /* NotchViewModelSettings.swift */,
+				3D01104225AEAADF0C129C4A /* NotchHoverController.swift */,
+				F665A091F3653C3DB1AE4FAB /* NotchSizeCalculator.swift */,
+				5DD480B80D77449E7000763A /* NotchObserverSetup.swift */,
 			);
 			path = models;
 			sourceTree = "<group>";
@@ -1691,6 +1703,10 @@
 				7D9A65A08B4E19EF00A0F693 /* DragDropService.swift in Sources */,
 				963083FCE7EC1C5B3BCE249F /* TrackingAreaView.swift in Sources */,
 				AE430B42314D0892E2FA67CB /* HoverZoneManager.swift in Sources */,
+				9B33A0C4A3F2E9B78273BA9C /* NotchViewModelSettings.swift in Sources */,
+				20AD9CCE8934B96D524C73FD /* NotchHoverController.swift in Sources */,
+				BE274B771CF8B1186D2D5F14 /* NotchSizeCalculator.swift in Sources */,
+				86BA567C9A931249EA00F25B /* NotchObserverSetup.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
