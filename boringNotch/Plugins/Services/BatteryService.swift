@@ -22,7 +22,7 @@ class BatteryService: BatteryServiceProtocol {
     
     // Internal state
     private var isInitial: Bool = true
-    private var coordinator = BoringViewCoordinator.shared
+    private let eventBus: PluginEventBus
     
     // Wrapper to handle non-Sendable CFRunLoopSource safely
     private final class SourceContainer: @unchecked Sendable {
@@ -40,7 +40,8 @@ class BatteryService: BatteryServiceProtocol {
     
     // MARK: - Initialization
     
-    init() {
+    init(eventBus: PluginEventBus) {
+        self.eventBus = eventBus
         // Initial update
         updateBatteryInfo()
         
@@ -185,7 +186,10 @@ class BatteryService: BatteryServiceProtocol {
                     soundToPlay = Defaults[.highBatteryNotificationSound]
                 }
                 
-                coordinator.toggleExpandingView(status: true, type: .battery)
+                eventBus.emit(SneakPeekRequestedEvent(
+                    sourcePluginId: "com.boringnotch.system.battery",
+                    request: SneakPeekRequest(style: .expanding, type: .battery)
+                ))
                 
                 if soundToPlay != "Disabled" {
                     NSSound(named: NSSound.Name(soundToPlay))?.play()
@@ -194,7 +198,10 @@ class BatteryService: BatteryServiceProtocol {
             } else if Defaults[.showPowerStatusNotifications] && !isInitial {
                 // Standard power status notification
                 let soundToPlay = Defaults[.powerStatusNotificationSound]
-                coordinator.toggleExpandingView(status: true, type: .battery)
+                eventBus.emit(SneakPeekRequestedEvent(
+                    sourcePluginId: "com.boringnotch.system.battery",
+                    request: SneakPeekRequest(style: .expanding, type: .battery)
+                ))
                 
                 if soundToPlay != "Disabled" {
                     NSSound(named: NSSound.Name(soundToPlay))?.play()

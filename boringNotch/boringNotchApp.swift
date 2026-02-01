@@ -94,11 +94,13 @@ struct DynamicNotchApp: App {
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Plugin System
-    
+
+    let eventBus = PluginEventBus()
+
     lazy var pluginManager: PluginManager = {
         PluginManager(
-            services: ServiceContainer(),
-            eventBus: PluginEventBus(),
+            services: ServiceContainer(eventBus: eventBus),
+            eventBus: eventBus,
             appState: BoringAppState(),
             builtInPlugins: [
                 MusicPlugin(),

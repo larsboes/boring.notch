@@ -82,8 +82,12 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case standard = "Default"
     case inline = "Inline"
     case minimal = "Minimal"
-    
+    case expanding = "Expanding"
+
     var id: String { self.rawValue }
+
+    /// Styles available for user selection in settings (excludes internal-only styles)
+    static let selectableCases: [SneakPeekStyle] = [.standard, .inline, .minimal]
 }
 
 // Action to perform when Option (⌥) is held while pressing media keys

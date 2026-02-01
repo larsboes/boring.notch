@@ -19,8 +19,8 @@ struct ContentView: View {
     @Environment(\.pluginManager) var pluginManager
 
     @Bindable var coordinator = BoringViewCoordinator.shared
-    @State var brightnessManager = BrightnessManager()
-    @State var volumeManager = VolumeManager()
+    @State var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
+    @State var volumeManager = VolumeManager(eventBus: PluginEventBus())
     var stateMachine = NotchStateMachine.shared
 
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -56,6 +56,28 @@ struct ContentView: View {
         return false
     }
 
+    // MARK: - Animation Progress (for smooth visual interpolation)
+
+    /// Progress from closed (0) to open (1), derived from notchSize which already animates.
+    /// This avoids the "middle step" where size animates but other visuals snap.
+    private var animationProgress: CGFloat {
+        let closedWidth = vm.closedNotchSize.width
+        let openWidth = openNotchSize.width
+        let currentWidth = vm.notchSize.width
+
+        // Avoid division by zero
+        guard openWidth > closedWidth else { return 0 }
+
+        // Clamp to 0-1 range
+        let progress = (currentWidth - closedWidth) / (openWidth - closedWidth)
+        return max(0, min(1, progress))
+    }
+
+    /// Linear interpolation helper
+    private func lerp(_ a: CGFloat, _ b: CGFloat, _ t: CGFloat) -> CGFloat {
+        a + (b - a) * t
+    }
+
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
         guard Defaults[.cornerRadiusScaling] else { return nil }
@@ -65,35 +87,37 @@ struct ContentView: View {
     }
     
     private var topCornerRadius: CGFloat {
-        // If the notch is open, return the opened radius.
-        if isDisplayStateOpen {
-            return cornerRadiusInsets.opened.top
+        // Calculate closed corner radius (with optional scaling)
+        let baseClosedTop = cornerRadiusInsets.closed.top
+        let closedRadius: CGFloat
+        if let scaleFactor = cornerRadiusScaleFactor {
+            closedRadius = max(0, baseClosedTop * scaleFactor)
+        } else {
+            closedRadius = displayClosedNotchHeight > 0 ? baseClosedTop : 0
         }
 
-        // For the closed notch, scale if enabled
-        let baseClosedTop = cornerRadiusInsets.closed.top
-        guard let scaleFactor = cornerRadiusScaleFactor else {
-            return displayClosedNotchHeight > 0 ? baseClosedTop : 0
+        // Interpolate between closed and open based on animation progress
+        return lerp(closedRadius, cornerRadiusInsets.opened.top, animationProgress)
+    }
+
+    private var bottomCornerRadius: CGFloat {
+        // Calculate closed corner radius (with optional scaling)
+        let baseClosedBottom = cornerRadiusInsets.closed.bottom
+        let closedRadius: CGFloat
+        if let scaleFactor = cornerRadiusScaleFactor {
+            closedRadius = max(0, baseClosedBottom * scaleFactor)
+        } else {
+            closedRadius = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
         }
-        return max(0, baseClosedTop * scaleFactor)
+
+        // Interpolate between closed and open based on animation progress
+        return lerp(closedRadius, cornerRadiusInsets.opened.bottom, animationProgress)
     }
 
     private var currentNotchShape: NotchShape {
-        // Scale bottom corner radius for closed notch shape when scaling is enabled.
-        let baseClosedBottom = cornerRadiusInsets.closed.bottom
-        let bottomCorner: CGFloat
-
-        if isDisplayStateOpen {
-            bottomCorner = cornerRadiusInsets.opened.bottom
-        } else if let scaleFactor = cornerRadiusScaleFactor {
-            bottomCorner = max(0, baseClosedBottom * scaleFactor)
-        } else {
-            bottomCorner = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
-        }
-
         return NotchShape(
             topCornerRadius: topCornerRadius,
-            bottomCornerRadius: bottomCorner
+            bottomCornerRadius: bottomCornerRadius
         )
     }
 
@@ -174,11 +198,12 @@ struct ContentView: View {
                     .onChange(of: currentStateSnapshot) { _, _ in updateStateMachine() }
                     .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
                     .frame(alignment: .top)
+                    // Smoothly interpolate padding based on animation progress
                     .padding(
                         .horizontal,
-                        isDisplayStateOpen ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
+                        lerp(cornerRadiusInsets.closed.bottom, cornerRadiusInsets.opened.top, animationProgress)
                     )
-                    .padding([.horizontal, .bottom], isDisplayStateOpen ? 12 : 0)
+                    .padding([.horizontal, .bottom], lerp(0, 12, animationProgress))
                     .clipShape(currentNotchShape)
                     .background {
                         ZStack {
@@ -202,20 +227,23 @@ struct ContentView: View {
                         }
                         .clipShape(currentNotchShape)
                         .shadow(
-                            color: ((isDisplayStateOpen || vm.isHoveringNotch) && Defaults[.enableShadow])
-                                ? .black.opacity(0.7) : .clear, radius: 6
+                            // Smoothly fade shadow based on animation progress
+                            color: (animationProgress > 0 && Defaults[.enableShadow])
+                                ? .black.opacity(0.7 * animationProgress) : .clear, radius: 6
                         )
                     }
                     .overlay {
                         // Luminous border for liquid glass effect (works in both states)
                         if liquidGlassEffect {
+                            // Smoothly interpolate border opacity (0.6 closed → 1.0 open)
+                            let borderMultiplier = lerp(0.6, 1.0, animationProgress)
                             currentNotchShape
                                 .stroke(
                                     LinearGradient(
                                         colors: [
-                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * (isDisplayStateOpen ? 1.0 : 0.6)),
-                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * 0.3 * (isDisplayStateOpen ? 1.0 : 0.6)),
-                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * 0.5 * (isDisplayStateOpen ? 1.0 : 0.6))
+                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * borderMultiplier),
+                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * 0.3 * borderMultiplier),
+                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * 0.5 * borderMultiplier)
                                         ],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing

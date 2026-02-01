@@ -111,8 +111,8 @@ struct NotchContentRouter: View {
         .transition(.opacity)
     }
 
-    @State private var volumeManager = VolumeManager()
-    @State private var brightnessManager = BrightnessManager()
+    @State private var volumeManager = VolumeManager(eventBus: PluginEventBus())
+    @State private var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
 
     @ViewBuilder
     private func sneakPeekOverlayContent(type: SneakContentType, value: CGFloat, icon: String) -> some View {

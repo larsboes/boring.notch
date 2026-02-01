@@ -23,8 +23,10 @@ import Foundation
     // Fallback software if hardware mute is not supported
     private var previousVolumeBeforeMute: Float32 = 0.2
     private var softwareMuted: Bool = false
+    private let eventBus: PluginEventBus
 
-    override init() {
+    init(eventBus: PluginEventBus) {
+        self.eventBus = eventBus
         super.init()
         setupAudioListener()
         fetchCurrentVolume()
@@ -39,7 +41,7 @@ import Foundation
         let current = readVolumeInternal() ?? rawVolume
         let target = max(0, min(1, current + delta))
         setAbsolute(target)
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(target))
+        emitSneakPeek(value: CGFloat(target))
     }
 
     @MainActor func decrease(stepDivisor: Float = 1.0) {
@@ -48,7 +50,7 @@ import Foundation
         let current = readVolumeInternal() ?? rawVolume
         let target = max(0, min(1, current - delta))
         setAbsolute(target)
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(target))
+        emitSneakPeek(value: CGFloat(target))
     }
 
     @MainActor func toggleMuteAction() {
@@ -67,7 +69,7 @@ import Foundation
         }
 
         toggleMuteInternal()
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(willBeMuted ? 0 : resultingVolume))
+        emitSneakPeek(value: CGFloat(willBeMuted ? 0 : resultingVolume))
     }
     
     func refresh() { fetchCurrentVolume() }
@@ -355,6 +357,13 @@ import Foundation
         else { return false }
         var val = value
         return AudioObjectSetPropertyData(deviceID, &addr, 0, nil, sizeNeeded, &val) == noErr
+    }
+
+    private func emitSneakPeek(value: CGFloat) {
+        eventBus.emit(SneakPeekRequestedEvent(
+            sourcePluginId: "com.boringnotch.system.volume",
+            request: SneakPeekRequest(style: .standard, type: .volume, value: value)
+        ))
     }
 
     private func publish(volume: Float32, muted: Bool, touchDate: Bool) {

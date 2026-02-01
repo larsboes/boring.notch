@@ -16,8 +16,8 @@ struct InlineHUD: View {
     @Binding var gestureProgress: CGFloat
     @Environment(\.settings) var settings
     
-    @State private var volumeManager = VolumeManager()
-    @State private var brightnessManager = BrightnessManager()
+    @State private var volumeManager = VolumeManager(eventBus: PluginEventBus())
+    @State private var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
     
     var body: some View {
         HStack {

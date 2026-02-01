@@ -14,8 +14,8 @@ struct OpenNotchHUD: View {
     @Binding var icon: String
     @Environment(\.settings) var settings
     
-    @State private var volumeManager = VolumeManager()
-    @State private var brightnessManager = BrightnessManager()
+    @State private var volumeManager = VolumeManager(eventBus: PluginEventBus())
+    @State private var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
     
     var body: some View {
         HStack(spacing: 8) {

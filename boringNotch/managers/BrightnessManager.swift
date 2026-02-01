@@ -13,8 +13,12 @@ import AppKit
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
+	private let eventBus: PluginEventBus
 
-	init() { refresh() }
+	init(eventBus: PluginEventBus) {
+		self.eventBus = eventBus
+		refresh()
+	}
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
@@ -36,7 +40,10 @@ import AppKit
 			} else {
 				refresh()
 			}
-			BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(target))
+			eventBus.emit(SneakPeekRequestedEvent(
+			sourcePluginId: "com.boringnotch.system.brightness",
+			request: SneakPeekRequest(style: .standard, type: .brightness, value: CGFloat(target))
+		))
 		}
 	}
 
@@ -71,8 +78,12 @@ import AppKit
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
+	private let eventBus: PluginEventBus
 
-	init() { refresh() }
+	init(eventBus: PluginEventBus) {
+		self.eventBus = eventBus
+		refresh()
+	}
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
@@ -94,11 +105,10 @@ import AppKit
 			} else {
 				refresh()
 			}
-			BoringViewCoordinator.shared.toggleSneakPeek(
-				status: true,
-				type: .backlight,
-				value: CGFloat(target)
-			)
+			eventBus.emit(SneakPeekRequestedEvent(
+				sourcePluginId: "com.boringnotch.system.backlight",
+				request: SneakPeekRequest(style: .standard, type: .backlight, value: CGFloat(target))
+			))
 		}
 	}
 

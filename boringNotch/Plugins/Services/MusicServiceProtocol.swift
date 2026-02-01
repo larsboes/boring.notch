@@ -60,10 +60,12 @@ protocol MusicServiceProtocol: Observable {
 struct SneakPeekRequest: Equatable {
     let style: SneakPeekStyle
     let type: SneakContentType
-    
-    public init(style: SneakPeekStyle, type: SneakContentType) {
+    let value: CGFloat
+
+    public init(style: SneakPeekStyle, type: SneakContentType, value: CGFloat = 0) {
         self.style = style
         self.type = type
+        self.value = value
     }
 }
 

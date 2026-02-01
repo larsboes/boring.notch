@@ -56,7 +56,7 @@ struct Media: View {
                 )
                 Toggle("Show sneak peek on playback changes", isOn: $settings.enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $settings.sneakPeekStyles) {
-                    ForEach(SneakPeekStyle.allCases) { style in
+                    ForEach(SneakPeekStyle.selectableCases) { style in
                         Text(style.rawValue).tag(style)
                     }
                 }

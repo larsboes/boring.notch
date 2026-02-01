@@ -79,30 +79,30 @@ final class ServiceContainer {
     // MARK: - Initialization
 
     /// Default initializer - creates services that are ready
-    init() {
+    init(eventBus: PluginEventBus) {
         self.music = MusicService(manager: MusicManager())
         self.sound = SoundService()
-        self.battery = BatteryService()
+        self.battery = BatteryService(eventBus: eventBus)
         self.calendar = CalendarService()
         self.weather = WeatherService()
         self.face = FaceService()
         self.dragDrop = DragDropService()
-        
+
         self.temporaryFileStorage = TemporaryFileStorageService()
         self.imageProcessing = ImageProcessingService(temporaryFileStorage: self.temporaryFileStorage)
         self.thumbnails = ThumbnailService()
-        
+
         // Initialize Shelf helpers first
         self.shelfImageProcessor = ShelfImageProcessor(imageProcessingService: self.imageProcessing, thumbnailService: self.thumbnails)
         self.shelfFileHandler = ShelfFileHandler(temporaryFileStorage: self.temporaryFileStorage)
         self.shelf = ShelfService(imageProcessor: self.shelfImageProcessor, fileHandler: self.shelfFileHandler)
-        
+
         self.lyrics = LyricsService()
         self.webcam = WebcamManager()
         self.notifications = NotificationCenterManager.shared
-        self.volume = VolumeManager()
-        self.brightness = BrightnessManager()
-        self.keyboardBacklight = KeyboardBacklightManager()
+        self.volume = VolumeManager(eventBus: eventBus)
+        self.brightness = BrightnessManager(eventBus: eventBus)
+        self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus)
         self.sharing = SharingStateManager.shared
         // Other services will be added as they're migrated
     }

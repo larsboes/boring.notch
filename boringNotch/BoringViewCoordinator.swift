@@ -364,9 +364,9 @@ struct ExpandedItem {
             guard let self = self else { return }
             let request = event.request
             if request.style == .standard {
-                self.toggleSneakPeek(status: true, type: request.type)
+                self.toggleSneakPeek(status: true, type: request.type, value: request.value)
             } else {
-                self.toggleExpandingView(status: true, type: request.type)
+                self.toggleExpandingView(status: true, type: request.type, value: request.value)
             }
         }
     }
