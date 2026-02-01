@@ -13,7 +13,6 @@ struct GeneralSettings: View {
         guard let uuid = screen.displayUUID else { return nil }
         return (uuid, screen.localizedName)
     }
-    @Bindable var coordinator = BoringViewCoordinator.shared
     @Environment(\.bindableSettings) var settings
 
     var body: some View {
@@ -33,7 +32,7 @@ struct GeneralSettings: View {
                     NotificationCenter.default.post(
                         name: Notification.Name.showOnAllDisplaysChanged, object: nil)
                 }
-                Picker("Preferred display", selection: $coordinator.preferredScreenUUID) {
+                Picker("Preferred display", selection: $settings.preferredScreenUUID) {
                     ForEach(screens, id: \.uuid) { screen in
                         Text(screen.name).tag(screen.uuid as String?)
                     }
@@ -219,7 +218,7 @@ struct GeneralSettings: View {
             Toggle(isOn: $settings.enableHaptics) {
                     Text("Enable haptic feedback")
             }
-            Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
+            Toggle("Remember last tab", isOn: $settings.openLastTabByDefault)
             if settings.openNotchOnHover {
                 Slider(value: $settings.minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {

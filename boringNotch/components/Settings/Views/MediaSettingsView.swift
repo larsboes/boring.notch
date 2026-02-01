@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct Media: View {
-    @Bindable var coordinator = BoringViewCoordinator.shared
     @Environment(\.bindableSettings) var settings
 
     var body: some View {
@@ -53,7 +52,7 @@ struct Media: View {
             Section {
                 Toggle(
                     "Show music live activity",
-                    isOn: $coordinator.musicLiveActivityEnabled.animation()
+                    isOn: $settings.musicLiveActivityEnabled.animation()
                 )
                 Toggle("Show sneak peek on playback changes", isOn: $settings.enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $settings.sneakPeekStyles) {

@@ -39,6 +39,7 @@ protocol NotchSettings {
     // var showBatteryPercentage: Bool { get } // This property is moved to HUD settings and made settable
 
     // MARK: - Appearance Settings
+    var alwaysShowTabs: Bool { get set }
     var showNotHumanFace: Bool { get set }
     var lightingEffect: Bool { get set }
     var liquidGlassEffect: Bool { get set }
@@ -51,6 +52,7 @@ protocol NotchSettings {
     var menubarIcon: Bool { get set }
 
     // MARK: - Music & Media Settings
+    var musicLiveActivityEnabled: Bool { get set }
     var enableSneakPeek: Bool { get set }
     var sneakPeekStyles: SneakPeekStyle { get set }
     var sneakPeakDuration: Double { get set }
@@ -82,6 +84,8 @@ protocol NotchSettings {
     var shelfHoverDelay: TimeInterval { get set }
 
     // MARK: - Display Settings
+    var openLastTabByDefault: Bool { get set }
+    var preferredScreenUUID: String? { get set }
     var showOnAllDisplays: Bool { get set }
     var automaticallySwitchDisplay: Bool { get set }
     var hideTitleBar: Bool { get set }
@@ -215,6 +219,10 @@ final class DefaultsNotchSettings: NotchSettings {
     // var showBatteryPercentage: Bool { Defaults[.showBatteryPercentage] } // This property is moved to HUD settings and made settable
 
     // MARK: - Appearance Settings
+    var alwaysShowTabs: Bool {
+        get { Defaults[.alwaysShowTabs] }
+        set { Defaults[.alwaysShowTabs] = newValue }
+    }
     var showNotHumanFace: Bool {
         get { Defaults[.showNotHumanFace] }
         set { Defaults[.showNotHumanFace] = newValue }
@@ -257,6 +265,10 @@ final class DefaultsNotchSettings: NotchSettings {
     }
 
     // MARK: - Music & Media Settings
+    var musicLiveActivityEnabled: Bool {
+        get { Defaults[.musicLiveActivityEnabled] }
+        set { Defaults[.musicLiveActivityEnabled] = newValue }
+    }
     var enableSneakPeek: Bool {
         get { Defaults[.enableSneakPeek] }
         set { Defaults[.enableSneakPeek] = newValue }
@@ -363,6 +375,14 @@ final class DefaultsNotchSettings: NotchSettings {
     }
 
     // MARK: - Display Settings
+    var openLastTabByDefault: Bool {
+        get { Defaults[.openLastTabByDefault] }
+        set { Defaults[.openLastTabByDefault] = newValue }
+    }
+    var preferredScreenUUID: String? {
+        get { Defaults[.preferredScreenUUID] }
+        set { Defaults[.preferredScreenUUID] = newValue }
+    }
     var showOnAllDisplays: Bool {
         get { Defaults[.showOnAllDisplays] }
         set { Defaults[.showOnAllDisplays] = newValue }
@@ -540,6 +560,7 @@ struct MockNotchSettings: NotchSettings {
     var highBatteryNotificationSound: String = "Disabled"
 
     // MARK: - Appearance Settings
+    var alwaysShowTabs: Bool = false
     var showNotHumanFace: Bool = false
     var lightingEffect: Bool = true
     var liquidGlassEffect: Bool = false
@@ -552,6 +573,7 @@ struct MockNotchSettings: NotchSettings {
     var menubarIcon: Bool = true
 
     // MARK: - Music & Media Settings
+    var musicLiveActivityEnabled: Bool = true
     var enableSneakPeek: Bool = false
     var sneakPeekStyles: SneakPeekStyle = .standard
     var sneakPeakDuration: Double = 1.5
@@ -583,6 +605,8 @@ struct MockNotchSettings: NotchSettings {
     var shelfHoverDelay: TimeInterval = 4.0
 
     // MARK: - Display Settings
+    var openLastTabByDefault: Bool = false
+    var preferredScreenUUID: String? = nil
     var showOnAllDisplays: Bool = false
     var automaticallySwitchDisplay: Bool = true
     var hideTitleBar: Bool = false

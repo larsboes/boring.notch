@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct HUD: View {
-    @Bindable var coordinator = BoringViewCoordinator.shared
     @Environment(\.bindableSettings) var settings
     @State private var accessibilityAuthorized = false
     

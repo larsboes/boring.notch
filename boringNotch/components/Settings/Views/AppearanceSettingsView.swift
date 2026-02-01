@@ -11,7 +11,6 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct Appearance: View {
-    @Bindable var coordinator = BoringViewCoordinator.shared
     @Environment(\.bindableSettings) var settings
 
     let icons: [String] = ["logo2"]
@@ -20,7 +19,7 @@ struct Appearance: View {
         @Bindable var settings = settings
         Form {
             Section {
-                Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
+                Toggle("Always show tabs", isOn: $settings.alwaysShowTabs)
                 Toggle(isOn: $settings.settingsIconInNotch) {
                     Text("Show settings icon in notch")
                 }
