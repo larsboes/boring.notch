@@ -1,7 +1,5 @@
 # boringNotch — Project Evolution PRD + Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task.
-
 **Goal:** Take boringNotch from "plugin foundation installed, violations remaining" to a clean, extensible notch platform with data portability, automation hooks, and a path to third-party plugins.
 
 **Architecture:** Plugin-first + DI via ServiceContainer + @Observable/@MainActor throughout. Every feature is a plugin. Views never construct services. All cross-plugin communication via PluginEventBus.
@@ -74,63 +72,6 @@ Three layers of value:
 ### Task 1: Fix Inline Service Construction Runtime Bug ✅ COMPLETE
 
 **Implementation (2026-02-24):** `VolumeManager(eventBus: PluginEventBus())` and `BrightnessManager(eventBus: PluginEventBus())` were found in `ContentView`, `OpenNotchHUD`, and `InlineHUD` — not in `NotchContentRouter` as originally documented. All three files updated to use `@Environment(\.pluginManager)` and call `pluginManager?.services.volume/.brightness` instead. Dead declarations in `ContentView` removed. Build verified green.
-
----
-
-### Task 1 (original spec, for reference): Fix `NotchContentRouter` Runtime Bug
-
-**Why first:** Active bug causing incorrect behavior. Services created inline = wrong event buses.
-
-**Files:**
-- Modify: `boringNotch/Core/NotchContentRouter.swift`
-- Reference: `boringNotch/Plugins/Services/ServiceContainer.swift`
-- Reference: `boringNotch/Plugins/Core/PluginManager.swift`
-
-**Step 1: Read the file**
-
-```bash
-# Find current violations
-grep -n "VolumeManager\|BrightnessManager\|PluginEventBus()" boringNotch/Core/NotchContentRouter.swift
-```
-
-**Step 2: Identify all inline-constructed services**
-
-Look for any `= VolumeManager(...)`, `= BrightnessManager(...)` or `PluginEventBus()` at property declaration sites inside a SwiftUI `struct`.
-
-**Step 3: Replace inline construction with environment/injection**
-
-Pattern — before:
-```swift
-@State private var volumeManager = VolumeManager(eventBus: PluginEventBus())
-@State private var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
-```
-
-Pattern — after:
-```swift
-@Environment(PluginManager.self) private var pluginManager
-// Access via: pluginManager.services.volume, pluginManager.services.brightness
-```
-
-If `VolumeServiceProtocol` and `BrightnessServiceProtocol` don't exist yet in `ServiceContainer`, add them. Follow the pattern of existing services in `Plugins/Services/`.
-
-**Step 4: Remove any direct `Defaults[.]` access in this file**
-
-Replace with `@Environment(\.settings)` (read-only) or `@Environment(\.bindableSettings)` (two-way binding in settings views only).
-
-**Step 5: Build and verify**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' build 2>&1 | tail -50
-```
-
-Expected: `BUILD SUCCEEDED`
-
-**Step 6: Commit**
-
-```bash
-git add boringNotch/Core/NotchContentRouter.swift
-git commit -m "fix: eliminate inline service construction in NotchContentRouter"
-```
 
 ---
 
