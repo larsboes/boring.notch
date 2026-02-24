@@ -8,7 +8,6 @@
 //
 
 import SwiftUI
-import Defaults
 
 /// Routes notch content based on the current display state.
 /// Uses NotchStateMachine to determine what content to show.
@@ -19,6 +18,7 @@ struct NotchContentRouter: View {
     // Required environment and state for rendering
     @Environment(BoringViewModel.self) var vm
     @Environment(\.pluginManager) var pluginManager
+    @Environment(\.settings) var settings
     @Bindable var coordinator: BoringViewCoordinator
 
     /// Height to use for closed notch content
@@ -46,6 +46,7 @@ struct NotchContentRouter: View {
                 expandingContent(type: type)
             }
         }
+    .environment(coordinator)
     .environment(\.displayClosedNotchHeight, closedNotchHeight)
     .environment(\.cornerRadiusScaleFactor, cornerRadiusScaleFactor)
     .environment(\.cornerRadiusInsets, cornerRadiusInsets)
@@ -111,19 +112,16 @@ struct NotchContentRouter: View {
         .transition(.opacity)
     }
 
-    @State private var volumeManager = VolumeManager(eventBus: PluginEventBus())
-    @State private var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
-
     @ViewBuilder
     private func sneakPeekOverlayContent(type: SneakContentType, value: CGFloat, icon: String) -> some View {
-        if type == .music && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
+        if type == .music && !vm.hideOnClosed && settings.sneakPeekStyles == .standard {
             HStack(alignment: .center) {
                 Image(systemName: "music.note")
                 GeometryReader { geo in
                     if let musicService = pluginManager?.services.music, let track = musicService.currentTrack {
                         MarqueeText(
                             track.title + " - " + track.artist,
-                            color: Defaults[.playerColorTinting]
+                            color: settings.playerColorTinting
                                 ? Color(nsColor: musicService.avgColor).ensureMinimumBrightness(factor: 0.6)
                                 : .gray,
                             delayDuration: 1.0,
@@ -142,9 +140,9 @@ struct NotchContentRouter: View {
                 sendEventBack: { newVal in
                     switch type {
                     case .volume:
-                        volumeManager.setAbsolute(Float32(newVal))
+                        pluginManager?.services.volume.setAbsolute(Float32(newVal))
                     case .brightness:
-                        brightnessManager.setAbsolute(value: Float32(newVal))
+                        pluginManager?.services.brightness.setAbsolute(value: Float32(newVal))
                     default:
                         break
                     }
