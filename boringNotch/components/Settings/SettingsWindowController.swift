@@ -13,6 +13,8 @@ import Sparkle
 class SettingsWindowController: NSWindowController {
     static let shared = SettingsWindowController()
     private var updaterController: SPUStandardUpdaterController?
+    private var coordinator: BoringViewCoordinator?
+    private var pluginManager: PluginManager?
     private var hasSetupContent = false
 
     private init() {
@@ -35,6 +37,13 @@ class SettingsWindowController: NSWindowController {
 
     func setUpdaterController(_ controller: SPUStandardUpdaterController) {
         self.updaterController = controller
+        // Mark that content needs refresh on next show
+        hasSetupContent = false
+    }
+
+    func configure(coordinator: BoringViewCoordinator, pluginManager: PluginManager) {
+        self.coordinator = coordinator
+        self.pluginManager = pluginManager
         // Mark that content needs refresh on next show
         hasSetupContent = false
     }
@@ -64,14 +73,11 @@ class SettingsWindowController: NSWindowController {
     }
 
     private func setupContentViewIfNeeded() {
-        guard let window = window, !hasSetupContent else { return }
+        guard let window = window, !hasSetupContent, let coordinator = coordinator else { return }
 
-        // Create the SwiftUI content with required environment objects
-        // BoringViewCoordinator.shared is available at this point
-        let appDelegate = NSApp.delegate as? AppDelegate
         let settingsView = SettingsView(updaterController: updaterController)
-            .environment(BoringViewCoordinator.shared)
-            .environment(\.pluginManager, appDelegate?.pluginManager)
+            .environment(coordinator)
+            .environment(\.pluginManager, pluginManager)
             .environment(\.bindableSettings, DefaultsNotchSettings.shared)
         let hostingView = NSHostingView(rootView: settingsView)
         window.contentView = hostingView

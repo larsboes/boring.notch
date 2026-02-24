@@ -24,6 +24,7 @@ private let calendarService = CalendarDataProvider()
 
 struct OnboardingView: View {
     @State var step: OnboardingStep = .welcome
+    @Environment(BoringViewCoordinator.self) var coordinator
     let onFinish: () -> Void
     let onOpenSettings: () -> Void
 
@@ -152,7 +153,7 @@ struct OnboardingView: View {
                 MusicControllerSelectionView(
                     onContinue: {
                         withAnimation(.easeInOut(duration: 0.6)) {
-                            BoringViewCoordinator.shared.firstLaunch = false
+                            coordinator.firstLaunch = false
                             step = .finished
                         }
                     }

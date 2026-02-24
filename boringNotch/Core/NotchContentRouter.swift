@@ -228,7 +228,7 @@ struct NotchContentRouter_Previews: PreviewProvider {
         NotchContentRouter(
             displayState: NotchDisplayState.closed(content: NotchDisplayState.ClosedContent.idle),
             albumArtNamespace: namespace,
-            coordinator: BoringViewCoordinator.shared,
+            coordinator: BoringViewCoordinator(),
             closedNotchHeight: CGFloat(32),
             cornerRadiusScaleFactor: 1.0,
             cornerRadiusInsets: CornerRadiusInsets(opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))

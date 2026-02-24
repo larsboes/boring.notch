@@ -22,6 +22,7 @@ final class AppObjectGraph {
             services: ServiceContainer(eventBus: eventBus, settings: settings),
             eventBus: eventBus,
             appState: BoringAppState(),
+            coordinator: coordinator,
             builtInPlugins: [
                 MusicPlugin(),
                 BatteryPlugin(),
@@ -51,7 +52,7 @@ final class AppObjectGraph {
     // MARK: - Coordinators
 
     lazy var fullscreenDetector: FullscreenMediaDetector = {
-        FullscreenMediaDetector(musicService: pluginManager.services.music)
+        FullscreenMediaDetector(musicService: pluginManager.services.music, settings: settings)
     }()
 
     lazy var mediaKeyInterceptor: MediaKeyInterceptor = {
@@ -59,7 +60,8 @@ final class AppObjectGraph {
             volumeService: pluginManager.services.volume,
             brightnessService: pluginManager.services.brightness,
             keyboardBacklightService: pluginManager.services.keyboardBacklight,
-            coordinator: coordinator
+            coordinator: coordinator,
+            settings: settings
         )
     }()
 

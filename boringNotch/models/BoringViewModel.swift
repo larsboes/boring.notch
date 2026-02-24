@@ -172,13 +172,12 @@ import SwiftUI
         setupNotchHeightObserver()
     }
 
-    /// Convenience initializer for previews and legacy support
-    /// NOTE: Only for #Preview - uses .shared singletons
+    /// Convenience initializer for previews only
     @MainActor
     override convenience init() {
         let musicService = MusicService(manager: MusicManager())
         self.init(
-            coordinator: BoringViewCoordinator.shared,
+            coordinator: BoringViewCoordinator(),
             detector: FullscreenMediaDetector(musicService: musicService),
             webcamService: WebcamManager(),
             musicService: musicService,

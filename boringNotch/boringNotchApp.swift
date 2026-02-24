@@ -123,6 +123,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             mediaKeyInterceptor: graph.mediaKeyInterceptor
         )
 
+        SettingsWindowController.shared.configure(
+            coordinator: coordinator,
+            pluginManager: pluginManager
+        )
+
         let result = graph.setupNotificationObservers(
             screenConfigSelector: #selector(screenConfigurationDidChange),
             target: self
@@ -227,7 +232,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         window.close()
                         SettingsWindowController.shared.showWindow()
                     }
-                ))
+                )
+                .environment(self.graph.coordinator)
+                .environment(\.pluginManager, self.graph.pluginManager))
             window.isRestorable = false
             window.identifier = NSUserInterfaceItemIdentifier("OnboardingWindow")
             onboardingWindowController = NSWindowController(window: window)

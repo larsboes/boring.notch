@@ -48,8 +48,6 @@ struct ExpandedItem {
 
 @MainActor
 @Observable class BoringViewCoordinator {
-    static let shared = BoringViewCoordinator()
-
     var currentView: NotchViews = .home
     var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?

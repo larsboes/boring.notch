@@ -68,14 +68,15 @@ final class PluginManager {
         services: ServiceContainer,
         eventBus: PluginEventBus,
         appState: AppStateProviding,
+        coordinator: BoringViewCoordinator,
         builtInPlugins: [any NotchPlugin] = []
     ) {
         self.services = services
         self.eventBus = eventBus
         self.appState = appState
-        
-        // Inject shelf service into BoringViewCoordinator
-        BoringViewCoordinator.shared.shelfService = services.shelf
+
+        // Inject shelf service into coordinator
+        coordinator.shelfService = services.shelf
 
         // Register built-in plugins
         for plugin in builtInPlugins {
