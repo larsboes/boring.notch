@@ -12,7 +12,7 @@ macOS SwiftUI app that replaces the MacBook notch with an interactive widget sys
 
 ## Code Standards
 - **Max 300 lines per file** (hard limit). Target 200 lines.
-- **No `.shared` singletons** in views or services. Use `@Environment` or init injection.
+- **No `.shared` singletons** in views or services. Use `@Environment` or init injection. Acceptable exceptions: `NSWorkspace.shared`, `NSApplication.shared`, `URLSession.shared`, `URLCache.shared`, `XPCHelperClient.shared`, `FullScreenMonitor.shared`, `QLThumbnailGenerator.shared`, `QLPreviewPanel.shared()`, `NSScreenUUIDCache.shared`, `SkyLightOperator.shared`, `DefaultsNotchSettings.shared` (settings injection root only).
 - **No direct `Defaults[.]` access** outside `DefaultsNotchSettings.swift`. Use `NotchSettings` protocol / `@Environment(\.bindableSettings)`.
 - **`@Observable` + `@MainActor`** for all observable state. No `ObservableObject`/`@Published`.
 - **Protocol-based services** injected via `PluginContext` or init parameters.
@@ -63,8 +63,10 @@ SwiftUI Views → PluginManager → NotchPlugin instances → Service Protocols 
 | `managers/` | Legacy | Managers wrapping into services |
 
 ## Key Files
-- `docs/plans/2026-02-24-project-evolution-prd.md` — active implementation plan (Phase 1–7)
-- `docs/plans/2026-02-07-singleton-elimination-remaining.md` — completed singleton elimination record
+- `docs/PRD.md` — active implementation plan (Phase 1–7) + migration status
+- `docs/STATE_MANAGEMENT_ANALYSIS.md` — hover state redesign spec (referenced by PRD Task 9)
+- `docs/ARCHITECTURE.md` — architecture reference
+- `docs/PLUGIN_DEVELOPMENT.md` — plugin development guide
 - `boringNotch/AppObjectGraph.swift` — DI root; constructs all services and coordinators
 - `boringNotch/Plugins/Core/PluginManager.swift` — central plugin orchestrator
 - `boringNotch/Plugins/Services/ServiceContainer.swift` — DI container
