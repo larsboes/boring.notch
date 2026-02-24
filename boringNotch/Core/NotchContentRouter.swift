@@ -138,11 +138,15 @@ struct NotchContentRouter: View {
                 value: .constant(value),
                 icon: .constant(icon),
                 sendEventBack: { newVal in
+                    guard let pluginManager else {
+                        assertionFailure("NotchContentRouter: pluginManager not injected")
+                        return
+                    }
                     switch type {
                     case .volume:
-                        pluginManager?.services.volume.setAbsolute(Float32(newVal))
+                        pluginManager.services.volume.setAbsolute(Float32(newVal))
                     case .brightness:
-                        pluginManager?.services.brightness.setAbsolute(value: Float32(newVal))
+                        pluginManager.services.brightness.setAbsolute(value: Float32(newVal))
                     default:
                         break
                     }
