@@ -46,10 +46,6 @@ final class MusicService: MusicServiceProtocol {
     
     var sneakPeekPublisher: AnyPublisher<SneakPeekRequest, Never> {
         manager.sneakPeekPublisher
-            .map { request in
-                SneakPeekRequest(style: request.style, type: request.type)
-            }
-            .eraseToAnyPublisher()
     }
 
     // MARK: - Initialization

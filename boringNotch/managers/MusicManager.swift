@@ -4,667 +4,145 @@
 //
 //  Created by Harsh Vardhan  Goswami  on 03/08/24.
 //
+//  Thin facade composing MusicPlaybackController, MusicArtworkService,
+//  and LyricsService. Delegates all work to sub-services.
+//
+
 import AppKit
 import Combine
 import Defaults
 import SwiftUI
 
-let defaultImage: NSImage = .init(
-    systemSymbolName: "heart.fill",
-    accessibilityDescription: "Album Art"
-)!
-
 @MainActor
-@Observable class MusicManager {
-    // MARK: - Properties
-    private var cancellables = Set<AnyCancellable>()
-    private var controllerCancellables = Set<AnyCancellable>()
-    private var debounceIdleTask: Task<Void, Never>?
-    private var albumArtTask: Task<Void, Error>?
+@Observable
+final class MusicManager {
+    // MARK: - Sub-services
 
-    // Helper to check if macOS has removed support for NowPlayingController
-    // nonisolated to allow static initialization access
-    @ObservationIgnored public private(set) var isNowPlayingDeprecated: Bool = false
-    static nonisolated(unsafe) var isNowPlayingDeprecatedStatic: Bool = false
-    private let mediaChecker = MediaChecker()
-
-    // Active controller
-    private var activeController: (any MediaControllerProtocol)?
-
-    // Published properties for UI
-    var songTitle: String = "I'm Handsome"
-    var artistName: String = "Me"
-    var albumArt: NSImage = defaultImage
-    var isPlaying = false
-    var album: String = "Self Love"
-    var isPlayerIdle: Bool = true
-    var animations: BoringAnimations = .init()
-    var avgColor: NSColor = .white
-    var bundleIdentifier: String?
-    var songDuration: TimeInterval = 0
-    var elapsedTime: TimeInterval = 0
-    var timestampDate: Date = .init()
-    var playbackRate: Double = 1
-    var isShuffled: Bool = false
-    var repeatMode: RepeatMode = .off
-    var volume: Double = 0.5
-    var volumeControlSupported: Bool = true
-    var usingAppIconForArtwork: Bool = false
-
-    // MARK: - Sneak Peek Request (replaces direct coordinator coupling)
-
-    /// Published when music starts playing and sneak peek should be shown.
-    /// The coordinator subscribes to this instead of being called directly.
-    /// This maintains separation of concerns: data manager doesn't know about view coordinator.
-    private let sneakPeekSubject = PassthroughSubject<SneakPeekRequest, Never>()
-    var sneakPeekPublisher: AnyPublisher<SneakPeekRequest, Never> {
-        sneakPeekSubject.eraseToAnyPublisher()
-    }
-    
-    // Publisher for playback state changes (for MusicService)
-    private let playbackStateSubject = PassthroughSubject<PlaybackState, Never>()
-    var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
-        playbackStateSubject.eraseToAnyPublisher()
-    }
-    
-    // Publisher for average color changes
-    private let avgColorSubject = PassthroughSubject<NSColor, Never>()
-    var avgColorPublisher: AnyPublisher<NSColor, Never> {
-        avgColorSubject.eraseToAnyPublisher()
-    }
-    
-    // Kept for backward compatibility if needed, but publisher is preferred for events
-    var sneakPeekRequest: SneakPeekRequest? {
-        didSet {
-            if let request = sneakPeekRequest {
-                sneakPeekSubject.send(request)
-            }
-        }
-    }
-
-    struct SneakPeekRequest: Equatable {
-        let style: SneakPeekStyle
-        let type: SneakContentType
-
-        static func == (lhs: SneakPeekRequest, rhs: SneakPeekRequest) -> Bool {
-            lhs.style == rhs.style && lhs.type == rhs.type
-        }
-    }
-    var canFavoriteTrack: Bool = false
-    
-    // Lyrics are now managed by LyricsService
+    private let playback: MusicPlaybackController
+    private let artwork: MusicArtworkService
     private let _lyricsService = LyricsService()
+
+    // MARK: - Forwarded Properties (Playback)
+
+    var songTitle: String { playback.songTitle }
+    var artistName: String { playback.artistName }
+    var album: String { playback.album }
+    var isPlaying: Bool { playback.isPlaying }
+    var isPlayerIdle: Bool { playback.isPlayerIdle }
+    var bundleIdentifier: String? { playback.bundleIdentifier }
+    var songDuration: TimeInterval { playback.songDuration }
+    var elapsedTime: TimeInterval { playback.elapsedTime }
+    var timestampDate: Date { playback.timestampDate }
+    var playbackRate: Double { playback.playbackRate }
+    var isShuffled: Bool { playback.isShuffled }
+    var repeatMode: RepeatMode { playback.repeatMode }
+    var volume: Double { playback.volume }
+    var volumeControlSupported: Bool { playback.volumeControlSupported }
+    var canFavoriteTrack: Bool { playback.canFavoriteTrack }
+    var isFavoriteTrack: Bool { playback.isFavoriteTrack }
+    var isNowPlayingDeprecated: Bool { playback.isNowPlayingDeprecated }
+    nonisolated static var isNowPlayingDeprecatedStatic: Bool {
+        MusicPlaybackController.isNowPlayingDeprecatedStatic
+    }
+
+    // MARK: - Forwarded Properties (Artwork)
+
+    var albumArt: NSImage { artwork.albumArt }
+    var avgColor: NSColor { artwork.avgColor }
+    var usingAppIconForArtwork: Bool { artwork.usingAppIconForArtwork }
+    var isFlipping: Bool { artwork.isFlipping }
+
+    // MARK: - Forwarded Properties (Lyrics)
+
     var lyricsService: LyricsService { _lyricsService }
-    var currentLyrics: String { lyricsService.currentLyrics }
-    var isFetchingLyrics: Bool { lyricsService.isFetchingLyrics }
-    var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
-    var isFavoriteTrack: Bool = false
+    var currentLyrics: String { _lyricsService.currentLyrics }
+    var isFetchingLyrics: Bool { _lyricsService.isFetchingLyrics }
+    var syncedLyrics: [(time: Double, text: String)] { _lyricsService.syncedLyrics }
 
-    private var artworkData: Data?
+    // MARK: - Publishers
 
-    // Store last values at the time artwork was changed
-    private var lastArtworkTitle: String = "I'm Handsome"
-    private var lastArtworkArtist: String = "Me"
-    private var lastArtworkAlbum: String = "Self Love"
-    private var lastArtworkBundleIdentifier: String?
+    var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
+        playback.playbackStatePublisher
+    }
 
-    var isFlipping: Bool = false
-    private var flipWorkItem: DispatchWorkItem?
+    var avgColorPublisher: AnyPublisher<NSColor, Never> {
+        artwork.avgColorPublisher
+    }
 
-    var isTransitioning: Bool = false
-    private var transitionWorkItem: DispatchWorkItem?
+    var sneakPeekPublisher: AnyPublisher<SneakPeekRequest, Never> {
+        playback.sneakPeekPublisher
+    }
 
     // MARK: - Initialization
+
     init() {
-        // Listen for changes to the default controller preference
-        NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
-            .sink { [weak self] _ in
-                self?.setActiveControllerBasedOnPreference()
-            }
-            .store(in: &cancellables)
+        let imageService = ImageService()
+        self.artwork = MusicArtworkService()
+        self.playback = MusicPlaybackController(imageService: imageService)
 
-        // Initialize deprecation check asynchronously
-        Task { @MainActor in
-            do {
-                self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
-                MusicManager.isNowPlayingDeprecatedStatic = self.isNowPlayingDeprecated
-                // print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
-            } catch {
-                print("Failed to check deprecation status: \(error). Defaulting to false.")
-                self.isNowPlayingDeprecated = false
-            }
-            
-            // Initialize the active controller after deprecation check
-            self.setActiveControllerBasedOnPreference()
-        }
-    }
-
-    deinit {
-        // Cancellables and tasks are automatically cleaned up when deallocated
-        // Cannot call MainActor methods from deinit
-    }
-
-    public func destroy() {
-        debounceIdleTask?.cancel()
-        cancellables.removeAll()
-        controllerCancellables.removeAll()
-        flipWorkItem?.cancel()
-        transitionWorkItem?.cancel()
-
-        // Release active controller
-        activeController = nil
-    }
-
-    // MARK: - Setup Methods
-    private func createController(for type: MediaControllerType) -> (any MediaControllerProtocol)? {
-        // Cleanup previous controller
-        if activeController != nil {
-            controllerCancellables.removeAll()
-            activeController = nil
-        }
-
-        let newController: (any MediaControllerProtocol)?
-
-        switch type {
-        case .nowPlaying:
-            // Only create NowPlayingController if not deprecated on this macOS version
-            if !self.isNowPlayingDeprecated {
-                newController = NowPlayingController()
-            } else {
-                return nil
-            }
-        case .appleMusic:
-            newController = AppleMusicController()
-        case .spotify:
-            newController = SpotifyController()
-        case .youtubeMusic:
-            newController = YouTubeMusicController()
-        }
-
-        // Set up state observation for the new controller
-        if let controller = newController {
-            controller.playbackStatePublisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] state in
-                    guard let self = self,
-                          self.activeController === controller else { return }
-                    self.updateFromPlaybackState(state)
-                }
-                .store(in: &controllerCancellables)
-        }
-
-        return newController
-    }
-
-    private func setActiveControllerBasedOnPreference() {
-        let preferredType = Defaults[.mediaController]
-        // print("Preferred Media Controller: \(preferredType)")
-
-        // If NowPlaying is deprecated but that's the preference, use Apple Music instead
-        let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
-            ? .appleMusic
-            : preferredType
-
-        if let controller = createController(for: controllerType) {
-            setActiveController(controller)
-        } else if controllerType != .appleMusic, let fallbackController = createController(for: .appleMusic) {
-            // Fallback to Apple Music if preferred controller couldn't be created
-            setActiveController(fallbackController)
-        }
-    }
-
-    private func setActiveController(_ controller: any MediaControllerProtocol) {
-        // Cancel any existing flip animation
-        flipWorkItem?.cancel()
-
-        // Set new active controller
-        activeController = controller
-        
-        self.canFavoriteTrack = controller.supportsFavorite
-
-        // Get current state from active controller
-        forceUpdate()
-    }
-
-    // MARK: - Update Methods
-    @MainActor
-    private func updateFromPlaybackState(_ state: PlaybackState) {
-        // Publish state change
-        playbackStateSubject.send(state)
-
-        // Check for playback state changes (playing/paused)
-        if state.isPlaying != self.isPlaying {
-            // NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
-            withAnimation(.smooth) {
-                self.isPlaying = state.isPlaying
-                self.updateIdleState(state: state.isPlaying)
-            }
-
-            if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
-                self.updateSneakPeek()
-            }
-        }
-
-        // Check for changes in track metadata using last artwork change values
-        let titleChanged = state.title != self.lastArtworkTitle
-        let artistChanged = state.artist != self.lastArtworkArtist
-        let albumChanged = state.album != self.lastArtworkAlbum
-        let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
-
-        // Check for artwork changes
-        let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
-        let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
-
-        // Handle artwork and visual transitions for changed content
-        if hasContentChange {
-            self.triggerFlipAnimation()
-
-            if artworkChanged || state.artwork == nil {
-                // Update last artwork change values
-                self.lastArtworkTitle = state.title
-                self.lastArtworkArtist = state.artist
-                self.lastArtworkAlbum = state.album
-                self.lastArtworkBundleIdentifier = state.bundleIdentifier
-            }
-
-            // Prepare new artwork
-            var newAlbumArt: NSImage = defaultImage
-            var usingAppIcon = false
-            
-            if artworkChanged, let artwork = state.artwork, let artworkImage = NSImage(data: artwork) {
-                newAlbumArt = artworkImage
-            } else if let appIcon = AppIconAsNSImage(for: state.bundleIdentifier) {
-                newAlbumArt = appIcon
-                usingAppIcon = true
-            }
-            
-            // Update metadata immediately
-            self.songTitle = state.title
-            self.artistName = state.artist
-            self.album = state.album
-            
-            // Trigger flip animation
-            self.triggerFlipAnimation()
-            
-            // Debounced artwork update
-            albumArtTask?.cancel()
-            albumArtTask = Task(priority: .userInitiated) { [weak self] in
-                if usingAppIcon {
-                    // Add delay for app icon fallback to prevent flickering if real artwork loads shortly after
-                    try? await Task.sleep(for: .milliseconds(400))
-                }
-                
-                guard let self = self, !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    self.albumArt = newAlbumArt
-                    self.usingAppIconForArtwork = usingAppIcon
-                    self.artworkData = state.artwork
-                    
-                    if Defaults[.coloredSpectrogram] {
-                        self.calculateAverageColor()
-                    }
-                }
-            }
-
-            // Only update sneak peek if there's actual content and something changed
-            if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
-                self.updateSneakPeek()
-            }
-
-            // Fetch lyrics on content change
-            self.fetchLyricsIfAvailable(bundleIdentifier: state.bundleIdentifier, title: state.title, artist: state.artist)
-        }
-
-        let timeChanged = state.currentTime != self.elapsedTime
-        let durationChanged = state.duration != self.songDuration
-        let playbackRateChanged = state.playbackRate != self.playbackRate
-        let shuffleChanged = state.isShuffled != self.isShuffled
-        let repeatModeChanged = state.repeatMode != self.repeatMode
-        let volumeChanged = state.volume != self.volume
-        
-        if state.title != self.songTitle {
-            self.songTitle = state.title
-        }
-
-        if state.artist != self.artistName {
-            self.artistName = state.artist
-        }
-
-        if state.album != self.album {
-            self.album = state.album
-        }
-
-        if timeChanged {
-            self.elapsedTime = state.currentTime
-        }
-
-        if durationChanged {
-            self.songDuration = state.duration
-        }
-
-        if playbackRateChanged {
-            self.playbackRate = state.playbackRate
-        }
-        
-        if shuffleChanged {
-            self.isShuffled = state.isShuffled
-        }
-
-        if state.bundleIdentifier != self.bundleIdentifier {
-            self.bundleIdentifier = state.bundleIdentifier
-            // Update volume control support from active controller
-            self.volumeControlSupported = activeController?.supportsVolumeControl ?? false
-        }
-
-        if repeatModeChanged {
-            self.repeatMode = state.repeatMode
-        }
-        if state.isFavorite != self.isFavoriteTrack {
-            self.isFavoriteTrack = state.isFavorite
-        }
-        
-        if volumeChanged {
-            self.volume = state.volume
-        }
-        
-        self.timestampDate = state.lastUpdated
-    }
-
-    func toggleFavoriteTrack() {
-        guard canFavoriteTrack else { return }
-        // Toggle based on current state
-        setFavorite(!isFavoriteTrack)
-    }
-
-    @MainActor
-    private func toggleAppleMusicFavorite() async {
-        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
-        guard !runningApps.isEmpty else { return }
-
-        let script = """
-        tell application \"Music\"
-            if it is running then
-                try
-                    set loved of current track to (not loved of current track)
-                    return loved of current track
-                on error
-                    return false
-                end try
-            else
-                return false
-            end if
-        end tell
-        """
-
-        if let result = try? await AppleScriptHelper.execute(script) {
-            let loved = result.booleanValue
-            self.isFavoriteTrack = loved
-            self.forceUpdate()
-        }
-    }
-
-    func setFavorite(_ favorite: Bool) {
-        guard canFavoriteTrack else { return }
-        guard let controller = activeController else { return }
-
-        Task { @MainActor in
-            await controller.setFavorite(favorite)
-            try? await Task.sleep(for: .milliseconds(150))
-            await controller.updatePlaybackInfo()
-        }
-    }
-
-    /// Placeholder dislike function
-    func dislikeCurrentTrack() {
-        setFavorite(false)
-    }
-
-    // MARK: - Lyrics
-    private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
-        guard Defaults[.enableLyrics], !title.isEmpty else {
-            Task { @MainActor in
-                lyricsService.clearLyrics()
-            }
-            return
-        }
-        
-        Task { @MainActor in
-            await lyricsService.fetchLyrics(bundleIdentifier: bundleIdentifier, title: title, artist: artist)
-        }
-    }
-
-    private func triggerFlipAnimation() {
-        // Cancel any existing animation
-        flipWorkItem?.cancel()
-
-        // Create a new animation
-        let workItem = DispatchWorkItem { [weak self] in
-            self?.isFlipping = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                self?.isFlipping = false
-            }
-        }
-
-        flipWorkItem = workItem
-        DispatchQueue.main.async(execute: workItem)
-    }
-
-    private func updateArtwork(_ artworkData: Data) {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        // Wire artwork updates from playback state changes
+        playback.onContentChange = { [weak self] state in
             guard let self = self else { return }
-
-            if let artworkImage = NSImage(data: artworkData) {
-                DispatchQueue.main.async { [weak self] in
-                    self?.usingAppIconForArtwork = false
-                    self?.updateAlbumArt(newAlbumArt: artworkImage)
-                }
-            }
-        }
-    }
-
-    private func updateIdleState(state: Bool) {
-        if state {
-            isPlayerIdle = false
-            debounceIdleTask?.cancel()
-        } else {
-            debounceIdleTask?.cancel()
-            debounceIdleTask = Task { [weak self] in
-                guard let self = self else { return }
-                try? await Task.sleep(for: .seconds(Defaults[.waitInterval]))
-                withAnimation {
-                    self.isPlayerIdle = !self.isPlaying
-                }
-            }
-        }
-    }
-
-    private var workItem: DispatchWorkItem?
-
-    func updateAlbumArt(newAlbumArt: NSImage) {
-        workItem?.cancel()
-        withAnimation(.smooth) {
-            self.albumArt = newAlbumArt
-            if Defaults[.coloredSpectrogram] {
-                self.calculateAverageColor()
-            }
-        }
-    }
-
-    // MARK: - Playback Position Estimation
-    public func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
-        guard isPlaying else { return min(elapsedTime, songDuration) }
-
-        let timeDifference = date.timeIntervalSince(timestampDate)
-        let estimated = elapsedTime + (timeDifference * playbackRate)
-        return min(max(0, estimated), songDuration)
-    }
-
-    func calculateAverageColor() {
-        albumArt.averageColor { [weak self] color in
-            DispatchQueue.main.async {
-                withAnimation(.smooth) {
-                    let newColor = color ?? .white
-                    self?.avgColor = newColor
-                    self?.avgColorSubject.send(newColor)
-                }
-            }
-        }
-    }
-
-    private func updateSneakPeek() {
-        if isPlaying && Defaults[.enableSneakPeek] {
-            // Publish a sneak peek request instead of calling coordinator directly.
-            // The coordinator subscribes to this and handles the UI update.
-            // This maintains separation of concerns: data manager doesn't know about views.
-            sneakPeekRequest = SneakPeekRequest(
-                style: Defaults[.sneakPeekStyles],
-                type: .music
+            self.artwork.handleContentChange(state)
+            self.fetchLyricsIfAvailable(
+                bundleIdentifier: state.bundleIdentifier,
+                title: state.title,
+                artist: state.artist
             )
         }
     }
 
-    // MARK: - Public Methods for controlling playback
-    func playPause() {
-        Task {
-            await activeController?.togglePlay()
-        }
+    func destroy() {
+        playback.destroy()
+        artwork.destroy()
     }
 
-    func play() {
-        Task {
-            await activeController?.play()
-        }
-    }
+    // MARK: - Transport Controls
 
-    func pause() {
-        Task {
-            await activeController?.pause()
-        }
-    }
+    func playPause() { playback.playPause() }
+    func play() { playback.play() }
+    func pause() { playback.pause() }
+    func togglePlay() { playback.togglePlay() }
+    func nextTrack() { playback.nextTrack() }
+    func previousTrack() { playback.previousTrack() }
+    func seek(to position: TimeInterval) { playback.seek(to: position) }
+    func skip(seconds: TimeInterval) { playback.skip(seconds: seconds) }
+    func toggleShuffle() { playback.toggleShuffle() }
+    func toggleRepeat() { playback.toggleRepeat() }
+    func setVolume(to level: Double) { playback.setVolume(to: level) }
+    func openMusicApp() { playback.openMusicApp() }
+    func forceUpdate() { playback.forceUpdate() }
 
-    func toggleShuffle() {
-        Task {
-            await activeController?.toggleShuffle()
-        }
-    }
-
-    func toggleRepeat() {
-        Task {
-            await activeController?.toggleRepeat()
-        }
-    }
-    
-    func togglePlay() {
-        Task {
-            await activeController?.togglePlay()
-        }
-    }
-
-    func nextTrack() {
-        Task {
-            await activeController?.nextTrack()
-        }
-    }
-
-    func previousTrack() {
-        Task {
-            await activeController?.previousTrack()
-        }
-    }
-
-    func seek(to position: TimeInterval) {
-        Task {
-            await activeController?.seek(to: position)
-        }
-    }
-    func skip(seconds: TimeInterval) {
-        let newPos = min(max(0, elapsedTime + seconds), songDuration)
-        seek(to: newPos)
-    }
-    
-    func setVolume(to level: Double) {
-        if let controller = activeController {
-            Task {
-                await controller.setVolume(level)
-            }
-        }
-    }
-    func openMusicApp() {
-        guard let bundleID = bundleIdentifier else {
-            print("Error: appBundleIdentifier is nil")
-            return
-        }
-
-        let workspace = NSWorkspace.shared
-        if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
-            let configuration = NSWorkspace.OpenConfiguration()
-            workspace.openApplication(at: appURL, configuration: configuration) { (app, error) in
-                if let error = error {
-                    print("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
-                } else {
-                    print("Launched app with bundle ID: \(bundleID)")
-                }
-            }
-        } else {
-            print("Failed to find app with bundle ID: \(bundleID)")
-        }
-    }
-
-    func forceUpdate() {
-        // Request immediate update from the active controller
-        Task { [weak self] in
-            if self?.activeController?.isActive() == true {
-                if let youtubeController = self?.activeController as? YouTubeMusicController {
-                    await youtubeController.pollPlaybackState()
-                } else {
-                    await self?.activeController?.updatePlaybackInfo()
-                }
-            }
-        }
-    }
-    
     func syncVolumeFromActiveApp() async {
-        // Check if bundle identifier is valid and if the app is actually running
-        guard let bundleID = bundleIdentifier, !bundleID.isEmpty,
-              NSWorkspace.shared.runningApplications.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
-        
-        var script: String?
-        if bundleID == "com.apple.Music" {
-            script = """
-            tell application "Music"
-                if it is running then
-                    get sound volume
-                else
-                    return 50
-                end if
-            end tell
-            """
-        } else if bundleID == "com.spotify.client" {
-            script = """
-            tell application "Spotify"
-                if it is running then
-                    get sound volume
-                else
-                    return 50
-                end if
-            end tell
-            """
-        } else {
-            // For unsupported apps, don't sync volume
+        await playback.syncVolumeFromActiveApp()
+    }
+
+    func toggleFavoriteTrack() { playback.toggleFavoriteTrack() }
+    func setFavorite(_ favorite: Bool) { playback.setFavorite(favorite) }
+    func dislikeCurrentTrack() { playback.setFavorite(false) }
+
+    // MARK: - Playback Position
+
+    func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
+        playback.estimatedPlaybackPosition(at: date)
+    }
+
+    // MARK: - Lyrics
+
+    private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
+        guard Defaults[.enableLyrics], !title.isEmpty else {
+            Task { @MainActor in
+                _lyricsService.clearLyrics()
+            }
             return
         }
-        
-        if let volumeScript = script,
-           let result = try? await AppleScriptHelper.execute(volumeScript) {
-            let volumeValue = result.int32Value
-            let currentVolume = Double(volumeValue) / 100.0
-            
-            await MainActor.run {
-                if abs(currentVolume - self.volume) > 0.01 {
-                    self.volume = currentVolume
-                }
-            }
+
+        Task { @MainActor in
+            await _lyricsService.fetchLyrics(
+                bundleIdentifier: bundleIdentifier,
+                title: title,
+                artist: artist
+            )
         }
     }
 }
