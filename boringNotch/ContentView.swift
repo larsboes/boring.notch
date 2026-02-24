@@ -8,8 +8,6 @@
 
 import AVFoundation
 import Combine
-import Defaults
-import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
 
@@ -37,10 +35,6 @@ struct ContentView: View {
     }
 
     @Namespace var albumArtNamespace
-
-    @Default(.showNotHumanFace) var showNotHumanFace
-    @Default(.liquidGlassEffect) var liquidGlassEffect
-    @Default(.liquidGlassStyle) var liquidGlassStyle
 
     // MARK: - Display State Helpers
 
@@ -76,7 +70,7 @@ struct ContentView: View {
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
-        guard Defaults[.cornerRadiusScaling] else { return nil }
+        guard settings.cornerRadiusScaling else { return nil }
         let effectiveHeight = displayClosedNotchHeight
         guard effectiveHeight > 0 else { return nil }
         return effectiveHeight / 38.0
@@ -121,14 +115,14 @@ struct ContentView: View {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
         if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
+            && vm.notchState == .closed && settings.showPowerStatusNotifications {
             chinWidth = 640
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicService.playbackState.isPlaying || !musicService.isPlayerIdle)
             && settings.musicLiveActivityEnabled && !vm.hideOnClosed {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicService.playbackState.isPlaying && musicService.isPlayerIdle) && Defaults[.showNotHumanFace]
+            && (!musicService.playbackState.isPlaying && musicService.isPlayerIdle) && settings.showNotHumanFace
             && !vm.hideOnClosed {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         }
@@ -203,7 +197,7 @@ struct ContentView: View {
                     .clipShape(currentNotchShape)
                     .background {
                         ZStack {
-                            if liquidGlassEffect {
+                            if settings.liquidGlassEffect {
                                 // Metal capture logic removed - using SwiftGlass
                                 Rectangle()
                                     .swiftGlassEffect(
@@ -224,34 +218,34 @@ struct ContentView: View {
                         .clipShape(currentNotchShape)
                         .shadow(
                             // Smoothly fade shadow based on animation progress
-                            color: (animationProgress > 0 && Defaults[.enableShadow])
+                            color: (animationProgress > 0 && settings.enableShadow)
                                 ? .black.opacity(0.7 * animationProgress) : .clear, radius: 6
                         )
                     }
                     .overlay {
                         // Luminous border for liquid glass effect (works in both states)
-                        if liquidGlassEffect {
+                        if settings.liquidGlassEffect {
                             // Smoothly interpolate border opacity (0.6 closed → 1.0 open)
                             let borderMultiplier = lerp(0.6, 1.0, animationProgress)
                             currentNotchShape
                                 .stroke(
                                     LinearGradient(
                                         colors: [
-                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * borderMultiplier),
-                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * 0.3 * borderMultiplier),
-                                            .white.opacity(liquidGlassStyle.configuration.borderOpacity * 0.5 * borderMultiplier)
+                                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * borderMultiplier),
+                                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * 0.3 * borderMultiplier),
+                                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * 0.5 * borderMultiplier)
                                         ],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ),
-                                    lineWidth: liquidGlassStyle.configuration.borderWidth
+                                    lineWidth: settings.liquidGlassStyle.configuration.borderWidth
                                 )
                         }
                     }
                     .overlay(alignment: .top) {
                         displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
                             : Rectangle()
-                                .fill(liquidGlassEffect ? .clear : .black)
+                                .fill(settings.liquidGlassEffect ? .clear : .black)
                                 .frame(height: 1)
                                 .padding(.horizontal, topCornerRadius)
                     }
@@ -265,13 +259,13 @@ struct ContentView: View {
                             vm.handleHoverSignal(signal)
                         }
                     }
-                    .conditionalModifier(Defaults[.enableGestures]) { view in
+                    .conditionalModifier(settings.enableGestures) { view in
                         view
                             .panGesture(direction: .down) { translation, phase in
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                    .conditionalModifier(settings.closeGestureEnabled && settings.enableGestures) { view in
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
@@ -355,7 +349,7 @@ struct ContentView: View {
     @ViewBuilder
     var dragDetector: some View {
         @Bindable var vm = vm
-        if Defaults[.boringShelf] && vm.notchState == .closed {
+        if settings.boringShelf && vm.notchState == .closed {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
@@ -405,13 +399,13 @@ struct ContentView: View {
         case .reset:
             withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
         case .triggerOpen:
-            if Defaults[.enableHaptics] { haptics.toggle() }
+            if settings.enableHaptics { haptics.toggle() }
             withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
             openAction?()
         case .triggerClose:
             gestureProgress = .zero
             closeAction?()
-            if Defaults[.enableHaptics] { haptics.toggle() }
+            if settings.enableHaptics { haptics.toggle() }
         }
     }
 }
