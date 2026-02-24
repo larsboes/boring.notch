@@ -11,23 +11,28 @@ import QuickLook
 
 struct ShelfItemView: View {
     let item: ShelfItem
+    let shelfService: ShelfServiceProtocol
+    let quickLookService: QuickLookService
+    let quickShareService: QuickShareService
     @Environment(BoringViewModel.self) var vm
-    @Environment(\.pluginManager) var pluginManager
     @Environment(\.settings) var settings
-    
+
     private var selection: ShelfSelectionModel {
-        pluginManager?.services.shelf.selection ?? ShelfSelectionModel()
+        shelfService.selection
     }
-    
+
     @State private var viewModel: ShelfItemViewModel
     @State private var showStack = false
     @State private var debouncedDropTarget = false
 
     private var isSelected: Bool { selection.isSelected(item.id) }
     private var shouldHideDuringDrag: Bool { selection.isDragging && selection.isSelected(item.id) && false }
-    
-    init(item: ShelfItem) {
+
+    init(item: ShelfItem, shelfService: ShelfServiceProtocol, quickLookService: QuickLookService, quickShareService: QuickShareService) {
         self.item = item
+        self.shelfService = shelfService
+        self.quickLookService = quickLookService
+        self.quickShareService = quickShareService
         _viewModel = State(initialValue: ShelfItemViewModel(item: item))
     }
 
@@ -50,15 +55,15 @@ struct ShelfItemView: View {
                     item: item,
                     settings: settings,
                     viewModel: viewModel,
-                    service: pluginManager!.services.shelf,
+                    service: shelfService,
                     dragPreviewContent: {
                         DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
                     },
                     onRightClick: { event, view in
-                        viewModel.handleRightClick(event: event, view: view, service: pluginManager!.services.shelf, quickLookService: pluginManager!.services.quickLook, quickShareService: pluginManager!.services.quickShare)
+                        viewModel.handleRightClick(event: event, view: view, service: shelfService, quickLookService: quickLookService, quickShareService: quickShareService)
                     },
                     onClick: { event, nsview in
-                        viewModel.handleClick(event: event, view: nsview, items: pluginManager!.services.shelf.items, service: pluginManager!.services.shelf, quickLookService: pluginManager!.services.quickLook, quickShareService: pluginManager!.services.quickShare)
+                        viewModel.handleClick(event: event, view: nsview, items: shelfService.items, service: shelfService, quickLookService: quickLookService, quickShareService: quickShareService)
                     }
                 )
             } else {
@@ -77,10 +82,8 @@ struct ShelfItemView: View {
             }
         }
         .onAppear {
-            if let service = pluginManager?.services.shelf {
-                Task { 
-                    await viewModel.loadThumbnail(service: service)
-                }
+            Task {
+                await viewModel.loadThumbnail(service: shelfService)
             }
         }
     }
