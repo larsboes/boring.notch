@@ -25,119 +25,23 @@ struct ContentView: View {
 
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
-    @State private var gestureProgress: CGFloat = .zero
+    @State var gestureProgress: CGFloat = .zero
 
-    @State private var haptics: Bool = false
-    
-    // Helper to access music service from plugin manager
-    private var musicService: any MusicServiceProtocol {
+    @State var haptics: Bool = false
+
+    var musicService: any MusicServiceProtocol {
         pluginManager?.services.music ?? MusicService(manager: MusicManager())
     }
 
     @Namespace var albumArtNamespace
 
-    // MARK: - Display State Helpers
-
-    /// Check if the display state is open (use this instead of vm.notchState for consistency)
-    private var isDisplayStateOpen: Bool {
-        if case .open = stateMachine.displayState {
-            return true
-        }
+    var isDisplayStateOpen: Bool {
+        if case .open = stateMachine.displayState { return true }
         return false
     }
 
-    // MARK: - Animation Progress (for smooth visual interpolation)
-
-    /// Progress from closed (0) to open (1), derived from notchSize which already animates.
-    /// This avoids the "middle step" where size animates but other visuals snap.
-    private var animationProgress: CGFloat {
-        let closedWidth = vm.closedNotchSize.width
-        let openWidth = openNotchSize.width
-        let currentWidth = vm.notchSize.width
-
-        // Avoid division by zero
-        guard openWidth > closedWidth else { return 0 }
-
-        // Clamp to 0-1 range
-        let progress = (currentWidth - closedWidth) / (openWidth - closedWidth)
-        return max(0, min(1, progress))
-    }
-
-    /// Linear interpolation helper
-    private func lerp(_ a: CGFloat, _ b: CGFloat, _ t: CGFloat) -> CGFloat {
-        a + (b - a) * t
-    }
-
-    // MARK: - Corner Radius Scaling
-    private var cornerRadiusScaleFactor: CGFloat? {
-        guard settings.cornerRadiusScaling else { return nil }
-        let effectiveHeight = displayClosedNotchHeight
-        guard effectiveHeight > 0 else { return nil }
-        return effectiveHeight / 38.0
-    }
-    
-    private var topCornerRadius: CGFloat {
-        // Calculate closed corner radius (with optional scaling)
-        let baseClosedTop = cornerRadiusInsets.closed.top
-        let closedRadius: CGFloat
-        if let scaleFactor = cornerRadiusScaleFactor {
-            closedRadius = max(0, baseClosedTop * scaleFactor)
-        } else {
-            closedRadius = displayClosedNotchHeight > 0 ? baseClosedTop : 0
-        }
-
-        // Interpolate between closed and open based on animation progress
-        return lerp(closedRadius, cornerRadiusInsets.opened.top, animationProgress)
-    }
-
-    private var bottomCornerRadius: CGFloat {
-        // Calculate closed corner radius (with optional scaling)
-        let baseClosedBottom = cornerRadiusInsets.closed.bottom
-        let closedRadius: CGFloat
-        if let scaleFactor = cornerRadiusScaleFactor {
-            closedRadius = max(0, baseClosedBottom * scaleFactor)
-        } else {
-            closedRadius = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
-        }
-
-        // Interpolate between closed and open based on animation progress
-        return lerp(closedRadius, cornerRadiusInsets.opened.bottom, animationProgress)
-    }
-
-    private var currentNotchShape: NotchShape {
-        return NotchShape(
-            topCornerRadius: topCornerRadius,
-            bottomCornerRadius: bottomCornerRadius
-        )
-    }
-
-    private var computedChinWidth: CGFloat {
-        var chinWidth: CGFloat = vm.closedNotchSize.width
-
-        if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && settings.showPowerStatusNotifications {
-            chinWidth = 640
-        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && vm.notchState == .closed && (musicService.playbackState.isPlaying || !musicService.isPlayerIdle)
-            && settings.musicLiveActivityEnabled && !vm.hideOnClosed {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicService.playbackState.isPlaying && musicService.isPlayerIdle) && settings.showNotHumanFace
-            && !vm.hideOnClosed {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
-        }
-
-        return chinWidth
-    }
-
-    // If the closed notch height is 0 (any display/setting), display a 10pt nearly-invisible notch
-    // instead of fully hiding it. This preserves layout while avoiding visual artifacts.
-    private var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
-
-    private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
-
     // MARK: - State Observation
-    
+
     private struct StateSnapshot: Equatable {
         let helloAnimationRunning: Bool
         let notchState: NotchState
@@ -364,51 +268,9 @@ struct ContentView: View {
         }
     }
 
-    private func doOpen() {
+    func doOpen() {
         withAnimation(StandardAnimations.interactive) {
             vm.open()
-        }
-    }
-
-    // MARK: - Gesture Handling
-
-    private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        let result = NotchGestureCoordinator.handleDown(
-            translation: translation, phase: phase, notchState: vm.notchState,
-            sensitivity: settings.gestureSensitivity
-        )
-        applyGestureResult(result, openAction: { doOpen() })
-    }
-
-    private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        let result = NotchGestureCoordinator.handleUp(
-            translation: translation, phase: phase,
-            notchState: vm.notchState,
-            isHoveringCalendar: vm.isHoveringCalendar,
-            preventClose: pluginManager!.services.sharing.preventNotchClose,
-            sensitivity: settings.gestureSensitivity
-        )
-        applyGestureResult(result, closeAction: { vm.close(force: true) })
-    }
-
-    private func applyGestureResult(
-        _ result: NotchGestureCoordinator.GestureResult,
-        openAction: (() -> Void)? = nil,
-        closeAction: (() -> Void)? = nil
-    ) {
-        switch result {
-        case .progress(let value):
-            withAnimation(StandardAnimations.interactive) { gestureProgress = value }
-        case .reset:
-            withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
-        case .triggerOpen:
-            if settings.enableHaptics { haptics.toggle() }
-            withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
-            openAction?()
-        case .triggerClose:
-            gestureProgress = .zero
-            closeAction?()
-            if settings.enableHaptics { haptics.toggle() }
         }
     }
 }
