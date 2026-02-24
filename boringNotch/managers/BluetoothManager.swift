@@ -14,7 +14,8 @@ class BluetoothManager: NSObject, ObservableObject {
     
     private var centralManager: CBCentralManager?
     private var timer: Timer?
-    
+    private let settings: any NotchSettings = DefaultsNotchSettings.shared
+
     override private init() {
         super.init()
     }
@@ -95,7 +96,7 @@ class BluetoothManager: NSObject, ObservableObject {
     }
     
     private func getCustomIcon(for deviceName: String) -> String? {
-        let mappings = Defaults[.bluetoothDeviceIconMappings]
+        let mappings = settings.bluetoothDeviceIconMappings
         return mappings.first(where: { $0.deviceName == deviceName })?.sfSymbolName
     }
     
