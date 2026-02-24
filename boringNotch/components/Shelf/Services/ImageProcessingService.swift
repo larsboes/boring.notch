@@ -11,40 +11,7 @@ import CoreImage
 import CoreGraphics
 import Vision
 import PDFKit
-import UniformTypeIdentifiers
 import ImageIO
-
-/// Options for image conversion
-struct ImageConversionOptions {
-    enum ImageFormat {
-        case png, jpeg, heic, tiff, bmp
-        
-        var utType: UTType {
-            switch self {
-            case .png: return .png
-            case .jpeg: return .jpeg
-            case .heic: return .heic
-            case .tiff: return .tiff
-            case .bmp: return .bmp
-            }
-        }
-        
-        var fileExtension: String {
-            switch self {
-            case .png: return "png"
-            case .jpeg: return "jpg"
-            case .heic: return "heic"
-            case .tiff: return "tiff"
-            case .bmp: return "bmp"
-            }
-        }
-    }
-    
-    let format: ImageFormat
-    let compressionQuality: Double // 0.0 to 1.0, only applies to JPEG/HEIC
-    let maxDimension: CGFloat? // Max width or height, nil for no scaling
-    let removeMetadata: Bool
-}
 
 /// Service for processing images (background removal, conversion, PDF creation)
 @MainActor
@@ -293,30 +260,3 @@ final class ImageProcessingService: ImageProcessingServiceProtocol {
     }
 }
 
-// MARK: - Errors
-
-enum ImageProcessingError: LocalizedError {
-    case invalidImage
-    case backgroundRemovalFailed
-    case conversionFailed
-    case pdfCreationFailed
-    case noImagesProvided
-    case saveFailed
-    
-    var errorDescription: String? {
-        switch self {
-        case .invalidImage:
-            return "The file is not a valid image"
-        case .backgroundRemovalFailed:
-            return "Failed to remove background from image"
-        case .conversionFailed:
-            return "Failed to convert image format"
-        case .pdfCreationFailed:
-            return "Failed to create PDF from images"
-        case .noImagesProvided:
-            return "No images were provided"
-        case .saveFailed:
-            return "Failed to save processed file"
-        }
-    }
-}

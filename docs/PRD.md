@@ -13,33 +13,26 @@
 
 ## Current State (updated 2026-02-24)
 
-**Active branch:** `refactor/singleton-elimination-tier3` (off `refactor/full-refactor`)
+**Active branch:** `refactor/singleton-elimination-tier3`
+**Stable branch:** `developer` (always green, same commit as working branch until next merge)
 
-### What's Done
-- Plugin system: `PluginManager`, `NotchPlugin` protocol, `ServiceContainer`, `PluginEventBus`, 8 built-in plugins
-- `NotchStateMachine` — pure, fully testable, no SwiftUI/AppKit imports
-- `WindowCoordinator` — extracted from AppDelegate
-- Settings: `NotchSettings` protocol + `DefaultsNotchSettings` + `MockNotchSettings` + dual env keys
-- Singleton elimination: `SettingsWindowController`, `SharingStateManager`, `QuickShareService`, `NotchSpaceManager` — all done (see `2026-02-07-singleton-elimination-remaining.md`)
-- Protocol-based services for all 8 built-in domains
-- App launches without crashes — `BoringViewCoordinator` and `NotchStateMachine` now correctly injected into window environment
-- **Task 1 complete:** Orphaned `VolumeManager`/`BrightnessManager` with throwaway `PluginEventBus()` removed from `ContentView`, `OpenNotchHUD`, `InlineHUD` — now use `pluginManager.services.volume/.brightness`
-- `HoverZoneChecking` protocol extracted — `NotchHoverController` testable via DI
-- `NotchHoverControllerTests` rewritten against real API with `MockHoverZoneChecker`
+### Phase 1 — Architecture Cleanup Status
 
-### What Remains — Violations Blocking Clean Architecture
+| Status | Task | Notes |
+|--------|------|-------|
+| ✅ | Task 1 — Inline service construction | VolumeManager/BrightnessManager orphans removed from ContentView, OpenNotchHUD, InlineHUD |
+| ✅ | Task 2 — ShelfActionService split | Decomposed into ShelfDropService + ShelfMenuActionTarget + ShelfMenuDialogs + QuickShareService (282 lines) |
+| ✅ | Task 3 — MusicManager decomposition | MusicManager → thin façade (147L); MusicPlaybackController (294L) + MusicArtworkService (142L) extracted |
+| ✅ | Task 4 — ContentView split | ContentView 285L; NotchGestureCoordinator + NotchDropDelegate extracted to Core/ |
+| ✅ | Task 5 — boringNotchApp split | AppObjectGraph extracted (242L); boringNotchApp thinned (247L) |
+| 🟡 | Task 6 — Defaults access | 2 violations remain (see below) |
+| ✅ | Task 7 — NotchSettings ISP split | 11 focused sub-protocols in NotchSettingsSubProtocols.swift |
+| ✅ | Task 8 — BoringViewCoordinator.shared | Fully eliminated — 0 usages |
 
-| Priority | Task | File | Problem |
-|----------|------|------|---------|
-| ✅ | Task 1 | `ContentView`, `OpenNotchHUD`, `InlineHUD` | ~~Inline `VolumeManager`/`BrightnessManager` with orphaned event buses~~ — **DONE** |
-| 🔴 | Task 2 | `components/Shelf/Services/ShelfActionService.swift` | 849 lines — god class needing 3-way split |
-| 🔴 | Task 3 | `managers/MusicManager.swift` | 672 lines — not properly behind `MusicServiceProtocol` |
-| 🟡 | Task 4 | `ContentView.swift` | ~530 lines — gestures + animation + drop delegate + state obs mixed |
-| 🟡 | Task 5 | `boringNotchApp.swift` | ~248 lines — still has lifecycle + some graph wiring mixed |
-| 🟡 | Task 6 | `components/Calendar/BoringCalendar.swift` | 459 lines — view + formatting logic mixed |
-| 🟡 | Task 8 | `BoringViewCoordinator.swift` | 4 remaining `.shared` access points to wire via DI |
-| 🟢 | Task 6 | Several settings views | Direct `Defaults[.]` access instead of `@Environment(\.bindableSettings)` |
-| 🟢 | Task 7 | `NotchSettings` protocol | 50+ properties — ISP violation, needs splitting into focused sub-protocols |
+**Phase 1 is ≈95% done. Two Task 6 violations block full sign-off:**
+
+1. `boringNotchApp.swift:41` — `@Default(.menubarIcon)` used as `$showMenuBarIcon` binding in `MenuBarExtra`. Fix requires `AppObjectGraph.settings` exposed as concrete `DefaultsNotchSettings` (not `NotchSettings` protocol) so `@Bindable` can produce a binding.
+2. `LottieAnimationContainer.swift:12` — `@Default(.selectedVisualizer)`. Fix requires adding `selectedVisualizer` to a settings sub-protocol first, then converting to `@Environment(\.settings)`.
 
 ### State Management
 `NotchHoverController` exists in `models/` with `HoverZoneChecking` DI and unit tests. Current implementation is task/async based. Phase 2 (Task 9) upgrades to heartbeat-based truth polling to eliminate ~15 edge cases.
@@ -75,360 +68,54 @@ Three layers of value:
 
 ---
 
-### Task 2: Split `ShelfActionService.swift` (849 lines → 3 files)
+### Task 2: Split `ShelfActionService.swift` ✅ COMPLETE
 
-**Files:**
-- Modify: `boringNotch/components/Shelf/Services/ShelfActionService.swift`
-- Create: `boringNotch/components/Shelf/Services/ShelfDragDropHandler.swift`
-- Create: `boringNotch/components/Shelf/Services/ShelfShareHandler.swift`
+**Implementation:** 849-line god class decomposed into: `ShelfActionService` (282L, core item actions), `ShelfDropService` (drop handling), `ShelfMenuActionTarget` (menu dispatch), `ShelfMenuDialogs` + `QuickShareService` (share). All files under 300 lines.
 
-**Step 1: Map responsibilities**
-
-Read the file and tag each method/section with one of three labels:
-- **CORE** — core item management (add, remove, reorder, persistence)
-- **DRAGDROP** — drag-and-drop receive, UTType handling, NSItemProvider loading
-- **SHARE** — QuickShare, AirDrop, copy, export actions
-
-**Step 2: Create `ShelfDragDropHandler.swift`**
-
-Extract all `DRAGDROP` logic into a new `@Observable @MainActor final class ShelfDragDropHandler`. It receives `ShelfServiceProtocol` via init injection.
-
-```swift
-@Observable
-@MainActor
-final class ShelfDragDropHandler {
-    private let shelfService: ShelfServiceProtocol
-
-    init(shelfService: ShelfServiceProtocol) {
-        self.shelfService = shelfService
-    }
-
-    // all drag-drop methods here
-}
-```
-
-**Step 3: Create `ShelfShareHandler.swift`**
-
-Extract all `SHARE` logic into a new `@Observable @MainActor final class ShelfShareHandler`. Receives `QuickShareService` via init.
-
-**Step 4: Update `ShelfActionService.swift`**
-
-Remove extracted code. Keep only CORE logic. Should be under 250 lines. Update callers (`ShelfPlugin`, `ShelfItemViewModel`, any views) to use the appropriate handler.
-
-**Step 5: Add to Xcode project**
-
-```bash
-# Check pbxproj has new files — if using script:
-.agent/workflows/manage-xcode-files.md
-```
-
-**Step 6: Build**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' build 2>&1 | tail -50
-```
-
-**Step 7: Commit**
-
-```bash
-git add boringNotch/components/Shelf/Services/
-git commit -m "refactor: split ShelfActionService into action/dragdrop/share handlers"
-```
+Also fixed during audit (2026-02-24): `ShelfItemView.swift` (363L → 137L) by extracting `DraggableClickHandler` + `DraggableClickView` into `ShelfDraggableClickHandler.swift`. `ImageProcessingService.swift` (322L → 262L) by extracting `ImageConversionOptions` + `ImageProcessingError` into `ImageProcessingModels.swift`.
 
 ---
 
-### Task 3: Decompose `MusicManager.swift` (672 lines)
+### Task 3: Decompose `MusicManager.swift` ✅ COMPLETE
 
-**Files:**
-- Modify: `boringNotch/managers/MusicManager.swift`
-- Modify: `boringNotch/Plugins/Services/MusicService.swift`
-- Create: `boringNotch/managers/MusicPlaybackController.swift`
-- Create: `boringNotch/managers/MusicArtworkService.swift`
-
-**Step 1: Identify three sub-responsibilities in MusicManager**
-
-- **TRANSPORT** — play/pause/next/prev/seek, controller selection (Apple Music, Spotify, YouTube Music, NowPlaying)
-- **ARTWORK** — album art fetching, averaging color computation
-- **LYRICS** — lyrics fetching and display state (may already be in `LyricsService`)
-
-**Step 2: Extract `MusicPlaybackController.swift`**
-
-Move TRANSPORT logic here. This is the main active class — receives `MediaControllerProtocol` instances via init.
-
-**Step 3: Extract `MusicArtworkService.swift`**
-
-Move artwork fetching + color averaging here. Exposes `artwork: NSImage?` and `avgColor: Color?` as `@Observable` properties.
-
-**Step 4: Thin `MusicManager` or eliminate it**
-
-After extraction, `MusicManager` should either be:
-- A thin façade delegating to sub-services (wraps under `MusicServiceProtocol`)
-- Completely eliminated, with `MusicService.swift` referencing the two new classes directly
-
-**Step 5: Ensure `MusicPlugin` accesses music only via `MusicServiceProtocol`**
-
-`context.services.music` must satisfy `MusicPlugin`'s needs. If the protocol is missing methods that MusicPlugin calls, add them to the protocol first, then implement.
-
-**Step 6: Build + test**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' test 2>&1 | tail -50
-```
-
-**Step 7: Commit**
-
-```bash
-git add boringNotch/managers/ boringNotch/Plugins/Services/MusicService.swift
-git commit -m "refactor: decompose MusicManager into transport/artwork sub-services"
-```
+**Implementation:** 672-line god class split into: `MusicManager` thin façade (147L), `MusicPlaybackController` transport (294L), `MusicArtworkService` artwork + color averaging (142L). All under 300 lines.
 
 ---
 
-### Task 4: Split `ContentView.swift` (543 lines)
+### Task 4: Split `ContentView.swift` ✅ COMPLETE
 
-**Files:**
-- Modify: `boringNotch/ContentView.swift`
-- Create: `boringNotch/Core/NotchGestureCoordinator.swift`
-- Create: `boringNotch/Core/NotchDropDelegate.swift`
-
-**Step 1: Extract drop delegate**
-
-All `NSItemProviderReading`, `DropDelegate`, `onDrop` handling → `NotchDropDelegate.swift`. This is a pure data type with no SwiftUI view code.
-
-```swift
-@MainActor
-struct NotchDropDelegate: DropDelegate {
-    let shelfService: ShelfServiceProtocol
-    // ...
-}
-```
-
-**Step 2: Extract gesture logic**
-
-Pan gesture calculations, velocity thresholds, open/close trigger logic → `NotchGestureCoordinator.swift`. This is a method group, not a type — implement as an extension on the view model or as a separate coordinator.
-
-**Step 3: ContentView stays**
-
-After extraction, `ContentView.swift` should contain only:
-- Environment wiring
-- Layout structure
-- Animation interpolation (corner radii, size)
-- `.gesture()` modifier (calling into `NotchGestureCoordinator`)
-- `.onDrop()` modifier (using `NotchDropDelegate`)
-
-Target: under 250 lines.
-
-**Step 4: Build**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' build 2>&1 | tail -50
-```
-
-**Step 5: Commit**
-
-```bash
-git add boringNotch/ContentView.swift boringNotch/Core/
-git commit -m "refactor: extract gesture coordinator and drop delegate from ContentView"
-```
+**Implementation:** ContentView 285L (down from 543L). `NotchGestureCoordinator.swift` and `NotchDropDelegate.swift` extracted to `Core/`.
 
 ---
 
-### Task 5: Split `boringNotchApp.swift` (502 lines)
+### Task 5: Split `boringNotchApp.swift` ✅ COMPLETE
 
-**Files:**
-- Modify: `boringNotch/boringNotchApp.swift`
-- Create: `boringNotch/AppObjectGraph.swift`
-
-**Step 1: Extract DI graph construction**
-
-Everything that constructs `ServiceContainer`, `PluginManager`, wires plugins, sets up event bus subscriptions → `AppObjectGraph.swift`.
-
-```swift
-@MainActor
-final class AppObjectGraph {
-    let pluginManager: PluginManager
-    let windowCoordinator: WindowCoordinator
-    let keyboardCoordinator: KeyboardShortcutCoordinator
-    let dragCoordinator: DragDetectionCoordinator
-
-    init() {
-        let eventBus = PluginEventBus()
-        let settings = DefaultsNotchSettings.shared
-        let services = ServiceContainer(eventBus: eventBus)
-        // ... full wiring here
-    }
-}
-```
-
-**Step 2: `boringNotchApp.swift` becomes a thin shell**
-
-```swift
-@main
-struct DynamicNotchApp: App {
-    @State private var graph = AppObjectGraph()
-    // ...
-}
-```
-
-**Step 3: AppDelegate stays in boringNotchApp.swift but slims down**
-
-AppDelegate handles only: `applicationDidFinishLaunching`, `applicationWillTerminate`, sparkle delegate. Everything else moved out.
-
-**Step 4: Build**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' build 2>&1 | tail -50
-```
-
-**Step 5: Commit**
-
-```bash
-git add boringNotch/boringNotchApp.swift boringNotch/AppObjectGraph.swift
-git commit -m "refactor: extract DI graph construction into AppObjectGraph"
-```
+**Implementation:** `AppObjectGraph.swift` (242L) created as DI root — constructs all services, wires plugins, sets up event bus. `boringNotchApp.swift` thinned to 247L (lifecycle + App shell only).
 
 ---
 
-### Task 6: Fix Remaining Direct `Defaults[.]` Access
+### Task 6: Fix Remaining Direct `Defaults[.]` Access 🟡 PARTIAL
 
-**Files to scan:**
+Most violations resolved. **2 remain:**
 
-```bash
-grep -rn "Defaults\[" boringNotch/components/Settings/
-grep -rn "Defaults\[" boringNotch/Core/
-grep -rn "@Default(" boringNotch/components/
-# Exclude NotchSettings.swift — that one is the allowed access point
-```
+1. **`boringNotchApp.swift:41`** — `@Default(.menubarIcon)` used as `$showMenuBarIcon` binding in `MenuBarExtra`. Requires `AppObjectGraph.settings` typed as concrete `DefaultsNotchSettings` (currently typed as `NotchSettings` protocol) to enable `@Bindable` in App body.
+2. **`LottieAnimationContainer.swift:12`** — `@Default(.selectedVisualizer)`. Requires adding `selectedVisualizer` to a settings sub-protocol + `DefaultsNotchSettings` + `MockNotchSettings`, then converting to `@Environment(\.settings)`.
 
-**Step 1: For each offending settings view**
+**Fix for #1:** Change `AppObjectGraph.settings` from `let settings: NotchSettings = DefaultsNotchSettings()` to `let settings = DefaultsNotchSettings()` (concrete inferred type), then in `DynamicNotchApp.body` use `@Bindable var settings = appDelegate.graph.settings` and bind `$settings.menubarIcon`.
 
-Replace `Defaults[.someKey]` with `@Environment(\.bindableSettings) var settings` and `settings.someProperty`.
-
-If the property doesn't exist on `NotchSettings` protocol yet:
-1. Add it to `NotchSettings` protocol in `NotchSettings.swift`
-2. Add implementation in `DefaultsNotchSettings`
-3. Add mock in `MockNotchSettings`
-4. Then use `settings.someProperty` in the view
-
-**Step 2: For non-settings views**
-
-Replace `Defaults[.]` with `@Environment(\.settings) var settings` (read-only protocol).
-
-**Step 3: Build + test**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' test 2>&1 | tail -50
-```
-
-**Step 4: Commit per file or per related group**
-
-```bash
-git commit -m "refactor: replace direct Defaults access with settings environment in [ViewName]"
-```
+**Fix for #2:** Add to `WidgetSettings` sub-protocol, implement in `DefaultsNotchSettings`/`MockNotchSettings`, then replace `@Default(.selectedVisualizer)` with `@Environment(\.settings) var settings` and `settings.selectedVisualizer`.
 
 ---
 
-### Task 7: Split `NotchSettings` Protocol (ISP Violation)
+### Task 7: Split `NotchSettings` Protocol (ISP) ✅ COMPLETE
 
-**Files:**
-- Modify: `boringNotch/Core/NotchSettings.swift`
-
-`NotchSettings` has 50+ properties. No consumer needs all of them. This violates Interface Segregation.
-
-**Step 1: Group properties by domain**
-
-Read the protocol and tag each property:
-- `AppearanceSettings` — colors, corner radii, sizing, animation speed
-- `NotchBehaviorSettings` — hover delays, open/close triggers, sneak peek config
-- `MediaSettings` — music controller preference, lyrics, sneak peek for media
-- `HUDSettings` — HUD style, show/hide conditions
-- `FeatureSettings` — which plugins are enabled by default
-
-**Step 2: Create focused sub-protocols**
-
-```swift
-protocol AppearanceSettings {
-    var cornerRadius: CGFloat { get }
-    // ...
-}
-
-protocol NotchBehaviorSettings {
-    var hoverDelay: TimeInterval { get }
-    // ...
-}
-```
-
-**Step 3: `NotchSettings` becomes a composition**
-
-```swift
-protocol NotchSettings: AppearanceSettings, NotchBehaviorSettings, MediaSettings, HUDSettings, FeatureSettings {}
-```
-
-This is additive — existing code using `any NotchSettings` still works. Individual views can now narrow to `@Environment(\.settings) var settings: any AppearanceSettings` if they only need appearance.
-
-**Step 4: Update `MockNotchSettings` and `DefaultsNotchSettings`**
-
-Both already conform to `NotchSettings` — they automatically satisfy the sub-protocols since they implement all properties.
-
-**Step 5: Build**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' build 2>&1 | tail -50
-```
-
-**Step 6: Commit**
-
-```bash
-git commit -m "refactor: split NotchSettings into focused sub-protocols (ISP)"
-```
+**Implementation:** `NotchSettings` now composes 11 focused sub-protocols defined in `NotchSettingsSubProtocols.swift` (171L): `HUDSettings`, `BatterySettings`, `AppearanceSettings`, `MediaSettings`, `GestureSettings`, `ShelfSettings`, `DisplaySettings`, `WidgetSettings`, `NotchCalendarSettings`, `NotificationSettings`, `BluetoothSettings`. Both `DefaultsNotchSettings` and `MockNotchSettings` conform.
 
 ---
 
-### Task 8: Wire `BoringViewCoordinator` Remaining `.shared` Points
+### Task 8: Wire `BoringViewCoordinator` Remaining `.shared` Points ✅ COMPLETE
 
-**Context:** 4 remaining `.shared` usage points were marked "acceptable" in the old plan. They're now addressable since `AppObjectGraph` (Task 5) provides a proper injection root.
-
-**Files:**
-- `boringNotch/BoringViewCoordinator.swift`
-- `boringNotch/boringNotchApp.swift` (line ~180)
-- `boringNotch/components/Settings/SettingsWindowController.swift` (line ~72)
-- `boringNotch/models/BoringViewModel.swift` (line ~180, convenience init)
-- `boringNotch/Core/NotchContentRouter.swift` (line ~230, preview only)
-
-**Step 1: Replace app-level `.shared` usage**
-
-In `AppObjectGraph`, construct `BoringViewCoordinator` normally (no `.shared`). Pass via environment or init injection.
-
-**Step 2: Fix `SettingsWindowController`**
-
-Instead of `BoringViewCoordinator.shared`, inject coordinator at construction time from `AppObjectGraph`.
-
-**Step 3: Fix `BoringViewModel` convenience init**
-
-Remove convenience init that uses `.shared`. Callers must provide the coordinator.
-
-**Step 4: Fix preview usage in `NotchContentRouter`**
-
-Preview can use a mock or lightweight coordinator stub. No `.shared` in production paths.
-
-**Step 5: Once all consumers are migrated, remove `static let shared`**
-
-```swift
-// Delete this line from BoringViewCoordinator
-static let shared = BoringViewCoordinator()
-```
-
-**Step 6: Build + test**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' test 2>&1 | tail -50
-```
-
-**Step 7: Commit**
-
-```bash
-git commit -m "refactor: eliminate last BoringViewCoordinator.shared usage points"
-```
+**Implementation:** `BoringViewCoordinator.shared` fully eliminated — 0 usages across codebase. All injection routed through `AppObjectGraph`.
 
 ---
 

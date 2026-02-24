@@ -146,7 +146,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showOnboardingWindow()
             }
         } else if pluginManager.services.music.isNowPlayingDeprecated
-            && Defaults[.mediaController] == .nowPlaying {
+            && graph.settings.mediaController == .nowPlaying {
             DispatchQueue.main.async {
                 self.showOnboardingWindow(step: .musicPermission)
             }

@@ -75,7 +75,6 @@ struct ShelfItemView: View {
         }
         .onChange(of: viewModel.isDropTargeted) { _, targeted in
             vm.dragDetectorTargeting = targeted
-            // Debounce drop target state changes
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(50))
                 debouncedDropTarget = targeted
@@ -114,250 +113,25 @@ struct ShelfItemView: View {
             .fill(backgroundColor)
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(
-                        strokeColor,
-                        lineWidth: strokeWidth
-                    )
+                    .strokeBorder(strokeColor, lineWidth: strokeWidth)
             )
     }
 
     private var backgroundColor: Color {
-        if debouncedDropTarget {
-            return Color.accentColor.opacity(0.25)
-        } else if isSelected {
-            return Color.accentColor.opacity(0.15)
-        } else {
-            return Color.clear
-        }
+        if debouncedDropTarget { return Color.accentColor.opacity(0.25) }
+        if isSelected { return Color.accentColor.opacity(0.15) }
+        return Color.clear
     }
 
     private var strokeColor: Color {
-        if debouncedDropTarget {
-            return Color.accentColor.opacity(0.9)
-        } else if isSelected {
-            return Color.accentColor.opacity(0.8)
-        } else {
-            return Color.clear
-        }
+        if debouncedDropTarget { return Color.accentColor.opacity(0.9) }
+        if isSelected { return Color.accentColor.opacity(0.8) }
+        return Color.clear
     }
 
     private var strokeWidth: CGFloat {
-        if debouncedDropTarget {
-            return 3
-        } else if isSelected {
-            return 2
-        } else {
-            return 1
-        }
-    }
-}
-
-// MARK: - Draggable Click Handler with NSDraggingSource
-private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
-    let item: ShelfItem
-    let settings: NotchSettings
-    let viewModel: ShelfItemViewModel
-    let service: ShelfServiceProtocol
-    @ViewBuilder let dragPreviewContent: () -> Content
-    let onRightClick: (NSEvent, NSView) -> Void
-    let onClick: (NSEvent, NSView) -> Void
-    
-    func makeNSView(context: Context) -> DraggableClickView {
-        let view = DraggableClickView()
-        view.item = item
-        view.settings = settings
-        view.viewModel = viewModel
-        view.service = service
-        view.getDragPreview = {
-            self.renderDragPreview()
-        }
-        view.onRightClick = onRightClick
-        view.onClick = onClick
-        return view
-    }
-    
-    func updateNSView(_ nsView: DraggableClickView, context: Context) {
-        nsView.item = item
-        nsView.settings = settings
-        nsView.viewModel = viewModel
-        nsView.service = service
-        // Update the closure to capture latest state if needed, though usually content closure is enough
-        nsView.getDragPreview = {
-            self.renderDragPreview()
-        }
-        nsView.onRightClick = onRightClick
-        nsView.onClick = onClick
-    }
-    
-    private func renderDragPreview() -> NSImage {
-        let content = dragPreviewContent()
-        let renderer = ImageRenderer(content: content)
-        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
-        
-        if let nsImage = renderer.nsImage {
-            return nsImage
-        }
-        
-        // Fallback to icon if rendering fails
-        return viewModel.thumbnail ?? item.icon
-    }
-    
-    final class DraggableClickView: NSView, NSDraggingSource {
-        var item: ShelfItem!
-        var settings: NotchSettings!
-        weak var viewModel: ShelfItemViewModel?
-        var service: ShelfServiceProtocol!
-        var getDragPreview: (() -> NSImage)?
-        var onRightClick: ((NSEvent, NSView) -> Void)?
-        var onClick: ((NSEvent, NSView) -> Void)?
-
-        private var mouseDownEvent: NSEvent?
-        private let dragThreshold: CGFloat = 3.0
-        private var draggedURLs: [URL] = []
-        private var draggedItems: [ShelfItem] = []
-        
-        override func rightMouseDown(with event: NSEvent) {
-            onRightClick?(event, self)
-        }
-        
-        override func mouseDown(with event: NSEvent) {
-            mouseDownEvent = event
-            onClick?(event, self)
-        }
-        
-        override func mouseDragged(with event: NSEvent) {
-            guard let mouseDownEvent = mouseDownEvent else {
-                super.mouseDragged(with: event)
-                return
-            }
-            
-            let dragDistance = hypot(
-                event.locationInWindow.x - mouseDownEvent.locationInWindow.x,
-                event.locationInWindow.y - mouseDownEvent.locationInWindow.y
-            )
-            
-            if dragDistance > dragThreshold {
-                startDragSession(with: event)
-                self.mouseDownEvent = nil
-            } else {
-                super.mouseDragged(with: event)
-            }
-        }
-        
-        private func startDragSession(with event: NSEvent) {
-            // Prepare dragging items
-            let selectedItems = service.selection.selectedItems(in: service.items)
-            let itemsToDrag: [ShelfItem]
-
-            if selectedItems.count > 1 && selectedItems.contains(where: { $0.id == item.id }) {
-                itemsToDrag = selectedItems
-            } else {
-                itemsToDrag = [item]
-            }
-
-            // Store items being dragged for auto-remove feature
-            draggedItems = itemsToDrag
-
-            // Create dragging items for AppKit
-            var draggingItems: [NSDraggingItem] = []
-
-            for dragItem in itemsToDrag {
-                if let pasteboardItem = createPasteboardItem(for: dragItem) {
-                    let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
-
-                    // Use the drag preview image - generated on demand
-                    let image = getDragPreview?() ?? dragItem.icon
-                    let imageFrame = NSRect(
-                        x: 0,
-                        y: 0,
-                        width: image.size.width,
-                        height: image.size.height
-                    )
-                    draggingItem.setDraggingFrame(imageFrame, contents: image)
-
-                    draggingItems.append(draggingItem)
-                }
-            }
-
-            guard !draggingItems.isEmpty else { return }
-
-            beginDraggingSession(with: draggingItems, event: event, source: self)
-        }
-        
-        private func createPasteboardItem(for item: ShelfItem) -> NSPasteboardItem? {
-            let pasteboardItem = NSPasteboardItem()
-
-            switch item.kind {
-            case .file:
-                guard let url = service.resolveAndUpdateBookmark(for: item) else {
-                    pasteboardItem.setString(item.displayName, forType: .string)
-                    return pasteboardItem
-                }
-                
-                // Start accessing security-scoped resource and keep it active during drag
-                if url.startAccessingSecurityScopedResource() {
-                    draggedURLs.append(url)
-                    NSLog("🔐 Started security-scoped access for drag: \(url.path)")
-                }
-                
-                pasteboardItem.setString(url.absoluteString, forType: .fileURL)
-                pasteboardItem.setString(url.path, forType: .string)
-                return pasteboardItem
-
-            case .text(let string):
-                pasteboardItem.setString(string, forType: .string)
-                return pasteboardItem
-
-            case .link(let url):
-                pasteboardItem.setString(url.absoluteString, forType: .URL)
-                pasteboardItem.setString(url.absoluteString, forType: .string)
-                return pasteboardItem
-            }
-        }
-        
-        // MARK: - NSDraggingSource
-        
-        func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
-            // When copyOnDrag is enabled, only allow copy operations
-            if settings.copyOnDrag {
-                return [.copy]
-            }
-            
-            switch context {
-            case .outsideApplication:
-                return [.copy, .move]
-            case .withinApplication:
-                return [.copy, .move, .generic]
-            @unknown default:
-                return [.copy]
-            }
-        }
-        
-        func draggingSession(_ session: NSDraggingSession, willBeginAt screenPoint: NSPoint) {
-            service.selection.beginDrag()
-        }
-        
-        func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
-            service.selection.endDrag()
-
-            // Stop accessing security-scoped resources after drag completes
-            for url in draggedURLs {
-                url.stopAccessingSecurityScopedResource()
-                NSLog("🔐 Stopped security-scoped access after drag: \(url.path)")
-            }
-            draggedURLs.removeAll()
-
-            // Auto-remove items from shelf if enabled and drag succeeded
-            if settings.autoRemoveShelfItems && !operation.isEmpty {
-                for item in draggedItems {
-                    service.remove(item)
-                }
-            }
-            draggedItems.removeAll()
-        }
-        
-        func ignoreModifierKeys(for session: NSDraggingSession) -> Bool {
-            return false
-        }
+        if debouncedDropTarget { return 3 }
+        if isSelected { return 2 }
+        return 1
     }
 }

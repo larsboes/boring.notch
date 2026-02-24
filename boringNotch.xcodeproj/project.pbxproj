@@ -176,6 +176,7 @@
 		86BA567C9A931249EA00F25B /* NotchObserverSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD480B80D77449E7000763A /* NotchObserverSetup.swift */; };
 		8AA13D1BB2137664881B7471 /* LyricsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51E48EEF2B6852A428C2972 /* LyricsServiceProtocol.swift */; };
 		8B8F1DAFD1E84227AF9B187D /* ContentView+Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B93B5B036643D6AEF311DD /* ContentView+Appearance.swift */; };
+		8CC02C3D020EE844C4963942 /* ImageProcessingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21F04E8146DC07A8A4D520F /* ImageProcessingModels.swift */; };
 		914B183904FCABE089C9E486 /* ShelfFileHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9352235724B3B3ABCDB187 /* ShelfFileHandler.swift */; };
 		93D024BC47CD687EDC2B7001 /* PluginSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB48750D2215B0E835773A42 /* PluginSettings.swift */; };
 		93E0E1B59843287BBC8E5873 /* TemporaryFileStorageServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08186422A6054FE4510EEEBF /* TemporaryFileStorageServiceProtocol.swift */; };
@@ -254,6 +255,7 @@
 		E6E1EF49CF913C248BB1A096 /* ClipboardPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = E367E0D4D53A466BC3EBB7F9 /* ClipboardPlugin.swift */; };
 		EC78DFD49DA2EABB1C843587 /* NotificationServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C4F7F2C2A1E21C93605870 /* NotificationServiceProtocol.swift */; };
 		F15AC62F518003BEBB86C2A3 /* PluginEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4AFECF49A120AB6C87BC16 /* PluginEnvironment.swift */; };
+		F36796C03E7F8074A782454F /* ShelfDraggableClickHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC24D41E787AD703F701E25 /* ShelfDraggableClickHandler.swift */; };
 		FDCA6D651407B3AC40CF68EF /* SoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7691289F9F7BD942891A7BAD /* SoundService.swift */; };
 		FFBFA7A0C2A7138FEDA8B6C3 /* PluginContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7231CBEA1B26EC990993D858 /* PluginContext.swift */; };
 /* End PBXBuildFile section */
@@ -453,6 +455,7 @@
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
 		5DD480B80D77449E7000763A /* NotchObserverSetup.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchObserverSetup.swift; sourceTree = "<group>"; };
 		5F3B53CD55F2D18D3E7E8D43 /* WebcamPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WebcamPlugin.swift; path = boringNotch/Plugins/BuiltIn/WebcamPlugin/WebcamPlugin.swift; sourceTree = "<group>"; };
+		5FC24D41E787AD703F701E25 /* ShelfDraggableClickHandler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfDraggableClickHandler.swift; path = boringNotch/components/Shelf/Views/ShelfDraggableClickHandler.swift; sourceTree = "<group>"; };
 		62B884125C4CFF4A46B9D35A /* LiquidGlass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiquidGlass.swift; path = Effects/LiquidGlass.swift; sourceTree = "<group>"; };
 		6477CA8CD665D8AA43BAF4D3 /* WeatherData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherData.swift; path = boringNotch/models/WeatherData.swift; sourceTree = "<group>"; };
 		64EC2F5D40F20677C9756788 /* PluginEventBus.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginEventBus.swift; path = boringNotch/Plugins/Core/PluginEventBus.swift; sourceTree = "<group>"; };
@@ -546,6 +549,7 @@
 		E6FB60B94B79A390572281D8 /* NotchStateMachineTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = boringNotchTests/NotchStateMachineTests.swift; sourceTree = SOURCE_ROOT; };
 		EA3972B2992CD0247A6A32A1 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = boringNotchTests/Info.plist; sourceTree = SOURCE_ROOT; };
 		EC4AFECF49A120AB6C87BC16 /* PluginEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginEnvironment.swift; path = boringNotch/Plugins/Core/PluginEnvironment.swift; sourceTree = "<group>"; };
+		F21F04E8146DC07A8A4D520F /* ImageProcessingModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageProcessingModels.swift; path = boringNotch/components/Shelf/Services/ImageProcessingModels.swift; sourceTree = "<group>"; };
 		F491EC9D73B1F259D53064AC /* WeatherServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherServiceProtocol.swift; path = boringNotch/Plugins/Services/WeatherServiceProtocol.swift; sourceTree = "<group>"; };
 		F665A091F3653C3DB1AE4FAB /* NotchSizeCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchSizeCalculator.swift; sourceTree = "<group>"; };
 		F72C8F2DF69DAFB2AAED51A0 /* PluginCapabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginCapabilities.swift; path = boringNotch/Plugins/Core/PluginCapabilities.swift; sourceTree = "<group>"; };
@@ -987,6 +991,14 @@
 			path = models;
 			sourceTree = "<group>";
 		};
+		34A61BAFE0F3BD1805C7394F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5FC24D41E787AD703F701E25 /* ShelfDraggableClickHandler.swift */,
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
 		37760A378C422AE1E71AB464 /* Core */ = {
 			isa = PBXGroup;
 			children = (
@@ -1025,6 +1037,15 @@
 				D14FD01625CE8143D53FEC0A /* WeatherPlugin.swift */,
 			);
 			name = WeatherPlugin;
+			sourceTree = "<group>";
+		};
+		4ED0E9884B796787A17D4F6A /* Shelf */ = {
+			isa = PBXGroup;
+			children = (
+				34A61BAFE0F3BD1805C7394F /* Views */,
+				D34A36ED19D5C92154955EF0 /* Services */,
+			);
+			name = Shelf;
 			sourceTree = "<group>";
 		};
 		67D4400C2F01B2DD0017F574 /* Weather */ = {
@@ -1158,6 +1179,7 @@
 			children = (
 				AC49799E408EF02C3E7A306D /* Music */,
 				55C9017F5C7B7BB0AF31032E /* CustomSlider.swift */,
+				4ED0E9884B796787A17D4F6A /* Shelf */,
 			);
 			name = components;
 			sourceTree = "<group>";
@@ -1340,6 +1362,14 @@
 				COREGESTCORD0012345678 /* NotchGestureCoordinator.swift */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		D34A36ED19D5C92154955EF0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				F21F04E8146DC07A8A4D520F /* ImageProcessingModels.swift */,
+			);
+			name = Services;
 			sourceTree = "<group>";
 		};
 		E2D4033201AF6140F0261846 /* Core */ = {
@@ -1786,7 +1816,9 @@
 				A1B2C3D4E5F60718293A4B5C /* NotchCameraController.swift in Sources */,
 				BE274B771CF8B1186D2D5F14 /* NotchSizeCalculator.swift in Sources */,
 				86BA567C9A931249EA00F25B /* NotchObserverSetup.swift in Sources */,
-				);
+				F36796C03E7F8074A782454F /* ShelfDraggableClickHandler.swift in Sources */,
+				8CC02C3D020EE844C4963942 /* ImageProcessingModels.swift in Sources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		8AEC0DD8C9F759DAE5750EFB /* Sources */ = {
