@@ -64,7 +64,6 @@ SwiftUI Views → PluginManager → NotchPlugin instances → Service Protocols 
 
 ## Key Files
 - `docs/PRD.md` — active implementation plan (Phase 1–7) + migration status
-- `docs/STATE_MANAGEMENT_ANALYSIS.md` — hover state redesign spec (referenced by PRD Task 9)
 - `docs/ARCHITECTURE.md` — architecture reference
 - `docs/PLUGIN_DEVELOPMENT.md` — plugin development guide
 - `boringNotch/AppObjectGraph.swift` — DI root; constructs all services and coordinators

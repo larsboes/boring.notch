@@ -493,133 +493,119 @@ git commit -m "refactor: eliminate last BoringViewCoordinator.shared usage point
 
 ## Phase 2 — State Management Overhaul
 
-**Goal:** Replace event-driven hover (15 edge cases, unreliable) with heartbeat-based truth polling. Design is fully specified in `docs/STATE_MANAGEMENT_ANALYSIS.md`.
+**Goal:** Replace event-driven hover with heartbeat-based truth polling.
 
-**Why it matters:** Layout shifts cause spurious `mouseExit` events. The current system has documented edge cases around button clicks, fast mouse movement, display reconfiguration. The heartbeat system eliminates them all.
+**Why:** SwiftUI layout shifts cause `NSTrackingArea` to recalculate bounds, firing spurious `mouseExit` even when the mouse never moved. The current system treats these as real exits → ~15 edge cases. The fix: stop trusting events, check `NSEvent.mouseLocation` directly.
+
+**Design principle:** `NSEvent.mouseLocation` cannot lie. `window.frame` is stable during layout shifts. Checking truth every 16ms catches everything — events become latency optimisations, not requirements.
 
 ---
 
-### Task 9: Implement `NotchHoverController`
+### Task 9: Upgrade `NotchHoverController` to Heartbeat Architecture
+
+**Note:** `NotchHoverController` already exists in `models/` with `HoverZoneChecking` DI and unit tests. This task upgrades its internal mechanism from async-task debouncing to a heartbeat state machine.
 
 **Files:**
-- Create: `boringNotch/Core/NotchHoverController.swift` (replace `boringNotch/models/NotchHoverController.swift`)
+- Modify: `boringNotch/models/NotchHoverController.swift`
 - Modify: `boringNotch/models/BoringViewModel.swift`
+- Modify: `boringNotchTests/NotchHoverControllerTests.swift`
 
-**Step 1: Write tests first**
-
-Create `boringNotchTests/NotchHoverControllerTests.swift`:
+**State machine — 4 states:**
 
 ```swift
-@MainActor
-final class NotchHoverControllerTests: XCTestCase {
+enum HoverState: Equatable {
+    case outside
+    case entering(since: Date)   // debounce window
+    case inside
+    case exiting(since: Date)    // close delay window
+}
+```
 
-    func testDebounce_mouseQuickPassthrough_doesNotOpen() async throws {
-        let controller = NotchHoverController()
-        var openCalled = false
-        controller.onShouldOpen = { openCalled = true }
+**Timing constants:**
+- `enterDelay = 50ms` — prevents open on quick pass-through
+- `exitDelayNormal = 500ms` — standard close delay
+- `exitDelayShelf = 4s` — gives time to drag files back in
 
-        // Simulate: inside for 30ms (below 50ms debounce), then outside
-        controller.simulateMouseInside(true)
-        controller.tick()
-        try await Task.sleep(for: .milliseconds(30))
-        controller.simulateMouseInside(false)
-        controller.tick()
+**`tick()` — core logic (called by heartbeat every 16ms):**
 
-        XCTAssertFalse(openCalled, "Open should not fire for quick passthrough")
-    }
-
-    func testDebounce_mouseStaysInside_opens() async throws {
-        let controller = NotchHoverController()
-        var openCalled = false
-        controller.onShouldOpen = { openCalled = true }
-
-        controller.simulateMouseInside(true)
-        // Tick past enterDelay (50ms)
-        for _ in 0..<10 { // ~160ms
-            controller.tick()
-            try await Task.sleep(for: .milliseconds(16))
+```swift
+func tick() {
+    let isInside = hoverZoneManager.isMouseInHoverZone()
+    let now = Date()
+    switch state {
+    case .outside:
+        if isInside { state = .entering(since: now) }
+    case .entering(let since):
+        if !isInside { state = .outside }
+        else if now.timeIntervalSince(since) >= enterDelay {
+            state = .inside; onShouldOpen?()
         }
-
-        XCTAssertTrue(openCalled)
-    }
-
-    func testCancelClose_mouseReturns() async throws {
-        // Test that returning to region cancels pending close
-        let controller = NotchHoverController()
-        var closeCalled = false
-        controller.onShouldClose = { closeCalled = true }
-
-        controller.simulateMouseInside(true)
-        controller.state = .inside  // Fast-forward to inside
-        controller.simulateMouseInside(false)
-        controller.tick()  // Now exiting
-
-        // Return before delay expires
-        controller.simulateMouseInside(true)
-        controller.tick()
-
-        try await Task.sleep(for: .milliseconds(600)) // Past exit delay
-        XCTAssertFalse(closeCalled, "Close should be cancelled by re-entry")
+    case .inside:
+        if !isInside { state = .exiting(since: now) }
+    case .exiting(let since):
+        if isInside { state = .inside }  // cancel close
+        else if now.timeIntervalSince(since) >= (isShelfActive ? exitDelayShelf : exitDelayNormal) {
+            state = .outside; onShouldClose?()
+        }
     }
 }
 ```
 
-**Step 2: Run tests to confirm they fail**
-
-```bash
-xcodebuild -scheme boringNotch -destination 'platform=macOS' test -only-testing:boringNotchTests/NotchHoverControllerTests 2>&1 | tail -30
-```
-
-Expected: FAIL (class doesn't exist yet)
-
-**Step 3: Implement `NotchHoverController`**
-
-Based on the design in `docs/STATE_MANAGEMENT_ANALYSIS.md`. Key points:
-- `@Observable @MainActor final class`
-- 4 states: `.outside`, `.entering(since:)`, `.inside`, `.exiting(since:)`
-- `tick()` method reads `NSEvent.mouseLocation` vs `window.frame` (not SwiftUI view bounds)
-- `startHeartbeat()` / `stopHeartbeat()` using `Task` at 16ms intervals
-- `onShouldOpen: (() -> Void)?` and `onShouldClose: (() -> Void)?` callbacks
-- `isShelfActive: Bool` → longer exit delay (4s vs 0.5s)
-- `simulateMouseInside(_:)` method for testing (injectable truth source)
-
-**Step 4: Integrate with `BoringViewModel`**
+**Heartbeat — only runs when notch is open (negligible CPU: ~0.12ms/s):**
 
 ```swift
-// In BoringViewModel.setupHoverController()
-hoverController.onShouldOpen = { [weak self] in self?.open() }
-hoverController.onShouldClose = { [weak self] in self?.close(force: true) }
-
-// When opening:
-func open() {
-    // ... existing logic ...
-    hoverController.startHeartbeat()
+func startHeartbeat() {
+    guard heartbeat == nil else { return }
+    heartbeat = Task { [weak self] in
+        while !Task.isCancelled {
+            self?.tick()
+            try? await Task.sleep(for: .milliseconds(16))
+        }
+    }
 }
-
-// When closing:
-func close(force: Bool) {
-    // ... existing logic ...
-    hoverController.stopHeartbeat()
-}
+func stopHeartbeat() { heartbeat?.cancel(); heartbeat = nil }
 ```
 
-**Step 5: Remove old tracking area event logic**
+**`TrackingAreaView` becomes a hint only** — call `tick()` immediately on `mouseEntered`/`mouseExited` for low latency, but never set state directly from events.
 
-Remove or comment `mouseEntered`, `mouseExited` direct state-setting. Keep `TrackingAreaView` as a hint only (call `hoverController.tick()` immediately on event, don't trust the event's conclusion).
+**Step 1: Refactor `NotchHoverController`**
 
-**Step 6: Run all tests**
+Replace the current open/close `Task` approach with the state machine + heartbeat above. Keep `HoverZoneChecking` injection (already in place). Expose `state: HoverState` and `isShelfActive: Bool`.
+
+**Step 2: Update `BoringViewModel` integration**
+
+```swift
+// start heartbeat when notch opens, stop when it closes
+func open() { /* ... */ hoverController.startHeartbeat() }
+func close(force: Bool) { /* ... */ hoverController.stopHeartbeat() }
+
+// shelf mode: longer exit delay
+func showShelf() { hoverController.isShelfActive = true }
+func hideShelf() { hoverController.isShelfActive = false }
+```
+
+**Step 3: Update tests**
+
+Update `NotchHoverControllerTests` to use `tick()` directly (no `simulateMouseInside` needed — `MockHoverZoneChecker.mouseInZone` drives state). Cover:
+- Quick pass-through → no open
+- 50ms+ dwell → opens
+- Exit + re-enter within delay → close cancelled
+- Shelf mode: exit + re-enter within 4s → close cancelled
+
+**Step 4: Build + test**
 
 ```bash
 xcodebuild -scheme boringNotch -destination 'platform=macOS' test 2>&1 | tail -50
 ```
 
-**Step 7: Manual verification checklist**
+**Step 5: Manual verification checklist**
 
 - [ ] Normal hover → open → close works
 - [ ] Quick pass-through does NOT open
 - [ ] Button click inside open notch does NOT trigger close
-- [ ] Mouse leaving + returning cancels close
-- [ ] File drag with shelf open uses 4s delay
+- [ ] Mouse leaving + returning within delay cancels close
+- [ ] File drag with shelf open: 4s delay respected
+- [ ] Multi-screen: each window's heartbeat is independent
 - [ ] Second screen hover works independently
 
 **Step 8: Commit**
