@@ -1599,6 +1599,8 @@
 				14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
+				C1A00001EEEE000100000001 /* MusicPlaybackController.swift in Sources */,
+				C1A00003EEEE000100000001 /* MusicArtworkService.swift in Sources */,
 				11F749012ECB27DC00F841DB /* NotificationCenterManager.swift in Sources */,
 				11F749102ECB27DC00F841DB /* BluetoothManager.swift in Sources */,
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,

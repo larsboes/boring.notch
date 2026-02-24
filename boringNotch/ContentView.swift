@@ -17,11 +17,13 @@ import SwiftUIIntrospect
 struct ContentView: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.pluginManager) var pluginManager
+    @Environment(\.bindableSettings) var settings
 
-    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(BoringViewCoordinator.self) var coordinator
     @State var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
     @State var volumeManager = VolumeManager(eventBus: PluginEventBus())
-    var stateMachine = NotchStateMachine.shared
+    @Environment(NotchStateMachine.self) var stateMachine
+    @Environment(\.showSettingsWindow) var showSettingsWindow
 
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
@@ -39,12 +41,6 @@ struct ContentView: View {
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.liquidGlassEffect) var liquidGlassEffect
     @Default(.liquidGlassStyle) var liquidGlassStyle
-
-    // Use standardized animations from StandardAnimations enum
-    private let animationSpring = StandardAnimations.interactive
-
-    private let extendedHoverPadding: CGFloat = 30
-    private let zeroHeightHoverPadding: CGFloat = 10
 
     // MARK: - Display State Helpers
 
@@ -129,7 +125,7 @@ struct ContentView: View {
             chinWidth = 640
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicService.playbackState.isPlaying || !musicService.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
+            && settings.musicLiveActivityEnabled && !vm.hideOnClosed {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicService.playbackState.isPlaying && musicService.isPlayerIdle) && Defaults[.showNotHumanFace]
@@ -283,14 +279,14 @@ struct ContentView: View {
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         // Cancel any pending close when sharing finishes
-                        if !SharingStateManager.shared.preventNotchClose {
+                        if !pluginManager!.services.sharing.preventNotchClose {
                             vm.cancelPendingClose()
                         }
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
                         Button("Settings") {
-                            SettingsWindowController.shared.showWindow()
+                            showSettingsWindow()
                         }
                         .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
                     }
@@ -334,24 +330,11 @@ struct ContentView: View {
                 }
 
                 vm.dropEvent = false
-                if !SharingStateManager.shared.preventNotchClose {
+                if !pluginManager!.services.sharing.preventNotchClose {
                     vm.close()
                 }
             }
         }
-    }
-
-    @ViewBuilder
-    func NotchLayout() -> some View {
-        @Bindable var vm = vm
-        NotchContentRouter(
-            displayState: stateMachine.displayState,
-            albumArtNamespace: albumArtNamespace,
-            coordinator: coordinator,
-            closedNotchHeight: displayClosedNotchHeight,
-            cornerRadiusScaleFactor: cornerRadiusScaleFactor,
-            cornerRadiusInsets: cornerRadiusInsets
-        )
     }
 
     private func updateStateMachine() {
@@ -363,10 +346,10 @@ struct ContentView: View {
             pluginManager: pluginManager,
             hideOnClosed: vm.hideOnClosed
         )
-        NotchStateMachine.shared.update(with: input)
+        stateMachine.update(with: input)
 
         // DEBUG: Trace state changes
-        // print("DEBUG: notchState=\(vm.notchState), currentView=\(coordinator.currentView), displayState=\(NotchStateMachine.shared.displayState)")
+        // print("DEBUG: notchState=\(vm.notchState), currentView=\(coordinator.currentView), displayState=\(stateMachine.displayState)")
     }
 
     @ViewBuilder
@@ -385,45 +368,6 @@ struct ContentView: View {
             EmptyView()
         }
     }
-    
-    // MARK: - Notch Background
-    
-    @ViewBuilder
-    private var notchBackground: some View {
-        Group {
-            if liquidGlassEffect {
-                // Liquid glass effect with optional background image overlay
-                ZStack {
-                    Rectangle()
-                        .swiftGlassEffect(
-                            isEnabled: true,
-                            tintColor: musicService.playbackState.isPlaying ? Color(nsColor: musicService.avgColor).opacity(0.3) : nil
-                        )
-                    
-                    // Optional background image on top of glass
-                    if vm.isHoveringNotch || vm.notchState == .open, let hoverImage = vm.backgroundImage {
-                        Image(nsImage: hoverImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .opacity(0.25)
-                    }
-                }
-            } else {
-                // Classic solid black background
-                ZStack {
-                    Color.black
-                        .ignoresSafeArea()
-                    
-                    if vm.isHoveringNotch || vm.notchState == .open, let hoverImage = vm.backgroundImage {
-                        Image(nsImage: hoverImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .clipped()
-                    }
-                }
-            }
-        }
-    }
 
     private func doOpen() {
         withAnimation(StandardAnimations.interactive) {
@@ -431,101 +375,44 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Hover Management
-    // Deprecated: Now handled by TrackingAreaView and BoringViewModel
-    private func handleHover(_ hovering: Bool) {
-        // Kept for compatibility if needed, but logic moved to VM
-    }
-
     // MARK: - Gesture Handling
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .closed else { return }
-
-        if phase == .ended {
-            withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
-            return
-        }
-
-        withAnimation(StandardAnimations.interactive) {
-            gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
-        }
-
-        if translation > Defaults[.gestureSensitivity] {
-            if Defaults[.enableHaptics] {
-                haptics.toggle()
-            }
-            withAnimation(StandardAnimations.interactive) {
-                gestureProgress = .zero
-            }
-            doOpen()
-        }
+        let result = NotchGestureCoordinator.handleDown(
+            translation: translation, phase: phase, notchState: vm.notchState
+        )
+        applyGestureResult(result, openAction: { doOpen() })
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        let result = NotchGestureCoordinator.handleUp(
+            translation: translation, phase: phase,
+            notchState: vm.notchState,
+            isHoveringCalendar: vm.isHoveringCalendar,
+            preventClose: pluginManager!.services.sharing.preventNotchClose
+        )
+        applyGestureResult(result, closeAction: { vm.close(force: true) })
+    }
 
-        withAnimation(StandardAnimations.interactive) {
-            gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
+    private func applyGestureResult(
+        _ result: NotchGestureCoordinator.GestureResult,
+        openAction: (() -> Void)? = nil,
+        closeAction: (() -> Void)? = nil
+    ) {
+        switch result {
+        case .progress(let value):
+            withAnimation(StandardAnimations.interactive) { gestureProgress = value }
+        case .reset:
+            withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
+        case .triggerOpen:
+            if Defaults[.enableHaptics] { haptics.toggle() }
+            withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
+            openAction?()
+        case .triggerClose:
+            gestureProgress = .zero
+            closeAction?()
+            if Defaults[.enableHaptics] { haptics.toggle() }
         }
-
-        if phase == .ended {
-            withAnimation(StandardAnimations.interactive) {
-                gestureProgress = .zero
-            }
-        }
-
-        if translation > Defaults[.gestureSensitivity] {
-
-            if !SharingStateManager.shared.preventNotchClose { 
-                gestureProgress = .zero
-                vm.close(force: true)
-            }
-
-            if Defaults[.enableHaptics] {
-                haptics.toggle()
-            }
-        }
-    }
-}
-
-struct FullScreenDropDelegate: DropDelegate {
-    @Binding var isTargeted: Bool
-    let onDrop: () -> Void
-
-    func dropEntered(info _: DropInfo) {
-        isTargeted = true
-    }
-
-    func dropExited(info _: DropInfo) {
-        isTargeted = false
-    }
-
-    func performDrop(info _: DropInfo) -> Bool {
-        isTargeted = false
-        onDrop()
-        return true
-    }
-
-}
-
-struct GeneralDropTargetDelegate: DropDelegate {
-    @Binding var isTargeted: Bool
-
-    func dropEntered(info: DropInfo) {
-        isTargeted = true
-    }
-
-    func dropExited(info: DropInfo) {
-        isTargeted = false
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        return DropProposal(operation: .cancel)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        return false
     }
 }
 
@@ -533,6 +420,7 @@ struct GeneralDropTargetDelegate: DropDelegate {
     let vm = BoringViewModel()
     ContentView()
         .environment(vm)
+        .environment(NotchStateMachine())
         .frame(width: vm.notchSize.width, height: vm.notchSize.height)
         .onAppear {
             vm.open()
