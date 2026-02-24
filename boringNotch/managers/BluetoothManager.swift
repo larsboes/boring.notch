@@ -4,19 +4,21 @@ import SwiftUI
 import Defaults
 import Combine
 
+@MainActor
 class BluetoothManager: NSObject, ObservableObject {
-    static let shared = BluetoothManager()
-    
+    static let shared = BluetoothManager(settings: DefaultsNotchSettings.shared)
+
     @Published var connectedDevices: [BluetoothDevice] = []
     @Published var isScanning = false
     @Published var bluetoothState: CBManagerState = .unknown
     @Published var isInitialized = false
-    
+
     private var centralManager: CBCentralManager?
     private var timer: Timer?
-    private let settings: any NotchSettings = DefaultsNotchSettings.shared
+    private let settings: any NotchSettings
 
-    override private init() {
+    init(settings: any NotchSettings) {
+        self.settings = settings
         super.init()
     }
     
@@ -77,9 +79,7 @@ class BluetoothManager: NSObject, ObservableObject {
             newDevices.append(btDevice)
         }
         
-        DispatchQueue.main.async {
-            self.connectedDevices = newDevices
-        }
+        self.connectedDevices = newDevices
     }
     
     private func getBatteryLevel(for device: IOBluetoothDevice) -> Int? {
@@ -128,17 +128,20 @@ class BluetoothManager: NSObject, ObservableObject {
 }
 
 extension BluetoothManager: CBCentralManagerDelegate {
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        bluetoothState = central.state
-        switch central.state {
-        case .poweredOn:
-            print("Bluetooth usable (permission granted)")
-        case .unauthorized:
-            print("Bluetooth permission denied")
-        case .poweredOff:
-            print("Bluetooth off")
-        default:
-            break
+    nonisolated func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        let state = central.state
+        Task { @MainActor in
+            self.bluetoothState = state
+            switch state {
+            case .poweredOn:
+                print("Bluetooth usable (permission granted)")
+            case .unauthorized:
+                print("Bluetooth permission denied")
+            case .poweredOff:
+                print("Bluetooth off")
+            default:
+                break
+            }
         }
     }
 }

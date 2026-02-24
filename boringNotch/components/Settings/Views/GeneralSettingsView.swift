@@ -245,15 +245,6 @@ struct GeneralSettings: View {
         } header: {
             Text("Notch behavior")
         }
-        .onChange(of: settings.showOnLockScreen, initial: true) { _, newValue in
-            if newValue {
-                // Request accessibility permissions if needed
-                if !AXIsProcessTrusted() {
-                    let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-                    AXIsProcessTrustedWithOptions(options)
-                }
-            }
-        }
     }
 }
 

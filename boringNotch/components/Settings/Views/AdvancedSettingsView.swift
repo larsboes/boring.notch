@@ -217,6 +217,14 @@ struct Advanced: View {
                 Toggle(isOn: $settings.showOnLockScreen) {
                     Text("Show notch on lock screen")
                 }
+                .onChange(of: settings.showOnLockScreen, initial: true) { _, newValue in
+                    if newValue {
+                        if !AXIsProcessTrusted() {
+                            let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+                            AXIsProcessTrustedWithOptions(options)
+                        }
+                    }
+                }
                 Toggle(isOn: $settings.hideFromScreenRecording) {
                     Text("Hide from screen recording")
                 }

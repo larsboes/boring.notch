@@ -16,7 +16,7 @@ import SwiftUI
     private let settings: NotchViewModelSettings
 
     /// Manages hover zone using fixed screen coordinates
-    private let hoverZoneManager = HoverZoneManager()
+    private let hoverZoneManager: any HoverZoneChecking
 
     /// Closure to check if close should be prevented (replaces SharingStateManager.shared)
     var shouldPreventClose: () -> Bool = { false }
@@ -40,8 +40,9 @@ import SwiftUI
 
     // MARK: - Initialization
 
-    init(settings: NotchViewModelSettings) {
+    init(settings: NotchViewModelSettings, hoverZoneManager: (any HoverZoneChecking)? = nil) {
         self.settings = settings
+        self.hoverZoneManager = hoverZoneManager ?? HoverZoneManager()
     }
 
     // MARK: - Hover Zone Management

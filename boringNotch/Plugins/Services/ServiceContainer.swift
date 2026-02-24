@@ -88,10 +88,10 @@ final class ServiceContainer {
     init(eventBus: PluginEventBus, settings: any NotchSettings) {
         self.music = MusicService(manager: MusicManager())
         self.sound = SoundService()
-        self.battery = BatteryService(eventBus: eventBus, settings: settings)
+        self.battery = BatteryService(eventBus: eventBus)
         self.calendar = CalendarService()
         self.weather = WeatherService()
-        self.face = FaceService(settings: settings)
+        self.face = FaceService()
         self.dragDrop = DragDropService()
 
         self.temporaryFileStorage = TemporaryFileStorageService()

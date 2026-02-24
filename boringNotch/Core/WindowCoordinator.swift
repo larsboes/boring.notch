@@ -26,8 +26,14 @@ final class WindowCoordinator {
     /// Multi-display mode: UUID -> BoringViewModel mapping
     private(set) var viewModels: [String: BoringViewModel] = [:]
 
+    /// Multi-display mode: UUID -> NotchStateMachine mapping
+    private var stateMachines: [String: NotchStateMachine] = [:]
+
     /// Primary view model for single-display mode
     let primaryViewModel: BoringViewModel
+
+    /// Primary state machine for single-display mode
+    private lazy var primaryStateMachine: NotchStateMachine = NotchStateMachine(settings: settings)
 
     /// Reference to view coordinator
     private let coordinator: BoringViewCoordinator
@@ -79,6 +85,7 @@ final class WindowCoordinator {
             }
             windows.removeAll()
             viewModels.removeAll()
+            stateMachines.removeAll()
         } else if let window = window {
             window.close()
             NotchSpaceManager.shared.notchSpace.windows.remove(window)
@@ -93,7 +100,7 @@ final class WindowCoordinator {
     // MARK: - Window Creation
 
     /// Create a notch window for a specific screen
-    func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
+    func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel, stateMachine: NotchStateMachine) -> NSWindow {
         let rect = NSRect(x: 0, y: 0, width: windowSize.width, height: windowSize.height)
         let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
 
@@ -115,6 +122,8 @@ final class WindowCoordinator {
         window.contentView = NSHostingView(
             rootView: ContentView()
                 .environment(viewModel)
+                .environment(coordinator)
+                .environment(stateMachine)
                 .environment(\.pluginManager, pluginManager)
         )
 
@@ -195,10 +204,12 @@ final class WindowCoordinator {
                     soundService: pluginManager.services.sound,
                     dragDropService: pluginManager.services.dragDrop
                 )
-                let window = createBoringNotchWindow(for: screen, with: viewModel)
+                let stateMachine = NotchStateMachine(settings: settings)
+                let window = createBoringNotchWindow(for: screen, with: viewModel, stateMachine: stateMachine)
 
                 windows[uuid] = window
                 viewModels[uuid] = viewModel
+                stateMachines[uuid] = stateMachine
             }
 
             if let window = windows[uuid], let viewModel = viewModels[uuid] {
@@ -232,7 +243,7 @@ final class WindowCoordinator {
         primaryViewModel.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
 
         if window == nil {
-            window = createBoringNotchWindow(for: selectedScreen, with: primaryViewModel)
+            window = createBoringNotchWindow(for: selectedScreen, with: primaryViewModel, stateMachine: primaryStateMachine)
         }
 
         if let window = window {

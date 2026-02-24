@@ -9,11 +9,18 @@
 import AppKit
 import Foundation
 
+/// Protocol for hover zone detection — allows test injection without screen dependencies.
+@MainActor
+protocol HoverZoneChecking: AnyObject {
+    func updateHoverZone(screenUUID: String?)
+    func isMouseInHoverZone() -> Bool
+}
+
 /// Manages the hover detection zone using fixed screen coordinates.
 /// This ensures hover detection works correctly during open/close animations
 /// because the zone doesn't change with the animated view bounds.
 @MainActor
-final class HoverZoneManager {
+final class HoverZoneManager: HoverZoneChecking {
     /// The fixed hover zone in screen coordinates
     private(set) var hoverZone: CGRect = .zero
 
