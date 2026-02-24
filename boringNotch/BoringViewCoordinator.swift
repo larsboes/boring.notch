@@ -112,7 +112,7 @@ struct ExpandedItem {
     var shelfService: ShelfServiceProtocol?
     private var mediaKeyInterceptor: MediaKeyInterceptor?
 
-    private init() {
+    init() {
         // Subscribe to MusicManager's sneak peek requests
         // This replaces the direct coupling where MusicManager called coordinator methods
         setupMusicSneakPeekSubscription()

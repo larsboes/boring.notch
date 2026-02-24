@@ -76,16 +76,22 @@ final class ServiceContainer {
     /// Shelf file handler
     public let shelfFileHandler: any ShelfFileHandlerProtocol
 
+    /// Quick Look preview service
+    public let quickLook: QuickLookService
+
+    /// Quick Share service
+    public let quickShare: QuickShareService
+
     // MARK: - Initialization
 
     /// Default initializer - creates services that are ready
-    init(eventBus: PluginEventBus) {
+    init(eventBus: PluginEventBus, settings: any NotchSettings) {
         self.music = MusicService(manager: MusicManager())
         self.sound = SoundService()
-        self.battery = BatteryService(eventBus: eventBus)
+        self.battery = BatteryService(eventBus: eventBus, settings: settings)
         self.calendar = CalendarService()
         self.weather = WeatherService()
-        self.face = FaceService()
+        self.face = FaceService(settings: settings)
         self.dragDrop = DragDropService()
 
         self.temporaryFileStorage = TemporaryFileStorageService()
@@ -104,7 +110,8 @@ final class ServiceContainer {
         self.brightness = BrightnessManager(eventBus: eventBus)
         self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus)
         self.sharing = SharingStateManager.shared
-        // Other services will be added as they're migrated
+        self.quickLook = QuickLookService()
+        self.quickShare = QuickShareService(temporaryFileStorage: self.temporaryFileStorage)
     }
 
     /// Full initializer for testing or custom configurations
@@ -129,6 +136,8 @@ final class ServiceContainer {
         temporaryFileStorage: any TemporaryFileStorageServiceProtocol,
         shelfImageProcessor: any ShelfImageProcessorProtocol,
         shelfFileHandler: any ShelfFileHandlerProtocol,
+        quickLook: QuickLookService,
+        quickShare: QuickShareService,
         bluetooth: (any BluetoothServiceProtocol)? = nil
     ) {
         self.music = music
@@ -151,6 +160,8 @@ final class ServiceContainer {
         self.temporaryFileStorage = temporaryFileStorage
         self.shelfImageProcessor = shelfImageProcessor
         self.shelfFileHandler = shelfFileHandler
+        self.quickLook = quickLook
+        self.quickShare = quickShare
         self.bluetooth = bluetooth
     }
 }

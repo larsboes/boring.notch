@@ -15,11 +15,11 @@ final class AppObjectGraph {
 
     let eventBus = PluginEventBus()
     let settings: NotchSettings = DefaultsNotchSettings()
-    let coordinator = BoringViewCoordinator.shared
+    let coordinator = BoringViewCoordinator()
 
     lazy var pluginManager: PluginManager = {
         PluginManager(
-            services: ServiceContainer(eventBus: eventBus),
+            services: ServiceContainer(eventBus: eventBus, settings: settings),
             eventBus: eventBus,
             appState: BoringAppState(),
             builtInPlugins: [

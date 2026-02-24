@@ -55,10 +55,10 @@ struct ShelfItemView: View {
                         DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
                     },
                     onRightClick: { event, view in
-                        viewModel.handleRightClick(event: event, view: view, service: pluginManager!.services.shelf, quickLookService: QuickLookService.shared, quickShareService: QuickShareService.shared)
+                        viewModel.handleRightClick(event: event, view: view, service: pluginManager!.services.shelf, quickLookService: pluginManager!.services.quickLook, quickShareService: pluginManager!.services.quickShare)
                     },
                     onClick: { event, nsview in
-                        viewModel.handleClick(event: event, view: nsview, items: pluginManager!.services.shelf.items, service: pluginManager!.services.shelf, quickLookService: QuickLookService.shared, quickShareService: QuickShareService.shared)
+                        viewModel.handleClick(event: event, view: nsview, items: pluginManager!.services.shelf.items, service: pluginManager!.services.shelf, quickLookService: pluginManager!.services.quickLook, quickShareService: pluginManager!.services.quickShare)
                     }
                 )
             } else {
