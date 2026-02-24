@@ -23,7 +23,7 @@ let tabs = [
 ]
 
 struct TabSelectionView: View {
-    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(BoringViewCoordinator.self) var coordinator
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {

@@ -11,9 +11,10 @@ struct BoringHeader: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
     @Environment(\.pluginManager) var pluginManager
-    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(BoringViewCoordinator.self) var coordinator
 
     var body: some View {
+        @Bindable var coordinator = coordinator
         HStack(spacing: 0) {
             HStack {
                 if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {

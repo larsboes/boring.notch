@@ -16,7 +16,7 @@ struct NotchHomeView: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
     @Environment(\.pluginManager) var pluginManager
-    @Bindable var coordinator = BoringViewCoordinator.shared
+    @Environment(BoringViewCoordinator.self) var coordinator
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
