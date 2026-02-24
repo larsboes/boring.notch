@@ -65,6 +65,7 @@ protocol NotchSettings {
     var hideNotchOption: HideNotchOption { get set }
     var mediaController: MediaControllerType { get set }
     var mirrorShape: MirrorShapeEnum { get set }
+    var musicControlSlots: [MusicControlButton] { get set }
 
     // MARK: - Gesture Settings
     var enableGestures: Bool { get set }
@@ -316,6 +317,10 @@ final class DefaultsNotchSettings: NotchSettings {
     var mirrorShape: MirrorShapeEnum {
         get { Defaults[.mirrorShape] }
         set { Defaults[.mirrorShape] = newValue }
+    }
+    var musicControlSlots: [MusicControlButton] {
+        get { Defaults[.musicControlSlots] }
+        set { Defaults[.musicControlSlots] = newValue }
     }
 
     // MARK: - Gesture Settings
@@ -586,6 +591,7 @@ struct MockNotchSettings: NotchSettings {
     var hideNotchOption: HideNotchOption = .never
     var mediaController: MediaControllerType = .nowPlaying
     var mirrorShape: MirrorShapeEnum = .circle
+    var musicControlSlots: [MusicControlButton] = MusicControlButton.defaultLayout
 
     // MARK: - Gesture Settings
     var enableGestures: Bool = true
