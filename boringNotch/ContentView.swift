@@ -18,8 +18,6 @@ struct ContentView: View {
     @Environment(\.settings) var settings
 
     @Environment(BoringViewCoordinator.self) var coordinator
-    @State var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
-    @State var volumeManager = VolumeManager(eventBus: PluginEventBus())
     @Environment(NotchStateMachine.self) var stateMachine
     @Environment(\.showSettingsWindow) var showSettingsWindow
 

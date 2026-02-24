@@ -13,9 +13,7 @@ struct OpenNotchHUD: View {
     @Binding var value: CGFloat
     @Binding var icon: String
     @Environment(\.settings) var settings
-    
-    @State private var volumeManager = VolumeManager(eventBus: PluginEventBus())
-    @State private var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
+    @Environment(\.pluginManager) var pluginManager
     
     var body: some View {
         HStack(spacing: 8) {
@@ -91,9 +89,9 @@ struct OpenNotchHUD: View {
     func updateSystemValue(_ newVal: CGFloat) {
         switch type {
         case .volume:
-            volumeManager.setAbsolute(Float32(newVal))
+            pluginManager?.services.volume.setAbsolute(Float32(newVal))
         case .brightness:
-            brightnessManager.setAbsolute(value: Float32(newVal))
+            pluginManager?.services.brightness.setAbsolute(value: Float32(newVal))
         default:
             break
         }

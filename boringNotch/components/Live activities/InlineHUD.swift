@@ -15,9 +15,7 @@ struct InlineHUD: View {
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
     @Environment(\.settings) var settings
-    
-    @State private var volumeManager = VolumeManager(eventBus: PluginEventBus())
-    @State private var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
+    @Environment(\.pluginManager) var pluginManager
     
     var body: some View {
         HStack {
@@ -84,9 +82,9 @@ struct InlineHUD: View {
                         HStack {
                         DraggableProgressBar(value: $value, onChange: { v in
                             if type == .volume {
-                                volumeManager.setAbsolute(Float32(v))
+                                pluginManager?.services.volume.setAbsolute(Float32(v))
                             } else if type == .brightness {
-                                brightnessManager.setAbsolute(value: Float32(v))
+                                pluginManager?.services.brightness.setAbsolute(value: Float32(v))
                             }
                         })
                         if type == .volume && value.isZero {
