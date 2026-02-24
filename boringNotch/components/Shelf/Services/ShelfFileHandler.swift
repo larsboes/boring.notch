@@ -149,14 +149,3 @@ final class ShelfFileHandler: ShelfFileHandlerProtocol {
     }
 }
 
-fileprivate extension Sequence {
-    func asyncCompactMap<T>(_ transform: (Element) async -> T?) async -> [T] {
-        var result: [T] = []
-        for element in self {
-            if let transformed = await transform(element) {
-                result.append(transformed)
-            }
-        }
-        return result
-    }
-}
