@@ -338,7 +338,8 @@ struct ContentView: View {
             coordinator: coordinator,
             musicService: musicService,
             pluginManager: pluginManager,
-            hideOnClosed: vm.hideOnClosed
+            hideOnClosed: vm.hideOnClosed,
+            settings: settings
         )
         stateMachine.update(with: input)
 
@@ -373,7 +374,8 @@ struct ContentView: View {
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
         let result = NotchGestureCoordinator.handleDown(
-            translation: translation, phase: phase, notchState: vm.notchState
+            translation: translation, phase: phase, notchState: vm.notchState,
+            sensitivity: settings.gestureSensitivity
         )
         applyGestureResult(result, openAction: { doOpen() })
     }
@@ -383,7 +385,8 @@ struct ContentView: View {
             translation: translation, phase: phase,
             notchState: vm.notchState,
             isHoveringCalendar: vm.isHoveringCalendar,
-            preventClose: pluginManager!.services.sharing.preventNotchClose
+            preventClose: pluginManager!.services.sharing.preventNotchClose,
+            sensitivity: settings.gestureSensitivity
         )
         applyGestureResult(result, closeAction: { vm.close(force: true) })
     }
@@ -414,7 +417,7 @@ struct ContentView: View {
     let vm = BoringViewModel()
     ContentView()
         .environment(vm)
-        .environment(NotchStateMachine())
+        .environment(NotchStateMachine(settings: MockNotchSettings()))
         .frame(width: vm.notchSize.width, height: vm.notchSize.height)
         .onAppear {
             vm.open()

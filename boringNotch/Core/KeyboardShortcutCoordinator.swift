@@ -7,7 +7,6 @@
 //
 
 import AppKit
-import Defaults
 import KeyboardShortcuts
 
 /// Coordinates keyboard shortcuts for the notch.
@@ -18,16 +17,19 @@ final class KeyboardShortcutCoordinator {
 
     private let coordinator: BoringViewCoordinator
     private let windowCoordinator: WindowCoordinator
+    private let settings: NotchSettings
     private var closeNotchTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
     init(
         coordinator: BoringViewCoordinator,
-        windowCoordinator: WindowCoordinator
+        windowCoordinator: WindowCoordinator,
+        settings: NotchSettings
     ) {
         self.coordinator = coordinator
         self.windowCoordinator = windowCoordinator
+        self.settings = settings
     }
 
     // MARK: - Setup
@@ -48,7 +50,7 @@ final class KeyboardShortcutCoordinator {
     }
 
     private func handleToggleSneakPeek() {
-        if Defaults[.sneakPeekStyles] == .inline {
+        if settings.sneakPeekStyles == .inline {
             let newStatus = !coordinator.expandingView.show
             coordinator.toggleExpandingView(status: newStatus, type: .music)
         } else {

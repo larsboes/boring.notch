@@ -8,7 +8,7 @@
 
 import Observation
 import SwiftUI
-import Defaults
+
 
 // MARK: - Display State Types
 
@@ -199,7 +199,8 @@ class NotchStateMachine {
         coordinator: BoringViewCoordinator,
         musicService: any MusicServiceProtocol,
         pluginManager: PluginManager?,
-        hideOnClosed: Bool
+        hideOnClosed: Bool,
+        settings: NotchSettings
     ) -> NotchStateInput {
         NotchStateInput(
             notchState: notchState,
@@ -211,9 +212,9 @@ class NotchStateMachine {
             isPlayerIdle: musicService.isPlayerIdle,
             isPlaying: musicService.playbackState.isPlaying,
             hideOnClosed: hideOnClosed,
-            showInlineHUD: Defaults[.inlineHUD],
-            showNotHumanFace: Defaults[.showNotHumanFace],
-            sneakPeekStyle: Defaults[.sneakPeekStyles]
+            showInlineHUD: settings.inlineHUD,
+            showNotHumanFace: settings.showNotHumanFace,
+            sneakPeekStyle: settings.sneakPeekStyles
         )
     }
 }

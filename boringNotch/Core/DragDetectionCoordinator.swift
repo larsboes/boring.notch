@@ -7,7 +7,6 @@
 //
 
 import AppKit
-import Defaults
 
 /// Coordinates drag detection to open the notch when files are dragged to the notch region.
 /// Extracted from AppDelegate to improve separation of concerns.
@@ -24,14 +23,19 @@ final class DragDetectionCoordinator {
     /// Reference to view coordinator
     private let coordinator: BoringViewCoordinator
 
+    /// Settings for reading drag detection and display preferences
+    private let settings: NotchSettings
+
     // MARK: - Initialization
 
     init(
         windowCoordinator: WindowCoordinator,
-        coordinator: BoringViewCoordinator
+        coordinator: BoringViewCoordinator,
+        settings: NotchSettings
     ) {
         self.windowCoordinator = windowCoordinator
         self.coordinator = coordinator
+        self.settings = settings
     }
 
     // MARK: - Setup
@@ -40,9 +44,9 @@ final class DragDetectionCoordinator {
     func setupDragDetectors() {
         cleanupDragDetectors()
 
-        guard Defaults[.expandedDragDetection] else { return }
+        guard settings.expandedDragDetection else { return }
 
-        if Defaults[.showOnAllDisplays] {
+        if settings.showOnAllDisplays {
             for screen in NSScreen.screens {
                 setupDragDetectorForScreen(screen)
             }
@@ -93,7 +97,7 @@ final class DragDetectionCoordinator {
         guard let uuid = screen.displayUUID,
               let windowCoordinator = windowCoordinator else { return }
 
-        if Defaults[.showOnAllDisplays] {
+        if settings.showOnAllDisplays {
             if let viewModel = windowCoordinator.viewModels[uuid] {
                 viewModel.open()
                 coordinator.currentView = .shelf
