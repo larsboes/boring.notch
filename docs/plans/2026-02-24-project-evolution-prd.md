@@ -13,32 +13,38 @@
 
 ---
 
-## Current State (2026-02-24)
+## Current State (updated 2026-02-24)
+
+**Active branch:** `refactor/singleton-elimination-tier3` (off `refactor/full-refactor`)
 
 ### What's Done
 - Plugin system: `PluginManager`, `NotchPlugin` protocol, `ServiceContainer`, `PluginEventBus`, 8 built-in plugins
 - `NotchStateMachine` — pure, fully testable, no SwiftUI/AppKit imports
 - `WindowCoordinator` — extracted from AppDelegate
 - Settings: `NotchSettings` protocol + `DefaultsNotchSettings` + `MockNotchSettings` + dual env keys
-- Singleton elimination: `SettingsWindowController`, `SharingStateManager`, `QuickShareService`, `NotchSpaceManager` — all done
+- Singleton elimination: `SettingsWindowController`, `SharingStateManager`, `QuickShareService`, `NotchSpaceManager` — all done (see `2026-02-07-singleton-elimination-remaining.md`)
 - Protocol-based services for all 8 built-in domains
+- App launches without crashes — `BoringViewCoordinator` and `NotchStateMachine` now correctly injected into window environment
+- **Task 1 complete:** Orphaned `VolumeManager`/`BrightnessManager` with throwaway `PluginEventBus()` removed from `ContentView`, `OpenNotchHUD`, `InlineHUD` — now use `pluginManager.services.volume/.brightness`
+- `HoverZoneChecking` protocol extracted — `NotchHoverController` testable via DI
+- `NotchHoverControllerTests` rewritten against real API with `MockHoverZoneChecker`
 
 ### What Remains — Violations Blocking Clean Architecture
 
-| Priority | File | Problem |
-|----------|------|---------|
-| 🔴 RUNTIME BUG | `Core/NotchContentRouter.swift` | Creates `VolumeManager(eventBus: PluginEventBus())` and `BrightnessManager` inside a SwiftUI struct — new instances + throwaway event bus on every view recreate |
-| 🔴 | `components/Shelf/Services/ShelfActionService.swift` | 849 lines — god class needing 3-way split |
-| 🔴 | `managers/MusicManager.swift` | 672 lines — not properly behind `MusicServiceProtocol` |
-| 🟡 | `ContentView.swift` | 543 lines — gestures + animation + drop delegate + state obs mixed |
-| 🟡 | `boringNotchApp.swift` | 502 lines — DI graph construction + AppDelegate lifecycle combined |
-| 🟡 | `components/Calendar/BoringCalendar.swift` | 459 lines — view + formatting logic mixed |
-| 🟡 | `BoringViewCoordinator.swift` | 4 remaining `.shared` access points to wire via DI |
-| 🟢 | Several settings views | Direct `Defaults[.]` access instead of `@Environment(\.bindableSettings)` |
-| 🟢 | `NotchSettings` protocol | 50+ properties on one protocol — ISP violation, needs splitting into focused sub-protocols |
+| Priority | Task | File | Problem |
+|----------|------|------|---------|
+| ✅ | Task 1 | `ContentView`, `OpenNotchHUD`, `InlineHUD` | ~~Inline `VolumeManager`/`BrightnessManager` with orphaned event buses~~ — **DONE** |
+| 🔴 | Task 2 | `components/Shelf/Services/ShelfActionService.swift` | 849 lines — god class needing 3-way split |
+| 🔴 | Task 3 | `managers/MusicManager.swift` | 672 lines — not properly behind `MusicServiceProtocol` |
+| 🟡 | Task 4 | `ContentView.swift` | ~530 lines — gestures + animation + drop delegate + state obs mixed |
+| 🟡 | Task 5 | `boringNotchApp.swift` | ~248 lines — still has lifecycle + some graph wiring mixed |
+| 🟡 | Task 6 | `components/Calendar/BoringCalendar.swift` | 459 lines — view + formatting logic mixed |
+| 🟡 | Task 8 | `BoringViewCoordinator.swift` | 4 remaining `.shared` access points to wire via DI |
+| 🟢 | Task 6 | Several settings views | Direct `Defaults[.]` access instead of `@Environment(\.bindableSettings)` |
+| 🟢 | Task 7 | `NotchSettings` protocol | 50+ properties — ISP violation, needs splitting into focused sub-protocols |
 
-### State Management Design Debt
-`NotchHoverController` is designed (see `docs/STATE_MANAGEMENT_ANALYSIS.md`) but not yet implemented. Current event-driven hover has ~15 known edge cases. The heartbeat-based truth-polling architecture solves them all.
+### State Management
+`NotchHoverController` exists in `models/` with `HoverZoneChecking` DI and unit tests. Current implementation is task/async based. Phase 2 (Task 9) upgrades to heartbeat-based truth polling to eliminate ~15 edge cases.
 
 ---
 
@@ -65,7 +71,13 @@ Three layers of value:
 
 ---
 
-### Task 1: Fix `NotchContentRouter` Runtime Bug
+### Task 1: Fix Inline Service Construction Runtime Bug ✅ COMPLETE
+
+**Implementation (2026-02-24):** `VolumeManager(eventBus: PluginEventBus())` and `BrightnessManager(eventBus: PluginEventBus())` were found in `ContentView`, `OpenNotchHUD`, and `InlineHUD` — not in `NotchContentRouter` as originally documented. All three files updated to use `@Environment(\.pluginManager)` and call `pluginManager?.services.volume/.brightness` instead. Dead declarations in `ContentView` removed. Build verified green.
+
+---
+
+### Task 1 (original spec, for reference): Fix `NotchContentRouter` Runtime Bug
 
 **Why first:** Active bug causing incorrect behavior. Services created inline = wrong event buses.
 
