@@ -7,13 +7,13 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct MusicLiveActivity: View {
     let service: any MusicServiceProtocol
-    
+
     // Environment Dependencies
     @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
     @Environment(\.albumArtNamespace) var albumArtNamespace: Namespace.ID?
     @Environment(\.displayClosedNotchHeight) var displayClosedNotchHeight
     @Environment(\.cornerRadiusScaleFactor) var cornerRadiusScaleFactor
@@ -73,7 +73,7 @@ struct MusicLiveActivity: View {
             HStack {
                 AudioSpectrumView(
                     isPlaying: service.playbackState.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
+                    tintColor: settings.coloredSpectrogram
                     ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.5)
                     : Color.gray
                 )
