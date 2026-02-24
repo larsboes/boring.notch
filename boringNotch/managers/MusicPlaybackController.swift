@@ -21,8 +21,6 @@ final class MusicPlaybackController {
     static nonisolated(unsafe) var isNowPlayingDeprecatedStatic: Bool = false
     private let mediaChecker = MediaChecker()
     private var activeController: (any MediaControllerProtocol)?
-    private let imageService: ImageServiceProtocol
-
     var isPlaying = false
     var isPlayerIdle: Bool = true
     var songTitle: String = "I'm Handsome"
@@ -50,9 +48,7 @@ final class MusicPlaybackController {
 
     // MARK: - Initialization
 
-    init(imageService: ImageServiceProtocol) {
-        self.imageService = imageService
-
+    init() {
         NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
             .sink { [weak self] _ in
                 self?.setActiveControllerBasedOnPreference()
@@ -96,9 +92,9 @@ final class MusicPlaybackController {
         case .appleMusic:
             newController = AppleMusicController()
         case .spotify:
-            newController = SpotifyController(imageService: imageService)
+            newController = SpotifyController()
         case .youtubeMusic:
-            newController = YouTubeMusicController(imageService: imageService)
+            newController = YouTubeMusicController()
         }
 
         if let controller = newController {

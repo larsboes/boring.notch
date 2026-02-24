@@ -76,9 +76,8 @@ final class MusicManager {
     // MARK: - Initialization
 
     init() {
-        let imageService = ImageService()
         self.artwork = MusicArtworkService()
-        self.playback = MusicPlaybackController(imageService: imageService)
+        self.playback = MusicPlaybackController()
 
         // Wire artwork updates from playback state changes
         playback.onContentChange = { [weak self] state in
