@@ -7,6 +7,7 @@
 
 import AppKit
 import Combine
+// Required for Defaults.updates() reactive stream observers
 import Defaults
 
 /// Manages which screen the notch is displayed on.

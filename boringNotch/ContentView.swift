@@ -15,7 +15,7 @@ import SwiftUIIntrospect
 struct ContentView: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.pluginManager) var pluginManager
-    @Environment(\.bindableSettings) var settings
+    @Environment(\.settings) var settings
 
     @Environment(BoringViewCoordinator.self) var coordinator
     @State var brightnessManager = BrightnessManager(eventBus: PluginEventBus())
