@@ -112,7 +112,8 @@ final class ShelfMenuActionTarget: NSObject {
         ShelfActionService.stopAccessingCopiedURLs()
 
         pb.clearContents()
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             let fileURLs = await selected.asyncCompactMap { item -> URL? in
                 if case .file = item.kind {
                     return service.resolveAndUpdateBookmark(for: item)
@@ -120,6 +121,7 @@ final class ShelfMenuActionTarget: NSObject {
                 return nil
             }
             if !fileURLs.isEmpty {
+                // Assumes single active clipboard operation at a time
                 ShelfActionService.copiedURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
                 NSLog("Started security-scoped access for \(ShelfActionService.copiedURLs.count) copied files")
                 pb.writeObjects(fileURLs as [NSURL])
@@ -158,19 +160,5 @@ final class ShelfMenuActionTarget: NSObject {
                 print("PDF Creation Failed: \(error.localizedDescription)")
             }
         }
-    }
-}
-
-// MARK: - Async Helpers
-
-extension Sequence {
-    func asyncCompactMap<T>(_ transform: (Element) async -> T?) async -> [T] {
-        var result: [T] = []
-        for element in self {
-            if let transformed = await transform(element) {
-                result.append(transformed)
-            }
-        }
-        return result
     }
 }
