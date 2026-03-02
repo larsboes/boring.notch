@@ -70,23 +70,6 @@
 		11CC44A22CEE614100C7244B /* BoringViewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CC44A12CEE614100C7244B /* BoringViewCoordinator.swift */; };
 		9D214145DBD54F758642F3FA /* BoringViewCoordinator+SneakPeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D31AA3E2AE54054910196E8 /* BoringViewCoordinator+SneakPeek.swift */; };
 		B0B01FF8BE96447096762A3D /* BoringViewCoordinator+Plugins.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90A69E202A04A6BBCF1E913 /* BoringViewCoordinator+Plugins.swift */; };
-		61294C82B14E097733A76E30 /* BoringViewModel+Camera.swift in Sources */,
-		795AEAE8C2FF94118E344C71 /* BoringViewModel+OpenClose.swift in Sources */,
-		429E221684FEE86CA34C44BC /* BoringViewModel+Hover.swift in Sources */,
-		16899C2EB3CEFEB5E78D7734 /* DefaultsKeys.swift in Sources */,
-		C2EE8289B392843DEA16DEFC /* YouTubeMusicController+WebSocket.swift in Sources */,
-		2CA2A25368299F10E7B536DF /* YouTubeMusicController+PlaybackState.swift in Sources */,
-		FB3FF39F153BA264CC5E7E4D /* CalendarEventListView.swift in Sources */,
-		F874B50BEC4652970926A6E7 /* JSONLinesPipeHandler.swift in Sources */,
-		D1D639C66A5E6E4481FAD39A /* NowPlayingModels.swift in Sources */,
-		DC922FD32FE54B4129B0CD83 /* VolumeManager+CoreAudio.swift in Sources */,
-		9FDE09322F6B0629CDCB06FF /* WebcamManager+CaptureSession.swift in Sources */,
-		8B6B94AA1095AF0E123D3CA9 /* LyricsService+WebFetch.swift in Sources */,
-		D27AAE3D7E5B10EFA87D70D8 /* MusicSlotConfigurationView+DragDrop.swift in Sources */,
-		A8214737DC4A6D1E34AB3BBD /* PluginManager+ViewHelpers.swift in Sources */,
-		5AC3880A5B3AE90305458480 /* PluginMusicControlsView.swift in Sources */,
-		D03D0657BFC22D66520E925A /* AccentCircleButton.swift in Sources */,
-		990DD982A563A3FA28FC6FCB /* WindowCoordinator+MultiDisplay.swift in Sources */,
 		11CFC65B2E097E9D00748C80 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC65A2E097E9D00748C80 /* WelcomeView.swift */; };
 		11CFC65F2E097F2F00748C80 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC65E2E097F2100748C80 /* OnboardingView.swift */; };
 		11CFC6612E097F6800748C80 /* PermissionsRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6602E097F6800748C80 /* PermissionsRequestView.swift */; };
