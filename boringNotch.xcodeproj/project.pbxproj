@@ -70,6 +70,23 @@
 		11CC44A22CEE614100C7244B /* BoringViewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CC44A12CEE614100C7244B /* BoringViewCoordinator.swift */; };
 		9D214145DBD54F758642F3FA /* BoringViewCoordinator+SneakPeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D31AA3E2AE54054910196E8 /* BoringViewCoordinator+SneakPeek.swift */; };
 		B0B01FF8BE96447096762A3D /* BoringViewCoordinator+Plugins.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90A69E202A04A6BBCF1E913 /* BoringViewCoordinator+Plugins.swift */; };
+		61294C82B14E097733A76E30 /* BoringViewModel+Camera.swift in Sources */,
+		795AEAE8C2FF94118E344C71 /* BoringViewModel+OpenClose.swift in Sources */,
+		429E221684FEE86CA34C44BC /* BoringViewModel+Hover.swift in Sources */,
+		16899C2EB3CEFEB5E78D7734 /* DefaultsKeys.swift in Sources */,
+		C2EE8289B392843DEA16DEFC /* YouTubeMusicController+WebSocket.swift in Sources */,
+		2CA2A25368299F10E7B536DF /* YouTubeMusicController+PlaybackState.swift in Sources */,
+		FB3FF39F153BA264CC5E7E4D /* CalendarEventListView.swift in Sources */,
+		F874B50BEC4652970926A6E7 /* JSONLinesPipeHandler.swift in Sources */,
+		D1D639C66A5E6E4481FAD39A /* NowPlayingModels.swift in Sources */,
+		DC922FD32FE54B4129B0CD83 /* VolumeManager+CoreAudio.swift in Sources */,
+		9FDE09322F6B0629CDCB06FF /* WebcamManager+CaptureSession.swift in Sources */,
+		8B6B94AA1095AF0E123D3CA9 /* LyricsService+WebFetch.swift in Sources */,
+		D27AAE3D7E5B10EFA87D70D8 /* MusicSlotConfigurationView+DragDrop.swift in Sources */,
+		A8214737DC4A6D1E34AB3BBD /* PluginManager+ViewHelpers.swift in Sources */,
+		5AC3880A5B3AE90305458480 /* PluginMusicControlsView.swift in Sources */,
+		D03D0657BFC22D66520E925A /* AccentCircleButton.swift in Sources */,
+		990DD982A563A3FA28FC6FCB /* WindowCoordinator+MultiDisplay.swift in Sources */,
 		11CFC65B2E097E9D00748C80 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC65A2E097E9D00748C80 /* WelcomeView.swift */; };
 		11CFC65F2E097F2F00748C80 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC65E2E097F2100748C80 /* OnboardingView.swift */; };
 		11CFC6612E097F6800748C80 /* PermissionsRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6602E097F6800748C80 /* PermissionsRequestView.swift */; };
@@ -260,6 +277,23 @@
 		F36796C03E7F8074A782454F /* ShelfDraggableClickHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC24D41E787AD703F701E25 /* ShelfDraggableClickHandler.swift */; };
 		FDCA6D651407B3AC40CF68EF /* SoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7691289F9F7BD942891A7BAD /* SoundService.swift */; };
 		FFBFA7A0C2A7138FEDA8B6C3 /* PluginContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7231CBEA1B26EC990993D858 /* PluginContext.swift */; };
+		61294C82B14E097733A76E30 /* BoringViewModel+Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E240AC845E7BB1BF6256FF8 /* BoringViewModel+Camera.swift */; };
+		795AEAE8C2FF94118E344C71 /* BoringViewModel+OpenClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 461EF372550F00023E2B6A82 /* BoringViewModel+OpenClose.swift */; };
+		429E221684FEE86CA34C44BC /* BoringViewModel+Hover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5129ED104E656013E0192640 /* BoringViewModel+Hover.swift */; };
+		16899C2EB3CEFEB5E78D7734 /* DefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BACB7C3AE6E2F7B8AF7AF34 /* DefaultsKeys.swift */; };
+		C2EE8289B392843DEA16DEFC /* YouTubeMusicController+WebSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3335B2D3BA83C22394980AD /* YouTubeMusicController+WebSocket.swift */; };
+		2CA2A25368299F10E7B536DF /* YouTubeMusicController+PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFCD351BD11B3AB4E1048A8 /* YouTubeMusicController+PlaybackState.swift */; };
+		FB3FF39F153BA264CC5E7E4D /* CalendarEventListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC8179020CA62621C4E6A00 /* CalendarEventListView.swift */; };
+		F874B50BEC4652970926A6E7 /* JSONLinesPipeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F60098E6120F0B16A053EF /* JSONLinesPipeHandler.swift */; };
+		D1D639C66A5E6E4481FAD39A /* NowPlayingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625E4E711AC1D996D0A69845 /* NowPlayingModels.swift */; };
+		DC922FD32FE54B4129B0CD83 /* VolumeManager+CoreAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CB7025FFE2CC5FE373E8EF /* VolumeManager+CoreAudio.swift */; };
+		9FDE09322F6B0629CDCB06FF /* WebcamManager+CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40A6CBBDC2C638EDD4FC7948 /* WebcamManager+CaptureSession.swift */; };
+		8B6B94AA1095AF0E123D3CA9 /* LyricsService+WebFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29F71C49021D0508FF907ED /* LyricsService+WebFetch.swift */; };
+		D27AAE3D7E5B10EFA87D70D8 /* MusicSlotConfigurationView+DragDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9750452CD89BB8FD364799F /* MusicSlotConfigurationView+DragDrop.swift */; };
+		A8214737DC4A6D1E34AB3BBD /* PluginManager+ViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32F965A77F4039F32A3DCD6 /* PluginManager+ViewHelpers.swift */; };
+		5AC3880A5B3AE90305458480 /* PluginMusicControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8E30FF1F7521A14C26FAE2 /* PluginMusicControlsView.swift */; };
+		D03D0657BFC22D66520E925A /* AccentCircleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33049D1441AC32824327D939 /* AccentCircleButton.swift */; };
+		990DD982A563A3FA28FC6FCB /* WindowCoordinator+MultiDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8C2670F1A8320273B9ACF8 /* WindowCoordinator+MultiDisplay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -558,6 +592,23 @@
 		F665A091F3653C3DB1AE4FAB /* NotchSizeCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchSizeCalculator.swift; sourceTree = "<group>"; };
 		F72C8F2DF69DAFB2AAED51A0 /* PluginCapabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginCapabilities.swift; path = boringNotch/Plugins/Core/PluginCapabilities.swift; sourceTree = "<group>"; };
 		FB095702076998EBFA1B6845 /* NotchPhaseController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchPhaseController.swift; sourceTree = "<group>"; };
+		7E240AC845E7BB1BF6256FF8 /* BoringViewModel+Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoringViewModel+Camera.swift"; sourceTree = "<group>"; };
+		461EF372550F00023E2B6A82 /* BoringViewModel+OpenClose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoringViewModel+OpenClose.swift"; sourceTree = "<group>"; };
+		5129ED104E656013E0192640 /* BoringViewModel+Hover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoringViewModel+Hover.swift"; sourceTree = "<group>"; };
+		3BACB7C3AE6E2F7B8AF7AF34 /* DefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultsKeys.swift; sourceTree = "<group>"; };
+		D3335B2D3BA83C22394980AD /* YouTubeMusicController+WebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouTubeMusicController+WebSocket.swift"; sourceTree = "<group>"; };
+		2BFCD351BD11B3AB4E1048A8 /* YouTubeMusicController+PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouTubeMusicController+PlaybackState.swift"; sourceTree = "<group>"; };
+		8AC8179020CA62621C4E6A00 /* CalendarEventListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventListView.swift; sourceTree = "<group>"; };
+		95F60098E6120F0B16A053EF /* JSONLinesPipeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLinesPipeHandler.swift; sourceTree = "<group>"; };
+		625E4E711AC1D996D0A69845 /* NowPlayingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingModels.swift; sourceTree = "<group>"; };
+		63CB7025FFE2CC5FE373E8EF /* VolumeManager+CoreAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VolumeManager+CoreAudio.swift"; sourceTree = "<group>"; };
+		40A6CBBDC2C638EDD4FC7948 /* WebcamManager+CaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WebcamManager+CaptureSession.swift"; sourceTree = "<group>"; };
+		D29F71C49021D0508FF907ED /* LyricsService+WebFetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LyricsService+WebFetch.swift"; sourceTree = "<group>"; };
+		F9750452CD89BB8FD364799F /* MusicSlotConfigurationView+DragDrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MusicSlotConfigurationView+DragDrop.swift"; sourceTree = "<group>"; };
+		F32F965A77F4039F32A3DCD6 /* PluginManager+ViewHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PluginManager+ViewHelpers.swift"; sourceTree = "<group>"; };
+		8A8E30FF1F7521A14C26FAE2 /* PluginMusicControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginMusicControlsView.swift; sourceTree = "<group>"; };
+		33049D1441AC32824327D939 /* AccentCircleButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentCircleButton.swift; sourceTree = "<group>"; };
+		1D8C2670F1A8320273B9ACF8 /* WindowCoordinator+MultiDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WindowCoordinator+MultiDisplay.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -720,6 +771,8 @@
 				1132E5132E777B920068732D /* YouTubeMusicNetworking.swift */,
 				1132E5102E777B6E0068732D /* YouTubeMusicModels.swift */,
 				1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */,
+				D3335B2D3BA83C22394980AD /* YouTubeMusicController+WebSocket.swift */,
+				2BFCD351BD11B3AB4E1048A8 /* YouTubeMusicController+PlaybackState.swift */,
 			);
 			path = "YouTube Music Controller";
 			sourceTree = "<group>";
@@ -732,6 +785,8 @@
 				1153BD922D986E4300979FB0 /* AppleMusicController.swift */,
 				1153BD992D98824300979FB0 /* SpotifyController.swift */,
 				1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */,
+				95F60098E6120F0B16A053EF /* JSONLinesPipeHandler.swift */,
+				625E4E711AC1D996D0A69845 /* NowPlayingModels.swift */,
 			);
 			path = MediaControllers;
 			sourceTree = "<group>";
@@ -757,6 +812,7 @@
 			children = (
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
+				33049D1441AC32824327D939 /* AccentCircleButton.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
 				11DB266A2EDD0CDF001EA0CF /* BatterySettingsView.swift */,
 				11DB266B2EDD0CDF001EA0CF /* CalendarSettingsView.swift */,
@@ -846,6 +902,7 @@
 			isa = PBXGroup;
 			children = (
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
+				D29F71C49021D0508FF907ED /* LyricsService+WebFetch.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
@@ -854,8 +911,10 @@
 				11F749002ECB27DC00F841DB /* NotificationCenterManager.swift */,
 				11F749112ECB27DC00F841DB /* BluetoothManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
+				40A6CBBDC2C638EDD4FC7948 /* WebcamManager+CaptureSession.swift */,
 				B1F0A0012E60000100000001 /* BrightnessManager.swift */,
 				59D8C23B2E589FAA00147B33 /* VolumeManager.swift */,
+				63CB7025FFE2CC5FE373E8EF /* VolumeManager+CoreAudio.swift */,
 				110029342E86940F00035A57 /* NotchFaceManager.swift */,
 				110029382E86940F00035A57 /* ClipboardManager.swift */,
 				1100293A2E86940F00035A57 /* NotesManager.swift */,
@@ -876,6 +935,7 @@
 			isa = PBXGroup;
 			children = (
 				14C08BB82C8DE4B1000F8AA0 /* BoringCalendar.swift */,
+				8AC8179020CA62621C4E6A00 /* CalendarEventListView.swift */,
 			);
 			path = Calendar;
 			sourceTree = "<group>";
@@ -984,8 +1044,12 @@
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
 				1163988C2DF5CAB40052E6AF /* EventModel.swift */,
 				B19016232CC15B4D00E3F12E /* Constants.swift */,
+				3BACB7C3AE6E2F7B8AF7AF34 /* DefaultsKeys.swift */,
 				11F749022ECB27DC00F841DB /* NotchNotification.swift */,
 				14D570C82C5F38890011E668 /* BoringViewModel.swift */,
+				7E240AC845E7BB1BF6256FF8 /* BoringViewModel+Camera.swift */,
+				461EF372550F00023E2B6A82 /* BoringViewModel+OpenClose.swift */,
+				5129ED104E656013E0192640 /* BoringViewModel+Hover.swift */,
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 				2F996B97FF11027495BA459A /* NotchViewModelSettings.swift */,
 				3D01104225AEAADF0C129C4A /* NotchHoverController.swift */,
@@ -1012,6 +1076,7 @@
 				F72C8F2DF69DAFB2AAED51A0 /* PluginCapabilities.swift */,
 				7231CBEA1B26EC990993D858 /* PluginContext.swift */,
 				6C19C5AA1D42422A94A2ABF5 /* PluginManager.swift */,
+				F32F965A77F4039F32A3DCD6 /* PluginManager+ViewHelpers.swift */,
 				AB48750D2215B0E835773A42 /* PluginSettings.swift */,
 				64EC2F5D40F20677C9756788 /* PluginEventBus.swift */,
 				EC4AFECF49A120AB6C87BC16 /* PluginEnvironment.swift */,
@@ -1268,6 +1333,7 @@
 			children = (
 				11DB26722EDD0CDF001EA0CF /* Views */,
 				11F748832ECB27DC00F841DB /* MusicSlotConfigurationView.swift */,
+				F9750452CD89BB8FD364799F /* MusicSlotConfigurationView+DragDrop.swift */,
 				11C5E3152DFE88510065821E /* SettingsView.swift */,
 				11C5E3112DFE85970065821E /* SettingsWindowController.swift */,
 				B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */,
@@ -1363,6 +1429,7 @@
 				CORENAVSTATE00012345678 /* NavigationState.swift */,
 				CORESCREENSEL0012345678 /* ScreenSelectionService.swift */,
 				CORE3F55BA7EA2F6A5D760B5 /* WindowCoordinator.swift */,
+				1D8C2670F1A8320273B9ACF8 /* WindowCoordinator+MultiDisplay.swift */,
 				49CA0BEB7AAC63E91195B276 /* BoringAppState.swift */,
 				COREDROPDEL00012345678 /* NotchDropDelegate.swift */,
 				COREGESTCORD0012345678 /* NotchGestureCoordinator.swift */,
@@ -1419,6 +1486,7 @@
 			children = (
 				BD4EDF4731BD96E501B155CE /* MusicLiveActivity.swift */,
 				BF9E85A0ABF3F3293A94E679 /* PluginMusicPlayerView.swift */,
+				8A8E30FF1F7521A14C26FAE2 /* PluginMusicControlsView.swift */,
 				8837776161EBE6B0242F17B4 /* MusicSettingsView.swift */,
 			);
 			name = Views;
@@ -1621,6 +1689,23 @@
 				11CC44A22CEE614100C7244B /* BoringViewCoordinator.swift in Sources */,
 				9D214145DBD54F758642F3FA /* BoringViewCoordinator+SneakPeek.swift in Sources */,
 				B0B01FF8BE96447096762A3D /* BoringViewCoordinator+Plugins.swift in Sources */,
+				61294C82B14E097733A76E30 /* BoringViewModel+Camera.swift in Sources */,
+				795AEAE8C2FF94118E344C71 /* BoringViewModel+OpenClose.swift in Sources */,
+				429E221684FEE86CA34C44BC /* BoringViewModel+Hover.swift in Sources */,
+				16899C2EB3CEFEB5E78D7734 /* DefaultsKeys.swift in Sources */,
+				C2EE8289B392843DEA16DEFC /* YouTubeMusicController+WebSocket.swift in Sources */,
+				2CA2A25368299F10E7B536DF /* YouTubeMusicController+PlaybackState.swift in Sources */,
+				FB3FF39F153BA264CC5E7E4D /* CalendarEventListView.swift in Sources */,
+				F874B50BEC4652970926A6E7 /* JSONLinesPipeHandler.swift in Sources */,
+				D1D639C66A5E6E4481FAD39A /* NowPlayingModels.swift in Sources */,
+				DC922FD32FE54B4129B0CD83 /* VolumeManager+CoreAudio.swift in Sources */,
+				9FDE09322F6B0629CDCB06FF /* WebcamManager+CaptureSession.swift in Sources */,
+				8B6B94AA1095AF0E123D3CA9 /* LyricsService+WebFetch.swift in Sources */,
+				D27AAE3D7E5B10EFA87D70D8 /* MusicSlotConfigurationView+DragDrop.swift in Sources */,
+				A8214737DC4A6D1E34AB3BBD /* PluginManager+ViewHelpers.swift in Sources */,
+				5AC3880A5B3AE90305458480 /* PluginMusicControlsView.swift in Sources */,
+				D03D0657BFC22D66520E925A /* AccentCircleButton.swift in Sources */,
+				990DD982A563A3FA28FC6FCB /* WindowCoordinator+MultiDisplay.swift in Sources */,
 				B186543C2C6F49AE000B926A /* ShortcutConstants.swift in Sources */,
 				11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */,
 				B1D365CE2C6A979C0047BDBC /* LiveActivityModifier.swift in Sources */,

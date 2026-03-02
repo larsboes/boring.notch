@@ -12,28 +12,13 @@ import SwiftUI
 
 @MainActor
 @Observable class BoringViewModel: NSObject {
-    // MARK: - Dependencies (injected, not @ObservedObject to singletons)
-
-    /// View coordinator - accessed as property, not @ObservedObject
-    /// This prevents the VM from republishing on every coordinator change
-    private let coordinator: BoringViewCoordinator
-
-    /// Fullscreen media detector - accessed as property, not @ObservedObject
+    // MARK: - Dependencies
+    let coordinator: BoringViewCoordinator
     private let detector: FullscreenMediaDetector
-
-    /// Settings provider (injected, replaces direct Defaults access)
-    private let settings: NotchViewModelSettings
-
-    /// Display settings for sizing calculations
-    private let displaySettings: any DisplaySettings
-
-    /// Hover controller for mouse interaction
-    private let hoverController: NotchHoverController
-
-    /// Size calculator for notch dimensions
+    let settings: NotchViewModelSettings
+    let displaySettings: any DisplaySettings
+    let hoverController: NotchHoverController
     private let sizeCalculator: NotchSizeCalculator
-
-    /// Observer setup manager
     private let observerSetup: NotchObserverSetup
 
     let animationLibrary: BoringAnimations = .init()
@@ -44,7 +29,7 @@ import SwiftUI
     // MARK: - Phase State (replaces notchState + hoverController)
 
     /// The current phase of the notch UI (closed, opening, open, closing)
-    private(set) var phase: NotchPhase = .closed
+    var phase: NotchPhase = .closed
 
     /// Backwards compatibility: computed notchState based on phase
     var notchState: NotchState {
@@ -96,7 +81,7 @@ import SwiftUI
         set { sizeCalculator.inactiveNotchSize = newValue }
     }
 
-    private let webcamService: any WebcamServiceProtocol
+    let webcamService: any WebcamServiceProtocol
     var isCameraExpanded: Bool = false
     var isRequestingAuthorization: Bool = false
 
@@ -108,10 +93,10 @@ import SwiftUI
         // This method is kept for external cleanup calls if needed
     }
 
-    private let musicService: any MusicServiceProtocol
+    let musicService: any MusicServiceProtocol
     private let soundService: any SoundServiceProtocol
     private let dragDropService: any DragDropServiceProtocol
-    private let sharingService: any SharingServiceProtocol
+    let sharingService: any SharingServiceProtocol
     var shelfService: ShelfServiceProtocol?
 
     /// Window reference for position validation
@@ -211,8 +196,6 @@ import SwiftUI
             Task { @MainActor in
                 guard let self = self else { return }
                 self.dragDetectorTargeting = false
-                // Optional: Close notch or switch back?
-                // For now, we keep it open to allow dropping
             }
         }
 
@@ -293,206 +276,12 @@ import SwiftUI
         )
     }
 
-    // MARK: - Camera Methods
-
-    func toggleCameraPreview() {
-        if isRequestingAuthorization {
-            return
-        }
-
-        switch webcamService.authorizationStatus {
-        case .authorized:
-            if webcamService.isSessionRunning {
-                webcamService.stopSession()
-                isCameraExpanded = false
-            } else if webcamService.cameraAvailable {
-                webcamService.startSession()
-                isCameraExpanded = true
-            }
-
-        case .denied, .restricted:
-            DispatchQueue.main.async {
-                NSApp.setActivationPolicy(.regular)
-                NSApp.activate(ignoringOtherApps: true)
-
-                let alert = NSAlert()
-                alert.messageText = "Camera Access Required"
-                alert.informativeText = "Please allow camera access in System Settings."
-                alert.addButton(withTitle: "Open Settings")
-                alert.addButton(withTitle: "Cancel")
-
-                if alert.runModal() == .alertFirstButtonReturn {
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
-
-                NSApp.setActivationPolicy(.accessory)
-                NSApp.deactivate()
-            }
-
-        case .notDetermined:
-            isRequestingAuthorization = true
-            webcamService.checkAndRequestVideoAuthorization()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.isRequestingAuthorization = false
-            }
-
-        default:
-            break
-        }
-    }
-
-    // MARK: - Hover Zone Management
-
-    /// Set the window reference for hover validation
-    func setHoverWindow(_ window: NSWindow?) {
-        self.window = window
-    }
-
-    /// Updates the hover zone geometry. Call when screen changes, not during animation.
-    func updateHoverZone() {
-        hoverController.updateHoverZone(screenUUID: screenUUID)
-    }
-
-    /// Single entry point for hover signals from TrackingAreaView.
-    func handleHoverSignal(_ signal: HoverSignal) {
-        hoverController.handleHoverSignal(
-            signal,
-            currentPhase: phase,
-            sneakPeekActive: coordinator.sneakPeek.show
-        ) { [weak self] in
-            self?.open()
-        }
-
-        // Handle exited signal for scheduling close
-        if case .exited = signal {
-            scheduleClose()
-        }
-    }
-
-    // MARK: - Legacy Compatibility
-
-    /// Called by TrackingAreaView when mouse enters (legacy API)
-    func mouseEntered() {
-        handleHoverSignal(.entered)
-    }
-
-    /// Called by TrackingAreaView when mouse exits (legacy API)
-    func mouseExited() {
-        handleHoverSignal(.exited)
-    }
-
-    /// Schedule a close after the appropriate delay
-    private func scheduleClose() {
-        hoverController.scheduleClose(
-            currentPhase: phase,
-            currentView: coordinator.currentView
-        ) { [weak self] in
-            self?.close(force: true)
-        }
-    }
-
-    /// Setup hover controller (kept for API compatibility)
-    func setupHoverController() {
-        // No-op: hover logic is now in hoverController
-    }
-
-    /// Legacy compatibility - cancel pending close
-    func cancelPendingClose() {
-        hoverController.cancelPendingClose()
-    }
-
-    // MARK: - Open/Close Methods
-
-    func open() {
-        // Guard against opening when not closed
-        guard phase == .closed else { return }
-
-        // Cancel any pending close
-        hoverController.cancelPendingClose()
-
-        // Transition to opening phase
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-            self.notchSize = openNotchSize
-            self.phase = .opening
-        }
-
-        // Complete the opening after animation
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(350))
-            if self.phase == .opening {
-                self.phase = .open
-                self.syncWindowState()
-            }
-        }
-
-        // Force music information update when notch is opened
-        musicService.forceUpdate()
-    }
-
-    func close(force: Bool = false) {
-        // Do not close while a share picker or sharing service is active
-        if sharingService.preventNotchClose { return }
-
-        // Safety Check: If mouse is inside and not forced, REFUSE to close.
-        if !force && isHoveringNotch && phase == .open { return }
-
-        // Guard against closing when not open
-        guard phase == .open || force else { return }
-
-        // Cancel any pending open
-        hoverController.cancelPendingOpen()
-
-        // Transition to closing phase
-        withAnimation(.spring(response: 0.30, dampingFraction: 0.9)) {
-            self.notchSize = getClosedNotchSize(settings: self.displaySettings, screenUUID: self.screenUUID)
-            self.closedNotchSize = self.notchSize
-            self.phase = .closing
-        }
-
-        // Complete the closing after animation
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(300))
-            if self.phase == .closing {
-                self.phase = .closed
-                self.syncWindowState()
-
-                // Check if mouse is still in hover zone and should reopen
-                if self.hoverController.isMouseInHoverZone() {
-                    self.handleHoverSignal(.entered)
-                }
-            }
-        }
-
-        self.isBatteryPopoverActive = false
-        self.coordinator.sneakPeek.show = false
-        self.edgeAutoOpenActive = false
-
-        // Set the current view to shelf if it contains files and the user enables openShelfByDefault
-        let isShelfEmpty = shelfService?.isEmpty ?? true
-        if !isShelfEmpty && settings.openShelfByDefault {
-            coordinator.currentView = .shelf
-        } else if !coordinator.openLastTabByDefault {
-            coordinator.currentView = .home
-        }
-    }
-
     /// Sync window's isNotchOpen state with current phase
-    private func syncWindowState() {
+    func syncWindowState() {
         if let boringWindow = window as? BoringNotchWindow {
             boringWindow.isNotchOpen = phase.isInteractive
         } else if let skyLightWindow = window as? BoringNotchSkyLightWindow {
             skyLightWindow.isNotchOpen = phase.isInteractive
-        }
-    }
-
-    func closeHello() {
-        Task { @MainActor in
-            withAnimation(animationLibrary.animation) {
-                coordinator.helloAnimationRunning = false
-                close()
-            }
         }
     }
 
