@@ -8,7 +8,6 @@
 
 import AppKit
 import Combine
-import Defaults
 import SwiftUI
 
 let defaultImage: NSImage = .init(
@@ -30,6 +29,7 @@ final class MusicArtworkService {
     private var albumArtTask: Task<Void, Error>?
     private var flipWorkItem: DispatchWorkItem?
     private var workItem: DispatchWorkItem?
+    private let settings: any MediaSettings
 
     // Track the last values when artwork was changed to avoid redundant updates
     private var lastArtworkTitle: String = "I'm Handsome"
@@ -40,6 +40,12 @@ final class MusicArtworkService {
     private let avgColorSubject = PassthroughSubject<NSColor, Never>()
     var avgColorPublisher: AnyPublisher<NSColor, Never> {
         avgColorSubject.eraseToAnyPublisher()
+    }
+
+    // MARK: - Initialization
+
+    init(settings: any MediaSettings) {
+        self.settings = settings
     }
 
     // MARK: - Public API
@@ -89,7 +95,7 @@ final class MusicArtworkService {
                 self.usingAppIconForArtwork = usingAppIcon
                 self.artworkData = state.artwork
 
-                if Defaults[.coloredSpectrogram] {
+                if settings.coloredSpectrogram {
                     self.calculateAverageColor()
                 }
             }
@@ -112,7 +118,7 @@ final class MusicArtworkService {
         workItem?.cancel()
         withAnimation(.smooth) {
             self.albumArt = newAlbumArt
-            if Defaults[.coloredSpectrogram] {
+            if settings.coloredSpectrogram {
                 self.calculateAverageColor()
             }
         }

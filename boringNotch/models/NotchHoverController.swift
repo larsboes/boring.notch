@@ -40,9 +40,9 @@ import SwiftUI
 
     // MARK: - Initialization
 
-    init(settings: NotchViewModelSettings, hoverZoneManager: (any HoverZoneChecking)? = nil) {
+    init(settings: NotchViewModelSettings, displaySettings: any DisplaySettings = DefaultsNotchSettings.shared, hoverZoneManager: (any HoverZoneChecking)? = nil) {
         self.settings = settings
-        self.hoverZoneManager = hoverZoneManager ?? HoverZoneManager()
+        self.hoverZoneManager = hoverZoneManager ?? HoverZoneManager(displaySettings: displaySettings)
     }
 
     // MARK: - Hover Zone Management

@@ -36,11 +36,11 @@ enum MusicPlayerImageSizes {
     if let uuid = screenUUID {
         selectedScreen = NSScreen.screen(withUUID: uuid)
     }
-    
+
     if let screen = selectedScreen {
         return screen.frame
     }
-    
+
     return nil
 }
 
@@ -51,7 +51,7 @@ enum MusicPlayerImageSizes {
             return safeAreaTop
         }
     }
-    
+
     return 38
 }
 
@@ -65,18 +65,19 @@ enum MusicPlayerImageSizes {
     return 43
 }
 
-@MainActor func syncNotchHeightIfNeeded() {
-    switch Defaults[.notchHeightMode] {
+@MainActor func syncNotchHeightIfNeeded(settings: any DisplaySettings) {
+    switch settings.notchHeightMode {
     case .matchRealNotchSize:
         let realHeight = getRealNotchHeight()
-        if Defaults[.notchHeight] != realHeight {
+        if settings.notchHeight != realHeight {
+            // Use Defaults directly here since this is the sync point that writes back
             Defaults[.notchHeight] = realHeight
             NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
         }
 
     case .matchMenuBar:
         let menuHeight = getMenuBarHeight()
-        if Defaults[.notchHeight] != menuHeight {
+        if settings.notchHeight != menuHeight {
             Defaults[.notchHeight] = menuHeight
             NotificationCenter.default.post(name: .notchHeightChanged, object: nil)
         }
@@ -86,8 +87,8 @@ enum MusicPlayerImageSizes {
     }
 }
 
-@MainActor func getClosedNotchSize(screenUUID: String? = nil, hasLiveActivity: Bool = false) -> CGSize {
-    var notchHeight: CGFloat = Defaults[.nonNotchHeight]
+@MainActor func getClosedNotchSize(settings: any DisplaySettings, screenUUID: String? = nil, hasLiveActivity: Bool = false) -> CGSize {
+    var notchHeight: CGFloat = settings.nonNotchHeight
     var notchWidth: CGFloat = 185
 
     var selectedScreen = NSScreen.main
@@ -108,7 +109,7 @@ enum MusicPlayerImageSizes {
             // or for screens without a notch
             notchWidth = 185
         }
-        
+
         // Check if the Mac has a notch
         if screen.safeAreaInsets.top > 0 {
             // This is a display WITH a notch - use notch height settings
@@ -117,20 +118,20 @@ enum MusicPlayerImageSizes {
                 // This fixes the "never as tiny as normal" issue
                 notchHeight = screen.safeAreaInsets.top
             } else {
-                notchHeight = Defaults[.notchHeight]
-                if Defaults[.notchHeightMode] == .matchRealNotchSize {
+                notchHeight = settings.notchHeight
+                if settings.notchHeightMode == .matchRealNotchSize {
                     notchHeight = screen.safeAreaInsets.top
-                } else if Defaults[.notchHeightMode] == .matchMenuBar {
+                } else if settings.notchHeightMode == .matchMenuBar {
                     notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
                 }
             }
         } else {
             // This is a display WITHOUT a notch - use non-notch height settings
-            if !hasLiveActivity && Defaults[.nonNotchHeightMode] == .custom {
-                notchHeight = Defaults[.nonNotchHeight]
-            } else if Defaults[.nonNotchHeightMode] == .matchMenuBar {
+            if !hasLiveActivity && settings.nonNotchHeightMode == .custom {
+                notchHeight = settings.nonNotchHeight
+            } else if settings.nonNotchHeightMode == .matchMenuBar {
                 notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
-            } else if Defaults[.nonNotchHeightMode] == .matchRealNotchSize {
+            } else if settings.nonNotchHeightMode == .matchRealNotchSize {
                 notchHeight = 32
             } else {
                 notchHeight = 32
@@ -141,22 +142,22 @@ enum MusicPlayerImageSizes {
     return .init(width: notchWidth, height: notchHeight)
 }
 
-@MainActor func getInactiveNotchSize(screenUUID: String? = nil) -> CGSize {
-    let notchHeight: CGFloat = Defaults[.inactiveNotchHeight]
+@MainActor func getInactiveNotchSize(settings: any DisplaySettings, screenUUID: String? = nil) -> CGSize {
+    let notchHeight: CGFloat = settings.inactiveNotchHeight
     var notchWidth: CGFloat = 185
-    
+
     var selectedScreen = NSScreen.main
-    
+
     if let uuid = screenUUID {
         selectedScreen = NSScreen.screen(withUUID: uuid)
     }
-    
+
     if let screen = selectedScreen {
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
            let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
             notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
         }
     }
-    
+
     return .init(width: notchWidth, height: notchHeight)
 }

@@ -50,258 +50,25 @@ struct ExpandedItem {
 @Observable class BoringViewCoordinator {
     var currentView: NotchViews = .home
     var helloAnimationRunning: Bool = false
-    private var sneakPeekDispatch: DispatchWorkItem?
-    private var expandingViewDispatch: DispatchWorkItem?
-    private var hudEnableTask: Task<Void, Never>?
+    private(set) var sneakPeekDispatch: DispatchWorkItem?
+    private(set) var expandingViewDispatch: DispatchWorkItem?
+    var hudEnableTask: Task<Void, Never>?
 
-    // Defaults properties
-    var firstLaunch: Bool {
-        get { Defaults[.firstLaunch] }
-        set { Defaults[.firstLaunch] = newValue }
-    }
-    
-    var showWhatsNew: Bool {
-        get { Defaults[.showWhatsNew] }
-        set { Defaults[.showWhatsNew] = newValue }
-    }
-    
-    var musicLiveActivityEnabled: Bool {
-        get { Defaults[.musicLiveActivityEnabled] }
-        set { Defaults[.musicLiveActivityEnabled] = newValue }
-    }
-    
-    var currentMicStatus: Bool {
-        get { Defaults[.currentMicStatus] }
-        set { Defaults[.currentMicStatus] = newValue }
-    }
-
-    var alwaysShowTabs: Bool {
-        get { Defaults[.alwaysShowTabs] }
-        set { Defaults[.alwaysShowTabs] = newValue }
-    }
-    
-    var openLastTabByDefault: Bool {
-        get { Defaults[.openLastTabByDefault] }
-        set { Defaults[.openLastTabByDefault] = newValue }
-    }
-    
-    var hudReplacement: Bool {
-        get { Defaults[.hudReplacement] }
-        set { Defaults[.hudReplacement] = newValue }
-    }
-    
-    // Legacy storage for migration
-    // @AppStorage("preferred_screen_name") private var legacyPreferredScreenName: String?
-    
-    // New UUID-based storage
-    var preferredScreenUUID: String? {
-        get { Defaults[.preferredScreenUUID] }
-        set { Defaults[.preferredScreenUUID] = newValue }
-    }
+    let settings: any CoordinatorSettings
 
     var selectedScreenUUID: String = NSScreen.main?.displayUUID ?? ""
 
     var optionKeyPressed: Bool = true
     private var accessibilityObserver: Any?
-    private var hudReplacementCancellable: AnyCancellable?
-    private var musicSneakPeekCancellable: AnyCancellable?
-    
+    var hudReplacementCancellable: AnyCancellable?
+    var musicSneakPeekCancellable: AnyCancellable?
+
     // Injected service
     var shelfService: ShelfServiceProtocol?
-    private var mediaKeyInterceptor: MediaKeyInterceptor?
+    var mediaKeyInterceptor: MediaKeyInterceptor?
 
-    init() {
-        // Subscribe to MusicManager's sneak peek requests
-        // This replaces the direct coupling where MusicManager called coordinator methods
-        setupMusicSneakPeekSubscription()
-        
-        // Perform migration from name-based to UUID-based storage
-        let legacyName = UserDefaults.standard.string(forKey: "preferred_screen_name")
-        
-        if preferredScreenUUID == nil, let legacyName = legacyName {
-            // Try to find screen by name and migrate to UUID
-            if let screen = NSScreen.screens.first(where: { $0.localizedName == legacyName }),
-               let uuid = screen.displayUUID {
-                preferredScreenUUID = uuid
-                NSLog("✅ Migrated display preference from name '\(legacyName)' to UUID '\(uuid)'")
-            } else {
-                // Fallback to main screen if legacy screen not found
-                preferredScreenUUID = NSScreen.main?.displayUUID
-                NSLog("⚠️ Could not find display named '\(legacyName)', falling back to main screen")
-            }
-            // Clear legacy value after migration
-            UserDefaults.standard.removeObject(forKey: "preferred_screen_name")
-        } else if preferredScreenUUID == nil {
-            // No legacy value, use main screen
-            preferredScreenUUID = NSScreen.main?.displayUUID
-        }
-        
-        selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
-        // Observe changes to accessibility authorization and react accordingly
-        accessibilityObserver = NotificationCenter.default.addObserver(
-            forName: Notification.Name.accessibilityAuthorizationChanged,
-            object: nil,
-            queue: .main
-        ) { _ in
-            Task { @MainActor in
-                if Defaults[.hudReplacement] {
-                    await self.mediaKeyInterceptor?.start(promptIfNeeded: false)
-                }
-            }
-        }
-
-        // Observe changes to hudReplacement
-        hudReplacementCancellable = Defaults.publisher(.hudReplacement)
-            .sink { [weak self] change in
-                Task { @MainActor in
-                    guard let self = self else { return }
-
-                    self.hudEnableTask?.cancel()
-                    self.hudEnableTask = nil
-
-                    if change.newValue {
-                        self.hudEnableTask = Task { @MainActor in
-                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                            if Task.isCancelled { return }
-
-                            if granted {
-                                await self.mediaKeyInterceptor?.start()
-                            } else {
-                                Defaults[.hudReplacement] = false
-                            }
-                        }
-                    } else {
-                        self.mediaKeyInterceptor?.stop()
-                    }
-                }
-            }
-            
-        // Observe changes to alwaysShowTabs
-        Task { @MainActor in
-            for await value in Defaults.updates(.alwaysShowTabs) {
-                if !value {
-                    openLastTabByDefault = false
-                    let isShelfEmpty = self.shelfService?.isEmpty ?? true
-                    if isShelfEmpty || !Defaults[.openShelfByDefault] {
-                        currentView = .home
-                    }
-                }
-            }
-        }
-        
-        // Observe changes to openLastTabByDefault
-        Task { @MainActor in
-            for await value in Defaults.updates(.openLastTabByDefault) {
-                if value {
-                    alwaysShowTabs = true
-                }
-            }
-        }
-        
-        // Observe changes to preferredScreenUUID
-        Task { @MainActor in
-            for await uuid in Defaults.updates(.preferredScreenUUID) {
-                if let uuid = uuid {
-                    selectedScreenUUID = uuid
-                }
-                NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
-            }
-        }
-
-        Task { @MainActor in
-            helloAnimationRunning = firstLaunch
-            
-            // Failsafe: Ensure hello animation doesn't run forever
-            if helloAnimationRunning {
-                try? await Task.sleep(for: .seconds(10))
-                if helloAnimationRunning {
-                    helloAnimationRunning = false
-                }
-            }
-
-            if Defaults[.hudReplacement] {
-                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                if !authorized {
-                    Defaults[.hudReplacement] = false
-                } else {
-                    await mediaKeyInterceptor?.start(promptIfNeeded: false)
-                }
-            }
-        }
-    }
-    
-    @objc func sneakPeekEvent(_ notification: Notification) {
-        let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(
-            SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data) {
-            let contentType =
-                decodedData.type == "brightness"
-                ? SneakContentType.brightness
-                : decodedData.type == "volume"
-                    ? SneakContentType.volume
-                    : decodedData.type == "backlight"
-                        ? SneakContentType.backlight
-                        : decodedData.type == "mic"
-                            ? SneakContentType.mic : SneakContentType.brightness
-
-            let formatter = NumberFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.numberStyle = .decimal
-            let value = CGFloat((formatter.number(from: decodedData.value) ?? 0.0).floatValue)
-            let icon = decodedData.icon
-
-            print("Decoded: \(decodedData), Parsed value: \(value)")
-
-            toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
-
-        } else {
-            print("Failed to decode JSON data")
-        }
-    }
-
-    func toggleSneakPeek(
-        status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
-        icon: String = ""
-    ) {
-        sneakPeekDuration = duration == 1.5 ? Defaults[.sneakPeakDuration] : duration
-        if type != .music {
-            // close()
-            if !Defaults[.hudReplacement] {
-                return
-            }
-        }
-        Task { @MainActor in
-            withAnimation(.smooth) {
-                self.sneakPeek.show = status
-                self.sneakPeek.type = type
-                self.sneakPeek.value = value
-                self.sneakPeek.icon = icon
-            }
-        }
-
-        if type == .mic {
-            currentMicStatus = value == 1
-        }
-    }
-
-    private var sneakPeekDuration: TimeInterval = Defaults[.sneakPeakDuration]
-    private var sneakPeekTask: Task<Void, Never>?
-
-    // Helper function to manage sneakPeek timer using Swift Concurrency
-    private func scheduleSneakPeekHide(after duration: TimeInterval) {
-        sneakPeekTask?.cancel()
-
-        sneakPeekTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(duration))
-            guard let self = self, !Task.isCancelled else { return }
-            await MainActor.run {
-                withAnimation {
-                    self.toggleSneakPeek(status: false, type: .music)
-                    self.sneakPeekDuration = Defaults[.sneakPeakDuration]
-                }
-            }
-        }
-    }
+    var sneakPeekDuration: TimeInterval
+    var sneakPeekTask: Task<Void, Never>?
 
     var sneakPeek: sneakPeek = .init() {
         didSet {
@@ -313,23 +80,7 @@ struct ExpandedItem {
         }
     }
 
-    func toggleExpandingView(
-        status: Bool,
-        type: SneakContentType,
-        value: CGFloat = 0,
-        browser: BrowserType = .chromium
-    ) {
-        Task { @MainActor in
-            withAnimation(.smooth) {
-                self.expandingView.show = status
-                self.expandingView.type = type
-                self.expandingView.value = value
-                self.expandingView.browser = browser
-            }
-        }
-    }
-
-    private var expandingViewTask: Task<Void, Never>?
+    var expandingViewTask: Task<Void, Never>?
 
     var expandingView: ExpandedItem = .init() {
         didSet {
@@ -347,33 +98,150 @@ struct ExpandedItem {
             }
         }
     }
-    
-    func showEmpty() {
-        currentView = .home
+
+    init(settings: any CoordinatorSettings = DefaultsNotchSettings.shared) {
+        self.settings = settings
+        self.sneakPeekDuration = settings.sneakPeakDuration
+
+        // Perform migration from name-based to UUID-based storage
+        let legacyName = UserDefaults.standard.string(forKey: "preferred_screen_name")
+
+        if settings.preferredScreenUUID == nil, let legacyName = legacyName {
+            if let screen = NSScreen.screens.first(where: { $0.localizedName == legacyName }),
+               let uuid = screen.displayUUID {
+                settings.preferredScreenUUID = uuid
+                NSLog("Migrated display preference from name '\(legacyName)' to UUID '\(uuid)'")
+            } else {
+                settings.preferredScreenUUID = NSScreen.main?.displayUUID
+                NSLog("Could not find display named '\(legacyName)', falling back to main screen")
+            }
+            UserDefaults.standard.removeObject(forKey: "preferred_screen_name")
+        } else if settings.preferredScreenUUID == nil {
+            settings.preferredScreenUUID = NSScreen.main?.displayUUID
+        }
+
+        selectedScreenUUID = settings.preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
+
+        setupObservers()
+        setupInitialState()
     }
 
-    // MARK: - Plugin Integration
+    private func setupObservers() {
+        // Observe changes to accessibility authorization
+        accessibilityObserver = NotificationCenter.default.addObserver(
+            forName: Notification.Name.accessibilityAuthorizationChanged,
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                if self.settings.hudReplacement {
+                    await self.mediaKeyInterceptor?.start(promptIfNeeded: false)
+                }
+            }
+        }
 
-    /// Configure the coordinator with the plugin event bus and dependencies.
-    /// This replaces direct coupling to managers.
-    func configure(eventBus: PluginEventBus, mediaKeyInterceptor: MediaKeyInterceptor) {
-        self.mediaKeyInterceptor = mediaKeyInterceptor
-        musicSneakPeekCancellable = eventBus.subscribe(to: SneakPeekRequestedEvent.self) { [weak self] event in
-            guard let self = self else { return }
-            let request = event.request
-            if request.style == .standard {
-                self.toggleSneakPeek(status: true, type: request.type, value: request.value)
-            } else {
-                self.toggleExpandingView(status: true, type: request.type, value: request.value)
+        // Observe changes to hudReplacement
+        hudReplacementCancellable = Defaults.publisher(.hudReplacement)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    self.hudEnableTask?.cancel()
+                    self.hudEnableTask = nil
+
+                    if change.newValue {
+                        self.hudEnableTask = Task { @MainActor in
+                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                            if Task.isCancelled { return }
+                            if granted {
+                                await self.mediaKeyInterceptor?.start()
+                            } else {
+                                self.settings.hudReplacement = false
+                            }
+                        }
+                    } else {
+                        self.mediaKeyInterceptor?.stop()
+                    }
+                }
+            }
+
+        // Observe changes to alwaysShowTabs
+        Task { @MainActor in
+            for await value in Defaults.updates(.alwaysShowTabs) {
+                if !value {
+                    self.settings.openLastTabByDefault = false
+                    let isShelfEmpty = self.shelfService?.isEmpty ?? true
+                    if isShelfEmpty || !self.settings.openShelfByDefault {
+                        currentView = .home
+                    }
+                }
+            }
+        }
+
+        // Observe changes to openLastTabByDefault
+        Task { @MainActor in
+            for await value in Defaults.updates(.openLastTabByDefault) {
+                if value {
+                    self.settings.alwaysShowTabs = true
+                }
+            }
+        }
+
+        // Observe changes to preferredScreenUUID
+        Task { @MainActor in
+            for await uuid in Defaults.updates(.preferredScreenUUID) {
+                if let uuid = uuid {
+                    selectedScreenUUID = uuid
+                }
+                NotificationCenter.default.post(name: Notification.Name.selectedScreenChanged, object: nil)
             }
         }
     }
 
-    /// Subscribe to MusicManager's sneak peek requests.
-    /// Deprecated: Use configure(eventBus:) instead.
-    private func setupMusicSneakPeekSubscription() {
-        // Removed direct subscription to MusicManager.shared
-        // Music updates are now handled via MusicServiceProtocol in the view model
-        // Logic moved to configure(eventBus:)
+    private func setupInitialState() {
+        Task { @MainActor in
+            helloAnimationRunning = settings.firstLaunch
+
+            if helloAnimationRunning {
+                try? await Task.sleep(for: .seconds(10))
+                if helloAnimationRunning {
+                    helloAnimationRunning = false
+                }
+            }
+
+            if settings.hudReplacement {
+                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                if !authorized {
+                    settings.hudReplacement = false
+                } else {
+                    await mediaKeyInterceptor?.start(promptIfNeeded: false)
+                }
+            }
+        }
+    }
+
+    // MARK: - Forwarding Properties (for external callers)
+
+    var firstLaunch: Bool {
+        get { settings.firstLaunch }
+        set { settings.firstLaunch = newValue }
+    }
+
+    var alwaysShowTabs: Bool {
+        get { settings.alwaysShowTabs }
+        set { settings.alwaysShowTabs = newValue }
+    }
+
+    var openLastTabByDefault: Bool {
+        get { settings.openLastTabByDefault }
+        set { settings.openLastTabByDefault = newValue }
+    }
+
+    var preferredScreenUUID: String? {
+        get { settings.preferredScreenUUID }
+        set { settings.preferredScreenUUID = newValue }
+    }
+
+    func showEmpty() {
+        currentView = .home
     }
 }

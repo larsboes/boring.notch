@@ -18,7 +18,21 @@ import SwiftUI
 final class DefaultsNotchSettings: NotchSettings {
     static let shared = DefaultsNotchSettings()
 
+    // MARK: - General App Settings
+    var firstLaunch: Bool {
+        get { Defaults[.firstLaunch] }
+        set { Defaults[.firstLaunch] = newValue }
+    }
+    var showWhatsNew: Bool {
+        get { Defaults[.showWhatsNew] }
+        set { Defaults[.showWhatsNew] = newValue }
+    }
+
     // MARK: - HUD Settings
+    var currentMicStatus: Bool {
+        get { Defaults[.currentMicStatus] }
+        set { Defaults[.currentMicStatus] = newValue }
+    }
     var showInlineHUD: Bool { Defaults[.inlineHUD] }
     var hudReplacement: Bool {
         get { Defaults[.hudReplacement] }
@@ -197,6 +211,14 @@ final class DefaultsNotchSettings: NotchSettings {
     var musicControlSlots: [MusicControlButton] {
         get { Defaults[.musicControlSlots] }
         set { Defaults[.musicControlSlots] = newValue }
+    }
+    var selectedVisualizerURL: URL? {
+        get { Defaults[.selectedVisualizerURL] }
+        set { Defaults[.selectedVisualizerURL] = newValue }
+    }
+    var selectedVisualizerSpeed: Double {
+        get { Defaults[.selectedVisualizerSpeed] }
+        set { Defaults[.selectedVisualizerSpeed] = newValue }
     }
 
     // MARK: - Gesture Settings
@@ -394,6 +416,10 @@ final class DefaultsNotchSettings: NotchSettings {
     var notificationRetentionDays: Int {
         get { Defaults[.notificationRetentionDays] }
         set { Defaults[.notificationRetentionDays] = newValue }
+    }
+    var storedNotifications: [NotchNotification] {
+        get { Defaults[.storedNotifications] }
+        set { Defaults[.storedNotifications] = newValue }
     }
 
     // MARK: - Bluetooth Settings

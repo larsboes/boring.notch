@@ -7,7 +7,6 @@
 import Foundation
 import AppKit
 import ApplicationServices
-import Defaults
 import AVFoundation
 
 private let kSystemDefinedEventType = CGEventType(rawValue: 14)!
@@ -34,17 +33,20 @@ final class MediaKeyInterceptor {
     private let brightnessService: any BrightnessServiceProtocol
     private let keyboardBacklightService: any KeyboardBacklightServiceProtocol
     private let coordinator: BoringViewCoordinator
-    
+    private let settings: any HUDSettings
+
     init(
         volumeService: any VolumeServiceProtocol,
         brightnessService: any BrightnessServiceProtocol,
         keyboardBacklightService: any KeyboardBacklightServiceProtocol,
-        coordinator: BoringViewCoordinator
+        coordinator: BoringViewCoordinator,
+        settings: any HUDSettings
     ) {
         self.volumeService = volumeService
         self.brightnessService = brightnessService
         self.keyboardBacklightService = keyboardBacklightService
         self.coordinator = coordinator
+        self.settings = settings
     }
 
     // MARK: - Accessibility (via XPC)
@@ -63,7 +65,7 @@ final class MediaKeyInterceptor {
         guard eventTap == nil else { return }
 
         // Ensure HUD replacement is enabled
-        guard Defaults[.hudReplacement] else {
+        guard settings.hudReplacement else {
             stop()
             return
         }
@@ -157,7 +159,7 @@ final class MediaKeyInterceptor {
     }
 
     private func handleOptionAction(for keyType: NXKeyType, command: Bool) -> Bool {
-        let action = Defaults[.optionKeyAction]
+        let action = settings.optionKeyAction
 
         switch action {
         case .openSettings:

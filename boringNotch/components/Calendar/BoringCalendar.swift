@@ -61,7 +61,7 @@ struct WeekDayPicker: View {
                 ZStack {
                     if isToday {
                         Circle()
-                            .fill(Color.effectiveAccent)
+                            .fill(Color.effectiveAccent(from: settings))
                             .frame(width: 24, height: 24)
                     } else if isSelected {
                         Circle()
@@ -176,7 +176,7 @@ struct EmptyEventsView: View {
                             .font(.caption)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .background(Color.effectiveAccent)
+                            .background(Color.effectiveAccent(from: settings))
                             .foregroundColor(.white)
                             .cornerRadius(6)
                     }

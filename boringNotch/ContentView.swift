@@ -28,7 +28,7 @@ struct ContentView: View {
     @State var haptics: Bool = false
 
     var musicService: any MusicServiceProtocol {
-        pluginManager?.services.music ?? MusicService(manager: MusicManager())
+        pluginManager?.services.music ?? MusicService(manager: MusicManager(settings: MockNotchSettings()))
     }
 
     @Namespace var albumArtNamespace

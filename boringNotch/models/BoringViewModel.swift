@@ -24,6 +24,9 @@ import SwiftUI
     /// Settings provider (injected, replaces direct Defaults access)
     private let settings: NotchViewModelSettings
 
+    /// Display settings for sizing calculations
+    private let displaySettings: any DisplaySettings
+
     /// Hover controller for mouse interaction
     private let hoverController: NotchHoverController
 
@@ -130,7 +133,8 @@ import SwiftUI
         musicService: any MusicServiceProtocol,
         soundService: any SoundServiceProtocol,
         dragDropService: any DragDropServiceProtocol,
-        settings: NotchViewModelSettings = DefaultNotchViewModelSettings()
+        settings: NotchViewModelSettings = DefaultNotchViewModelSettings(),
+        displaySettings: any DisplaySettings = DefaultsNotchSettings.shared
     ) {
         self.coordinator = coordinator
         self.detector = detector
@@ -139,11 +143,12 @@ import SwiftUI
         self.soundService = soundService
         self.dragDropService = dragDropService
         self.settings = settings
+        self.displaySettings = displaySettings
         self.animation = animationLibrary.animation
 
         // Initialize extracted components
-        self.hoverController = NotchHoverController(settings: settings)
-        self.sizeCalculator = NotchSizeCalculator(settings: settings, musicService: musicService)
+        self.hoverController = NotchHoverController(settings: settings, displaySettings: displaySettings)
+        self.sizeCalculator = NotchSizeCalculator(settings: settings, displaySettings: displaySettings, musicService: musicService)
         self.observerSetup = NotchObserverSetup(settings: settings, detector: detector)
 
         // Shelf service will be injected via property setter
@@ -160,9 +165,9 @@ import SwiftUI
         setupDragDropCallbacks()
 
         self.screenUUID = screenUUID
-        sizeCalculator.notchSize = getClosedNotchSize(screenUUID: screenUUID)
+        sizeCalculator.notchSize = getClosedNotchSize(settings: displaySettings, screenUUID: screenUUID)
         sizeCalculator.closedNotchSize = sizeCalculator.notchSize
-        sizeCalculator.inactiveNotchSize = getInactiveNotchSize(screenUUID: screenUUID)
+        sizeCalculator.inactiveNotchSize = getInactiveNotchSize(settings: displaySettings, screenUUID: screenUUID)
 
         // Initialize hover zone with screen coordinates
         hoverController.updateHoverZone(screenUUID: screenUUID)
@@ -175,10 +180,11 @@ import SwiftUI
     /// Convenience initializer for previews only
     @MainActor
     override convenience init() {
-        let musicService = MusicService(manager: MusicManager())
+        let mockSettings = MockNotchSettings()
+        let musicService = MusicService(manager: MusicManager(settings: mockSettings))
         self.init(
             coordinator: BoringViewCoordinator(),
-            detector: FullscreenMediaDetector(musicService: musicService),
+            detector: FullscreenMediaDetector(musicService: musicService, settings: mockSettings),
             webcamService: WebcamManager(),
             musicService: musicService,
             soundService: SoundService(),
@@ -439,7 +445,7 @@ import SwiftUI
 
         // Transition to closing phase
         withAnimation(.spring(response: 0.30, dampingFraction: 0.9)) {
-            self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
+            self.notchSize = getClosedNotchSize(settings: self.displaySettings, screenUUID: self.screenUUID)
             self.closedNotchSize = self.notchSize
             self.phase = .closing
         }

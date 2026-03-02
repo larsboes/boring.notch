@@ -8,7 +8,6 @@
 
 import AppKit
 import Combine
-import Defaults
 import SwiftUI
 
 @MainActor
@@ -21,6 +20,7 @@ final class MusicPlaybackController {
     static nonisolated(unsafe) var isNowPlayingDeprecatedStatic: Bool = false
     private let mediaChecker = MediaChecker()
     private var activeController: (any MediaControllerProtocol)?
+    private let settings: any MediaSettings
     var isPlaying = false
     var isPlayerIdle: Bool = true
     var songTitle: String = "I'm Handsome"
@@ -48,7 +48,8 @@ final class MusicPlaybackController {
 
     // MARK: - Initialization
 
-    init() {
+    init(settings: any MediaSettings) {
+        self.settings = settings
         NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
             .sink { [weak self] _ in
                 self?.setActiveControllerBasedOnPreference()
@@ -112,7 +113,7 @@ final class MusicPlaybackController {
     }
 
     private func setActiveControllerBasedOnPreference() {
-        let preferredType = Defaults[.mediaController]
+        let preferredType = settings.mediaController
         let controllerType = (isNowPlayingDeprecated && preferredType == .nowPlaying)
             ? .appleMusic
             : preferredType
@@ -184,7 +185,7 @@ final class MusicPlaybackController {
             debounceIdleTask?.cancel()
             debounceIdleTask = Task { [weak self] in
                 guard let self = self else { return }
-                try? await Task.sleep(for: .seconds(Defaults[.waitInterval]))
+                try? await Task.sleep(for: .seconds(self.settings.waitInterval))
                 withAnimation {
                     self.isPlayerIdle = !self.isPlaying
                 }
@@ -193,9 +194,9 @@ final class MusicPlaybackController {
     }
 
     private func emitSneakPeek() {
-        if isPlaying && Defaults[.enableSneakPeek] {
+        if isPlaying && settings.enableSneakPeek {
             sneakPeekSubject.send(
-                SneakPeekRequest(style: Defaults[.sneakPeekStyles], type: .music)
+                SneakPeekRequest(style: settings.sneakPeekStyles, type: .music)
             )
         }
     }

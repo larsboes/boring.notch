@@ -21,6 +21,9 @@ import SwiftUI
     /// Animation library for animations
     private let animationLibrary: BoringAnimations
 
+    /// Display settings for sizing calculations
+    private let displaySettings: any DisplaySettings
+
     // MARK: - Callbacks
 
     /// Called when notch size should be updated
@@ -57,11 +60,13 @@ import SwiftUI
     init(
         hoverController: NotchHoverController,
         musicService: any MusicServiceProtocol,
-        animationLibrary: BoringAnimations
+        animationLibrary: BoringAnimations,
+        displaySettings: any DisplaySettings
     ) {
         self.hoverController = hoverController
         self.musicService = musicService
         self.animationLibrary = animationLibrary
+        self.displaySettings = displaySettings
     }
 
     // MARK: - Configuration
@@ -128,7 +133,7 @@ import SwiftUI
         hoverController.cancelPendingOpen()
 
         let screenUUID = getScreenUUID()
-        let closedSize = getClosedNotchSize(screenUUID: screenUUID)
+        let closedSize = getClosedNotchSize(settings: displaySettings, screenUUID: screenUUID)
 
         // Transition to closing phase
         withAnimation(.spring(response: 0.30, dampingFraction: 0.9)) {

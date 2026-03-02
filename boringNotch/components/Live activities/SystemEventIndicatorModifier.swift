@@ -114,17 +114,17 @@ struct DraggableProgressBar: View {
                             settings.enableGradient ?
                                 AnyShapeStyle(LinearGradient(
                                     colors: settings.systemEventIndicatorUseAccent ?
-                                        [Color.effectiveAccent, Color.effectiveAccent.ensureMinimumBrightness(factor: 0.2)] :
+                                        [Color.effectiveAccent(from: settings), Color.effectiveAccent(from: settings).ensureMinimumBrightness(factor: 0.2)] :
                                         [Color.white, Color.white.opacity(0.2)],
                                     startPoint: .trailing,
                                     endPoint: .leading
                                 )) :
-                                AnyShapeStyle(settings.systemEventIndicatorUseAccent ? Color.effectiveAccent : Color.white)
+                                AnyShapeStyle(settings.systemEventIndicatorUseAccent ? Color.effectiveAccent(from: settings) : Color.white)
                         )
                         .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
                         .shadow(color: settings.systemEventIndicatorShadow ?
                             (settings.systemEventIndicatorUseAccent ?
-                                Color.effectiveAccent.ensureMinimumBrightness(factor: 0.7) :
+                                Color.effectiveAccent(from: settings).ensureMinimumBrightness(factor: 0.7) :
                                 Color.white) :
                             Color.clear,
                             radius: 8, x: 3)

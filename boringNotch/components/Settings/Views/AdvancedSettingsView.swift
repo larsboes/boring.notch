@@ -174,7 +174,7 @@ struct Advanced: View {
                                 .background(
                                     RoundedRectangle(cornerRadius: 20, style: .circular)
                                         .strokeBorder(
-                                            icon == selectedIcon ? Color.effectiveAccent : .clear,
+                                            icon == selectedIcon ? Color.effectiveAccent(from: settings) : .clear,
                                             lineWidth: 2.5
                                         )
                                 )
@@ -187,7 +187,7 @@ struct Advanced: View {
                                 .padding(.vertical, 3)
                                 .background(
                                     Capsule()
-                                        .fill(icon == selectedIcon ? Color.effectiveAccent : .clear)
+                                        .fill(icon == selectedIcon ? Color.effectiveAccent(from: settings) : .clear)
                                 )
                         }
                         .onTapGesture {

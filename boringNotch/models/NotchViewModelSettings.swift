@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Defaults
 
 /// Protocol for providing settings to BoringViewModel
 /// This allows dependency injection and removes direct Defaults access
@@ -20,33 +19,20 @@ protocol NotchViewModelSettings {
     var openShelfByDefault: Bool { get }
 }
 
-/// Default implementation using Defaults library
+/// Default implementation that delegates to a NotchSettings instance
+@MainActor
 struct DefaultNotchViewModelSettings: NotchViewModelSettings {
-    var shelfHoverDelay: Double {
-        Defaults[.shelfHoverDelay]
+    private let source: any NotchSettings
+
+    init(source: any NotchSettings = DefaultsNotchSettings.shared) {
+        self.source = source
     }
 
-    var backgroundImageURL: URL? {
-        Defaults[.backgroundImageURL]
-    }
-
-    var hideNotchOption: HideNotchOption {
-        Defaults[.hideNotchOption]
-    }
-
-    var showNotHumanFace: Bool {
-        Defaults[.showNotHumanFace]
-    }
-
-    var hideTitleBar: Bool {
-        Defaults[.hideTitleBar]
-    }
-
-    var openNotchOnHover: Bool {
-        Defaults[.openNotchOnHover]
-    }
-
-    var openShelfByDefault: Bool {
-        Defaults[.openShelfByDefault]
-    }
+    var shelfHoverDelay: Double { source.shelfHoverDelay }
+    var backgroundImageURL: URL? { source.backgroundImageURL }
+    var hideNotchOption: HideNotchOption { source.hideNotchOption }
+    var showNotHumanFace: Bool { source.showNotHumanFace }
+    var hideTitleBar: Bool { source.hideTitleBar }
+    var openNotchOnHover: Bool { source.openNotchOnHover }
+    var openShelfByDefault: Bool { source.openShelfByDefault }
 }

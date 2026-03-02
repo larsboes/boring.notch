@@ -14,8 +14,8 @@ final class AppObjectGraph {
     // MARK: - Core Services
 
     let eventBus = PluginEventBus()
-    let settings: NotchSettings = DefaultsNotchSettings()
-    let coordinator = BoringViewCoordinator()
+    let settings = DefaultsNotchSettings()
+    lazy var coordinator = BoringViewCoordinator(settings: settings)
 
     lazy var pluginManager: PluginManager = {
         PluginManager(
@@ -45,14 +45,15 @@ final class AppObjectGraph {
             webcamService: pluginManager.services.webcam,
             musicService: pluginManager.services.music,
             soundService: pluginManager.services.sound,
-            dragDropService: pluginManager.services.dragDrop
+            dragDropService: pluginManager.services.dragDrop,
+            displaySettings: settings
         )
     }()
 
     // MARK: - Coordinators
 
     lazy var fullscreenDetector: FullscreenMediaDetector = {
-        FullscreenMediaDetector(musicService: pluginManager.services.music)
+        FullscreenMediaDetector(musicService: pluginManager.services.music, settings: settings)
     }()
 
     lazy var mediaKeyInterceptor: MediaKeyInterceptor = {
@@ -60,7 +61,8 @@ final class AppObjectGraph {
             volumeService: pluginManager.services.volume,
             brightnessService: pluginManager.services.brightness,
             keyboardBacklightService: pluginManager.services.keyboardBacklight,
-            coordinator: coordinator
+            coordinator: coordinator,
+            settings: settings
         )
     }()
 

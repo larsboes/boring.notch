@@ -10,7 +10,6 @@
 
 import AppKit
 import Combine
-import Defaults
 import SwiftUI
 
 @MainActor
@@ -21,6 +20,7 @@ final class MusicManager {
     private let playback: MusicPlaybackController
     private let artwork: MusicArtworkService
     private let _lyricsService = LyricsService()
+    private let settings: any MediaSettings
 
     // MARK: - Forwarded Properties (Playback)
 
@@ -75,9 +75,10 @@ final class MusicManager {
 
     // MARK: - Initialization
 
-    init() {
-        self.artwork = MusicArtworkService()
-        self.playback = MusicPlaybackController()
+    init(settings: any MediaSettings) {
+        self.settings = settings
+        self.artwork = MusicArtworkService(settings: settings)
+        self.playback = MusicPlaybackController(settings: settings)
 
         // Wire artwork updates from playback state changes
         playback.onContentChange = { [weak self] state in
@@ -129,7 +130,7 @@ final class MusicManager {
     // MARK: - Lyrics
 
     private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
-        guard Defaults[.enableLyrics], !title.isEmpty else {
+        guard settings.enableLyrics, !title.isEmpty else {
             Task { @MainActor in
                 _lyricsService.clearLyrics()
             }

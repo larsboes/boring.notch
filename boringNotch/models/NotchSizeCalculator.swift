@@ -15,23 +15,30 @@ import SwiftUI
     /// Settings provider (injected, not direct Defaults access)
     private let settings: NotchViewModelSettings
 
+    /// Display settings for sizing calculations
+    private let displaySettings: any DisplaySettings
+
     /// Music service for checking playback state
     private let musicService: any MusicServiceProtocol
 
     // MARK: - State
 
-    var notchSize: CGSize = getClosedNotchSize()
-    var closedNotchSize: CGSize = getClosedNotchSize()
+    var notchSize: CGSize = .zero
+    var closedNotchSize: CGSize = .zero
     var inactiveNotchSize: CGSize = .zero
 
     // MARK: - Initialization
 
     init(
         settings: NotchViewModelSettings,
+        displaySettings: any DisplaySettings,
         musicService: any MusicServiceProtocol
     ) {
         self.settings = settings
+        self.displaySettings = displaySettings
         self.musicService = musicService
+        self.notchSize = getClosedNotchSize(settings: displaySettings)
+        self.closedNotchSize = self.notchSize
     }
 
     // MARK: - Size Calculation
@@ -41,8 +48,8 @@ import SwiftUI
         screenUUID: String?,
         currentState: NotchState
     ) -> (closedSize: CGSize, inactiveSize: CGSize, shouldUpdateNotchSize: Bool) {
-        let newClosedSize = getClosedNotchSize(screenUUID: screenUUID)
-        let newInactiveSize = getInactiveNotchSize(screenUUID: screenUUID)
+        let newClosedSize = getClosedNotchSize(settings: displaySettings, screenUUID: screenUUID)
+        let newInactiveSize = getInactiveNotchSize(settings: displaySettings, screenUUID: screenUUID)
 
         self.closedNotchSize = newClosedSize
         self.inactiveNotchSize = newInactiveSize
@@ -80,7 +87,7 @@ import SwiftUI
 
         // Use inactive height when there's no live activity
         if hasActiveLiveActivity {
-            return getClosedNotchSize(screenUUID: screenUUID, hasLiveActivity: true).height
+            return getClosedNotchSize(settings: displaySettings, screenUUID: screenUUID, hasLiveActivity: true).height
         } else {
             return inactiveNotchSize.height
         }

@@ -9,10 +9,15 @@
 import Foundation
 import SwiftUI
 
-struct MockNotchSettings: NotchSettings {
+final class MockNotchSettings: NotchSettings {
     nonisolated init() {}
 
+    // MARK: - General App Settings
+    var firstLaunch: Bool = true
+    var showWhatsNew: Bool = true
+
     // MARK: - HUD Settings
+    var currentMicStatus: Bool = true
     var showInlineHUD: Bool = false
     var hudReplacement: Bool = false
     var showOpenNotchHUD: Bool = true
@@ -63,6 +68,8 @@ struct MockNotchSettings: NotchSettings {
     var mediaController: MediaControllerType = .nowPlaying
     var mirrorShape: MirrorShapeEnum = .circle
     var musicControlSlots: [MusicControlButton] = MusicControlButton.defaultLayout
+    var selectedVisualizerURL: URL? = nil
+    var selectedVisualizerSpeed: Double = 1.0
 
     // MARK: - Gesture Settings
     var enableGestures: Bool = true
@@ -122,6 +129,7 @@ struct MockNotchSettings: NotchSettings {
     var notificationSoundEnabled: Bool = true
     var respectDoNotDisturb: Bool = true
     var notificationRetentionDays: Int = 7
+    var storedNotifications: [NotchNotification] = []
 
     // MARK: - Bluetooth Settings
     var enableBluetoothSneakPeek: Bool = true

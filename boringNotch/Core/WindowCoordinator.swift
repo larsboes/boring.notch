@@ -202,7 +202,8 @@ final class WindowCoordinator {
                     webcamService: pluginManager.services.webcam,
                     musicService: pluginManager.services.music,
                     soundService: pluginManager.services.sound,
-                    dragDropService: pluginManager.services.dragDrop
+                    dragDropService: pluginManager.services.dragDrop,
+                    displaySettings: settings
                 )
                 let stateMachine = NotchStateMachine(settings: settings)
                 let window = createBoringNotchWindow(for: screen, with: viewModel, stateMachine: stateMachine)
@@ -240,7 +241,7 @@ final class WindowCoordinator {
         }
 
         primaryViewModel.screenUUID = selectedScreen.displayUUID
-        primaryViewModel.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
+        primaryViewModel.notchSize = getClosedNotchSize(settings: settings, screenUUID: selectedScreen.displayUUID)
 
         if window == nil {
             window = createBoringNotchWindow(for: selectedScreen, with: primaryViewModel, stateMachine: primaryStateMachine)

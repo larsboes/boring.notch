@@ -61,7 +61,7 @@ struct NotchContentRouter: View {
         HelloAnimation(onFinish: {
             vm.closeHello()
         })
-        .frame(width: getClosedNotchSize().width, height: 80)
+        .frame(width: getClosedNotchSize(settings: settings).width, height: 80)
         .padding(.top, 40)
         Spacer()
     }

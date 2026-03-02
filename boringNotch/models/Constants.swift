@@ -188,6 +188,10 @@ extension Defaults.Keys {
         default: MusicControlButton.defaultLayout.count
     )
     
+    // MARK: Visualizer
+    static let selectedVisualizerURL = Key<URL?>("selectedVisualizerURL", default: nil)
+    static let selectedVisualizerSpeed = Key<Double>("selectedVisualizerSpeed", default: 1.0)
+
     // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)

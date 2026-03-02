@@ -17,9 +17,8 @@ import SwiftUI
 /// Consumers that need everything use `NotchSettings`; consumers that only need
 /// a subset (e.g., `MediaSettings`) can depend on the narrower protocol instead.
 @MainActor
-protocol NotchSettings: HUDSettings, BatterySettings, AppearanceSettings, MediaSettings,
-    GestureSettings, ShelfSettings, DisplaySettings, WidgetSettings, NotchCalendarSettings,
-    NotificationSettings, BluetoothSettings {}
+protocol NotchSettings: CoordinatorSettings, BatterySettings, GestureSettings,
+    WidgetSettings, NotchCalendarSettings, NotificationSettings, BluetoothSettings {}
 
 // MARK: - Environment Keys
 

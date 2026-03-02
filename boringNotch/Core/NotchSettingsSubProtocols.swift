@@ -25,6 +25,7 @@ protocol HUDSettings {
     var enableGradient: Bool { get set }
     var systemEventIndicatorUseAccent: Bool { get set }
     var systemEventIndicatorShadow: Bool { get set }
+    var currentMicStatus: Bool { get set }
 }
 
 // MARK: - Battery Settings
@@ -76,6 +77,8 @@ protocol MediaSettings {
     var mediaController: MediaControllerType { get set }
     var mirrorShape: MirrorShapeEnum { get set }
     var musicControlSlots: [MusicControlButton] { get set }
+    var selectedVisualizerURL: URL? { get set }
+    var selectedVisualizerSpeed: Double { get set }
 }
 
 // MARK: - Gesture Settings
@@ -159,7 +162,24 @@ protocol NotificationSettings {
     var notificationSoundEnabled: Bool { get set }
     var respectDoNotDisturb: Bool { get set }
     var notificationRetentionDays: Int { get set }
+    var storedNotifications: [NotchNotification] { get set }
 }
+
+// MARK: - General App Settings
+
+@MainActor
+protocol GeneralAppSettings {
+    var firstLaunch: Bool { get set }
+    var showWhatsNew: Bool { get set }
+}
+
+// MARK: - Coordinator Settings
+
+/// Composed protocol for BoringViewCoordinator — unions the sub-protocols it actually needs.
+/// Class-constrained so `let settings: any CoordinatorSettings` allows property mutation.
+@MainActor
+protocol CoordinatorSettings: AnyObject, GeneralAppSettings, HUDSettings, MediaSettings,
+    AppearanceSettings, DisplaySettings, ShelfSettings {}
 
 // MARK: - Bluetooth Settings
 

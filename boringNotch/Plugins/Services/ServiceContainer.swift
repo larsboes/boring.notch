@@ -86,9 +86,9 @@ final class ServiceContainer {
 
     /// Default initializer - creates services that are ready
     init(eventBus: PluginEventBus, settings: any NotchSettings) {
-        self.music = MusicService(manager: MusicManager())
+        self.music = MusicService(manager: MusicManager(settings: settings))
         self.sound = SoundService()
-        self.battery = BatteryService(eventBus: eventBus)
+        self.battery = BatteryService(eventBus: eventBus, settings: settings)
         self.calendar = CalendarService()
         self.weather = WeatherService()
         self.face = FaceService()
@@ -105,7 +105,7 @@ final class ServiceContainer {
 
         self.lyrics = LyricsService()
         self.webcam = WebcamManager()
-        self.notifications = NotificationCenterManager.shared
+        self.notifications = NotificationCenterManager(settings: settings)
         self.volume = VolumeManager(eventBus: eventBus)
         self.brightness = BrightnessManager(eventBus: eventBus)
         self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus)

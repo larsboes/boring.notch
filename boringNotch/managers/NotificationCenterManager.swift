@@ -1,19 +1,24 @@
 import Combine
-import Defaults
 import SwiftUI
 import UserNotifications
 
 @Observable
 class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNotificationCenterDelegate {
-    static let shared = NotificationCenterManager()
+    /// Transitional shared instance — will be removed in singleton elimination pass.
+    static let shared = NotificationCenterManager(settings: DefaultsNotchSettings.shared)
 
     var notifications: [NotchNotification] = []
     var authorizationStatus: UNAuthorizationStatus = .notDetermined
 
     private let center = UNUserNotificationCenter.current()
-    private var cancellables = Set<AnyCancellable>()
+    private let settings: any NotificationSettings
+    // Cached for nonisolated delegate callback
+    nonisolated(unsafe) private var cachedDeliveryStyle: NotificationDeliveryStyle = .banner
+    private var retentionObservation: Task<Void, Never>?
 
-    override private init() {
+    init(settings: any NotificationSettings) {
+        self.settings = settings
+        self.cachedDeliveryStyle = settings.notificationDeliveryStyle
         super.init()
         self.center.delegate = self
         self.loadNotifications()
@@ -35,13 +40,13 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
     }
 
     func checkAuthorizationStatus() {
-        center.getNotificationSettings { settings in
+        center.getNotificationSettings { notifSettings in
             Task { @MainActor in
-                self.authorizationStatus = settings.authorizationStatus
+                self.authorizationStatus = notifSettings.authorizationStatus
             }
         }
     }
-    
+
     func refreshAuthorizationStatus() {
         checkAuthorizationStatus()
     }
@@ -90,16 +95,16 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
     }
 
     private func persist() {
-        Defaults[.storedNotifications] = notifications
+        settings.storedNotifications = notifications
     }
 
     private func loadNotifications() {
-        self.notifications = Defaults[.storedNotifications]
+        self.notifications = settings.storedNotifications
         self.pruneExpiredNotifications()
     }
 
     private func pruneExpiredNotifications() {
-        let retentionDays = Defaults[.notificationRetentionDays]
+        let retentionDays = settings.notificationRetentionDays
         let cutoffDate = Calendar.current.date(byAdding: .day, value: -retentionDays, to: Date()) ?? Date()
 
         let originalCount = notifications.count
@@ -118,7 +123,7 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         // Handle foreground notifications
-        if Defaults[.notificationDeliveryStyle] == .banner {
+        if cachedDeliveryStyle == .banner {
             completionHandler([.banner, .sound])
         } else {
             completionHandler([.sound])
@@ -130,17 +135,17 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
     private func scheduleSystemNotification(for notification: NotchNotification) {
         // Only schedule if we have permission and it's enabled
         guard authorizationStatus == .authorized else { return }
-        
+
         // Check Do Not Disturb if respected
-        if Defaults[.respectDoNotDisturb] && isFocusModeLikelyActive() {
+        if settings.respectDoNotDisturb && isFocusModeLikelyActive() {
             return
         }
 
         let content = UNMutableNotificationContent()
         content.title = notification.title
         content.body = notification.message
-        
-        if Defaults[.notificationSoundEnabled] {
+
+        if settings.notificationSoundEnabled {
             content.sound = .default
         }
         content.categoryIdentifier = notification.category.rawValue
@@ -163,12 +168,24 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
     }
 
     private func observeRetentionChanges() {
-        Defaults.publisher(.notificationRetentionDays)
-            .sink { [weak self] _ in
-                guard let self else { return }
-                self.pruneExpiredNotifications()
-                self.persist()
+        retentionObservation = Task { @MainActor [weak self] in
+            var lastRetention = self?.settings.notificationRetentionDays ?? 7
+            var lastDeliveryStyle = self?.settings.notificationDeliveryStyle ?? .banner
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(2))
+                guard let self = self else { break }
+                let currentRetention = self.settings.notificationRetentionDays
+                if currentRetention != lastRetention {
+                    lastRetention = currentRetention
+                    self.pruneExpiredNotifications()
+                    self.persist()
+                }
+                let currentDeliveryStyle = self.settings.notificationDeliveryStyle
+                if currentDeliveryStyle != lastDeliveryStyle {
+                    lastDeliveryStyle = currentDeliveryStyle
+                    self.cachedDeliveryStyle = currentDeliveryStyle
+                }
             }
-            .store(in: &cancellables)
+        }
     }
 }

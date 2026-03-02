@@ -30,6 +30,13 @@ final class HoverZoneManager: HoverZoneChecking {
     /// Current screen UUID for zone calculation
     private var currentScreenUUID: String?
 
+    /// Display settings for sizing calculations
+    private let displaySettings: any DisplaySettings
+
+    init(displaySettings: any DisplaySettings) {
+        self.displaySettings = displaySettings
+    }
+
     // MARK: - Public API
 
     /// Updates the hover zone based on the notch's closed dimensions.
@@ -55,7 +62,7 @@ final class HoverZoneManager: HoverZoneChecking {
         }
 
         // Get the closed notch size (the "visible" notch when collapsed)
-        let closedSize = getClosedNotchSize(screenUUID: currentScreenUUID)
+        let closedSize = getClosedNotchSize(settings: displaySettings, screenUUID: currentScreenUUID)
 
         // Calculate notch position at top-center of screen
         // Note: macOS screen coordinates have origin at bottom-left

@@ -109,11 +109,11 @@ struct ControllerOptionView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isSelected ? Color.effectiveAccent.opacity(0.15) : Color.clear)
+                .fill(isSelected ? Color.effectiveAccent(from: settings).opacity(0.15) : Color.clear)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isSelected ? Color.effectiveAccent : Color.secondary.opacity(0.3), lineWidth: 1.5)
+                .stroke(isSelected ? Color.effectiveAccent(from: settings) : Color.secondary.opacity(0.3), lineWidth: 1.5)
         )
         .contentShape(Rectangle())
     }

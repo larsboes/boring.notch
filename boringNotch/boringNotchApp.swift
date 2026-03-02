@@ -7,7 +7,6 @@
 
 import AVFoundation
 import Combine
-import Defaults
 import KeyboardShortcuts
 import Sparkle
 import SwiftUI
@@ -38,7 +37,6 @@ final class SparkleUserDriverDelegate: NSObject, SPUStandardUserDriverDelegate {
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
     let updaterController: SPUStandardUpdaterController
@@ -59,8 +57,15 @@ struct DynamicNotchApp: App {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
+    private var showMenuBarIconBinding: Binding<Bool> {
+        Binding(
+            get: { appDelegate.graph.settings.menubarIcon },
+            set: { appDelegate.graph.settings.menubarIcon = $0 }
+        )
+    }
+
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: showMenuBarIconBinding) {
             Button("Settings") {
                 SettingsWindowController.shared.showWindow()
             }
@@ -137,7 +142,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         screenUnlockedObserver = result.screenUnlocked
 
         graph.keyboardShortcutCoordinator.setupKeyboardShortcuts()
-        syncNotchHeightIfNeeded()
+        syncNotchHeightIfNeeded(settings: graph.settings)
         graph.adjustWindowPosition(changeAlpha: true)
         graph.setupDragDetectors()
 
@@ -198,10 +203,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if screensChanged {
             DispatchQueue.main.async { [weak self] in
-                syncNotchHeightIfNeeded()
-                self?.graph.cleanupWindows()
-                self?.graph.adjustWindowPosition()
-                self?.graph.setupDragDetectors()
+                guard let self else { return }
+                syncNotchHeightIfNeeded(settings: self.graph.settings)
+                self.graph.cleanupWindows()
+                self.graph.adjustWindowPosition()
+                self.graph.setupDragDetectors()
             }
         }
     }
