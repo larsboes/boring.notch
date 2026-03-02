@@ -9,9 +9,10 @@ import Foundation
 import Combine
 import SwiftUI
 
+@MainActor
 class SpotifyController: MediaControllerProtocol {
     func setFavorite(_ favorite: Bool) async {
-        //Placeholder
+        // Placeholder
     }
     
     // MARK: - Properties
@@ -47,11 +48,11 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     private func setupPlaybackStateChangeObserver() {
-        notificationTask = Task { @Sendable [weak self] in
+        notificationTask = Task { [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.spotify.client.PlaybackStateChanged")
             )
-            
+
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
             }

@@ -10,12 +10,11 @@ import Combine
 import CoreAudio
 import Foundation
 
-final class VolumeManager: NSObject, ObservableObject {
-    static let shared = VolumeManager()
-
-    @Published private(set) var rawVolume: Float = 0
-    @Published private(set) var isMuted: Bool = false
-    @Published private(set) var lastChangeAt: Date = .distantPast
+@MainActor
+@Observable final class VolumeManager: NSObject, VolumeServiceProtocol {
+    var rawVolume: Float = 0
+    var isMuted: Bool = false
+    var lastChangeAt: Date = .distantPast
 
     let visibleDuration: TimeInterval = 1.2
 
@@ -24,8 +23,10 @@ final class VolumeManager: NSObject, ObservableObject {
     // Fallback software if hardware mute is not supported
     private var previousVolumeBeforeMute: Float32 = 0.2
     private var softwareMuted: Bool = false
+    private let eventBus: PluginEventBus
 
-    private override init() {
+    init(eventBus: PluginEventBus) {
+        self.eventBus = eventBus
         super.init()
         setupAudioListener()
         fetchCurrentVolume()
@@ -40,7 +41,7 @@ final class VolumeManager: NSObject, ObservableObject {
         let current = readVolumeInternal() ?? rawVolume
         let target = max(0, min(1, current + delta))
         setAbsolute(target)
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(target))
+        emitSneakPeek(value: CGFloat(target))
     }
 
     @MainActor func decrease(stepDivisor: Float = 1.0) {
@@ -49,7 +50,7 @@ final class VolumeManager: NSObject, ObservableObject {
         let current = readVolumeInternal() ?? rawVolume
         let target = max(0, min(1, current - delta))
         setAbsolute(target)
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(target))
+        emitSneakPeek(value: CGFloat(target))
     }
 
     @MainActor func toggleMuteAction() {
@@ -68,7 +69,7 @@ final class VolumeManager: NSObject, ObservableObject {
         }
 
         toggleMuteInternal()
-        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(willBeMuted ? 0 : resultingVolume))
+        emitSneakPeek(value: CGFloat(willBeMuted ? 0 : resultingVolume))
     }
     
     func refresh() { fetchCurrentVolume() }
@@ -153,12 +154,10 @@ final class VolumeManager: NSObject, ObservableObject {
         if AudioObjectHasProperty(deviceID, &muteAddr) {
             var sizeNeeded: UInt32 = 0
             if AudioObjectGetPropertyDataSize(deviceID, &muteAddr, 0, nil, &sizeNeeded) == noErr,
-                sizeNeeded == UInt32(MemoryLayout<UInt32>.size)
-            {
+                sizeNeeded == UInt32(MemoryLayout<UInt32>.size) {
                 var muted: UInt32 = 0
                 var mSize = sizeNeeded
-                if AudioObjectGetPropertyData(deviceID, &muteAddr, 0, nil, &mSize, &muted) == noErr
-                {
+                if AudioObjectGetPropertyData(deviceID, &muteAddr, 0, nil, &mSize, &muted) == noErr {
                     let newMuted = muted != 0
                     DispatchQueue.main.async {
                         if self.isMuted != newMuted { self.lastChangeAt = Date() }
@@ -239,8 +238,7 @@ final class VolumeManager: NSObject, ObservableObject {
 
         var written = false
         if writeValidatedScalar(
-            deviceID: deviceID, element: kAudioObjectPropertyElementMain, value: newVal)
-        {
+            deviceID: deviceID, element: kAudioObjectPropertyElementMain, value: newVal) {
             written = true
         } else {
             var any = false
@@ -346,8 +344,7 @@ final class VolumeManager: NSObject, ObservableObject {
     }
 
     private func writeValidatedScalar(deviceID: AudioObjectID, element: UInt32, value: Float32)
-        -> Bool
-    {
+        -> Bool {
         var addr = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyVolumeScalar,
             mScope: kAudioDevicePropertyScopeOutput,
@@ -362,6 +359,13 @@ final class VolumeManager: NSObject, ObservableObject {
         return AudioObjectSetPropertyData(deviceID, &addr, 0, nil, sizeNeeded, &val) == noErr
     }
 
+    private func emitSneakPeek(value: CGFloat) {
+        eventBus.emit(SneakPeekRequestedEvent(
+            sourcePluginId: "com.boringnotch.system.volume",
+            request: SneakPeekRequest(style: .standard, type: .volume, value: value)
+        ))
+    }
+
     private func publish(volume: Float32, muted: Bool, touchDate: Bool) {
         DispatchQueue.main.async {
             if touchDate { self.lastChangeAt = Date() }
@@ -374,5 +378,3 @@ final class VolumeManager: NSObject, ObservableObject {
 extension Array where Element == Float32 {
     fileprivate var average: Float32? { isEmpty ? nil : reduce(0, +) / Float32(count) }
 }
-
-

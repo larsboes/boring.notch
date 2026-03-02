@@ -5,13 +5,17 @@
 //  Created by Alexander on 2025-11-17.
 //
 
-import Defaults
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct MusicSlotConfigurationView: View {
-    @Default(.musicControlSlots) private var musicControlSlots
-    @ObservedObject private var musicManager = MusicManager.shared
+    @Environment(\.bindableSettings) var settings
+    @Environment(\.pluginManager) var pluginManager
+    
+    private var musicService: (any MusicServiceProtocol)? {
+        pluginManager?.services.music
+    }
+    
     @State private var draggedSlot: MusicControlButton?
 
     private let fixedSlotCount: Int = 5
@@ -26,7 +30,7 @@ struct MusicSlotConfigurationView: View {
                 Spacer()
                 Button("Reset to Defaults") {
                     withAnimation {
-                        musicControlSlots = MusicControlButton.defaultLayout
+                        settings.musicControlSlots = MusicControlButton.defaultLayout
                     }
                 }
                 .buttonStyle(.borderless)
@@ -142,7 +146,7 @@ struct MusicSlotConfigurationView: View {
                                     return NSItemProvider(object: NSString(string: "control:\(control.rawValue)"))
                                 }
                                 .onTapGesture {
-                                    if let idx = musicControlSlots.firstIndex(of: .none) {
+                                    if let idx = settings.musicControlSlots.firstIndex(of: .none) {
                                         updateSlot(control, at: idx)
                                     } else {
                                         withAnimation { updateSlot(control, at: 0) }
@@ -232,11 +236,11 @@ struct MusicSlotConfigurationView: View {
     private func previewIconColor(for slot: MusicControlButton) -> Color {
         switch slot {
         case .shuffle:
-            return musicManager.isShuffled ? .red : .primary
+            return (musicService?.isShuffled ?? false) ? .red : .primary
         case .repeatMode:
-            return musicManager.repeatMode != .off ? .red : .primary
+            return (musicService?.repeatMode ?? .off) != .off ? .red : .primary
         case .favorite:
-            return musicManager.isFavoriteTrack ? .red : .primary
+            return (musicService?.isFavorite ?? false) ? .red : .primary
         case .playPause:
             return .primary
         default:
@@ -245,9 +249,9 @@ struct MusicSlotConfigurationView: View {
     }
 
     private func ensureSlotCapacity(_ target: Int) {
-        guard target > musicControlSlots.count else { return }
-        let missing = target - musicControlSlots.count
-        musicControlSlots.append(contentsOf: Array(repeating: .none, count: missing))
+        guard target > settings.musicControlSlots.count else { return }
+        let missing = target - settings.musicControlSlots.count
+        settings.musicControlSlots.append(contentsOf: Array(repeating: .none, count: missing))
     }
 
     private func slotBinding(for index: Int) -> Binding<MusicControlButton> {
@@ -258,14 +262,19 @@ struct MusicSlotConfigurationView: View {
     }
 
     private func slotValue(at index: Int) -> MusicControlButton {
-        guard musicControlSlots.indices.contains(index) else { return .none }
-        return musicControlSlots[index]
+        guard settings.musicControlSlots.indices.contains(index) else { return .none }
+        return settings.musicControlSlots[index]
     }
 
     private func handleDrop(_ providers: [NSItemProvider], toIndex: Int) -> Bool {
         for provider in providers {
             if provider.canLoadObject(ofClass: NSString.self) {
-                provider.loadObject(ofClass: NSString.self) { item, error in
+                // Wrap provider to avoid Sendable warning
+                struct UncheckedSendableProvider: @unchecked Sendable {
+                    let provider: NSItemProvider
+                }
+                let sendableProvider = UncheckedSendableProvider(provider: provider)
+                sendableProvider.provider.loadObject(ofClass: NSString.self) { @Sendable item, error in
                     // item may be an NSString (which conforms to NSItemProviderReading) or other reading type
                     if let nsstring = item as? NSString {
                         let raw = nsstring as String
@@ -287,7 +296,12 @@ struct MusicSlotConfigurationView: View {
     private func handleDropOnTrash(_ providers: [NSItemProvider]) -> Bool {
         for provider in providers {
             if provider.canLoadObject(ofClass: NSString.self) {
-                provider.loadObject(ofClass: NSString.self) { item, error in
+                // Wrap provider to avoid Sendable warning
+                struct UncheckedSendableProvider: @unchecked Sendable {
+                    let provider: NSItemProvider
+                }
+                let sendableProvider = UncheckedSendableProvider(provider: provider)
+                sendableProvider.provider.loadObject(ofClass: NSString.self) { @Sendable item, error in
                     if let nsstring = item as? NSString {
                         let raw = nsstring as String
                         DispatchQueue.main.async {
@@ -295,10 +309,10 @@ struct MusicSlotConfigurationView: View {
                                 // parse source slot index and clear it
                                 let from = Int(raw.replacingOccurrences(of: "slot:", with: "")) ?? -1
                                 guard from >= 0 && from < fixedSlotCount else { return }
-                                var slots = musicControlSlots
+                                var slots = settings.musicControlSlots
                                 if from < slots.count {
                                     slots[from] = .none
-                                    musicControlSlots = slots
+                                    settings.musicControlSlots = slots
                                 }
                             }
                         }
@@ -307,10 +321,10 @@ struct MusicSlotConfigurationView: View {
                             if str.hasPrefix("slot:") {
                                 let from = Int(str.replacingOccurrences(of: "slot:", with: "")) ?? -1
                                 guard from >= 0 && from < fixedSlotCount else { return }
-                                var slots = musicControlSlots
+                                var slots = settings.musicControlSlots
                                 if from < slots.count {
                                     slots[from] = .none
-                                    musicControlSlots = slots
+                                    settings.musicControlSlots = slots
                                 }
                             }
                         }
@@ -326,19 +340,19 @@ struct MusicSlotConfigurationView: View {
         if raw.hasPrefix("slot:") {
             let from = Int(raw.replacingOccurrences(of: "slot:", with: "")) ?? -1
             guard from >= 0 && from < fixedSlotCount else { return }
-            var slots = musicControlSlots
+            var slots = settings.musicControlSlots
             if from < slots.count && toIndex < slots.count {
                 slots.swapAt(from, toIndex)
-                musicControlSlots = slots
+                settings.musicControlSlots = slots
             }
         } else if raw.hasPrefix("control:") {
             let val = raw.replacingOccurrences(of: "control:", with: "")
             if let control = MusicControlButton(rawValue: val) {
                 // If this control already exists in another slot, clear that original slot
-                var slots = musicControlSlots
+                var slots = settings.musicControlSlots
                 if let existing = slots.firstIndex(of: control), existing != toIndex {
                     slots[existing] = .none
-                    musicControlSlots = slots
+                    settings.musicControlSlots = slots
                 }
 
                 updateSlot(control, at: toIndex)
@@ -347,11 +361,11 @@ struct MusicSlotConfigurationView: View {
     }
 
     private func updateSlot(_ value: MusicControlButton, at index: Int) {
-        var slots = musicControlSlots
+        var slots = settings.musicControlSlots
         if index >= slots.count {
             slots.append(contentsOf: Array(repeating: .none, count: index - slots.count + 1))
         }
         slots[index] = value
-        musicControlSlots = slots
+        settings.musicControlSlots = slots
     }
 }

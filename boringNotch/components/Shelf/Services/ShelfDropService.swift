@@ -10,19 +10,29 @@ import Foundation
 import UniformTypeIdentifiers
 
 struct ShelfDropService {
-    static func items(from providers: [NSItemProvider]) async -> [ShelfItem] {
-        var results: [ShelfItem] = []
-
-        for provider in providers {
-            if let item = await processProvider(provider) {
-                results.append(item)
+    static func items(from providers: [NSItemProvider], storage: any TemporaryFileStorageServiceProtocol) async -> [ShelfItem] {
+        // Process providers concurrently for better performance with large drops
+        await withTaskGroup(of: ShelfItem?.self) { group in
+            for provider in providers {
+                group.addTask {
+                    await processProvider(provider, storage: storage)
+                }
             }
+            
+            var results: [ShelfItem] = []
+            results.reserveCapacity(providers.count)
+            
+            for await item in group {
+                if let item = item {
+                    results.append(item)
+                }
+            }
+            
+            return results
         }
-
-        return results
     }
     
-    private static func processProvider(_ provider: NSItemProvider) async -> ShelfItem? {
+    private static func processProvider(_ provider: NSItemProvider, storage: any TemporaryFileStorageServiceProtocol) async -> ShelfItem? {
         if let actualFileURL = await provider.extractFileURL() {
             if let bookmark = createBookmark(for: actualFileURL) {
                 return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
@@ -46,7 +56,7 @@ struct ShelfDropService {
         }
         
         if let data = await provider.loadData() {
-            if let tempDataURL = await TemporaryFileStorageService.shared.createTempFile(for: .data(data, suggestedName: provider.suggestedName)),
+            if let tempDataURL = await storage.createTempFile(for: .data(data, suggestedName: provider.suggestedName)),
                let bookmark = createBookmark(for: tempDataURL) {
                 return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: true)
             }
@@ -66,4 +76,3 @@ struct ShelfDropService {
         return (try? Bookmark(url: url))?.data
     }
 }
-

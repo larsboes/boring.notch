@@ -102,6 +102,7 @@
       }
     },
     " – %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -602,6 +603,7 @@
       }
     },
     "%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1301,6 +1303,12 @@
         }
       }
     },
+    "1s" : {
+
+    },
+    "10s" : {
+
+    },
     "About" : {
       "localizations" : {
         "ar" : {
@@ -1702,6 +1710,7 @@
       }
     },
     "Add" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1902,105 +1911,11 @@
         }
       }
     },
-    "Add new visualizer" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Add new visualizer"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Přidat nový vizualizér"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Neuen Visualisierer hinzufügen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add new visualizer"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add new visualiser"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Añadir nuevo visualizador"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ajouter un nouveau visualiseur"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Add new visualizer"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aggiungi nuovo visualizzatore"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "새 시각화 도구 추가"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Dodaj nowy wizualizer"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Adicionar novo visualizador"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Добавить визуализатор"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Yeni görselleştirici ekle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Додати новий візуалізатор"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "添加新的可视化器"
-          }
-        }
-      }
+    "Add Note" : {
+
+    },
+    "Add to Favorites" : {
+
     },
     "Additional features" : {
       "localizations" : {
@@ -2602,6 +2517,9 @@
         }
       }
     },
+    "API Key" : {
+
+    },
     "App icon" : {
       "localizations" : {
         "ar" : {
@@ -2801,6 +2719,12 @@
           }
         }
       }
+    },
+    "Auto-close delay" : {
+
+    },
+    "Auto-close delay: %@s" : {
+
     },
     "Auto-scroll to next event" : {
       "localizations" : {
@@ -3602,6 +3526,15 @@
         }
       }
     },
+    "Beta" : {
+
+    },
+    "Bluetooth" : {
+
+    },
+    "Blur Intensity" : {
+
+    },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
         "ar" : {
@@ -4002,6 +3935,9 @@
         }
       }
     },
+    "Calendar Access Denied" : {
+
+    },
     "Calendar access is denied. Please enable it in System Settings." : {
       "localizations" : {
         "ar" : {
@@ -4101,6 +4037,9 @@
           }
         }
       }
+    },
+    "Calendar Access Required" : {
+
     },
     "Calendars" : {
       "localizations" : {
@@ -4301,6 +4240,9 @@
           }
         }
       }
+    },
+    "Change Icon" : {
+
     },
     "Change media with horizontal gestures" : {
       "localizations" : {
@@ -4601,6 +4543,9 @@
           }
         }
       }
+    },
+    "Check battery and system events in one place." : {
+
     },
     "Check for Updates…" : {
       "localizations" : {
@@ -5202,6 +5147,9 @@
         }
       }
     },
+    "Clear" : {
+
+    },
     "Clear slot" : {
       "localizations" : {
         "ar" : {
@@ -5301,6 +5249,9 @@
           }
         }
       }
+    },
+    "Clipboard" : {
+
     },
     "Close" : {
       "localizations" : {
@@ -5902,6 +5853,12 @@
         }
       }
     },
+    "Condition" : {
+
+    },
+    "Connected Devices" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -6103,6 +6060,7 @@
       }
     },
     "Corner radius scaling" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -6201,6 +6159,9 @@
           }
         }
       }
+    },
+    "Current Weather" : {
+
     },
     "Currently selected: %@" : {
       "localizations" : {
@@ -6502,106 +6463,6 @@
         }
       }
     },
-    "Custom music live activity animation" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom music live activity animation"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Vlastní animace živé aktivity hudby"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Benutzerdefinierte Animation für Musik-Live-Aktivitäten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom music live activity animation"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom music live activity animation"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Animación de actividad de música en vivo personalizada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Personnaliser l'animation d'activité musicale"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom music live activity animation"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Animazione attività musicale personalizzata"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "사용자 정의 음악 재생 애니메이션"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Niestandardowa animacja aktywności muzyki"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customizar animação da música"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom music live activity animation"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Özel canlı müzik animasyonu"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Власна анімація музики в реальному часі"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "自定义音乐实时动画"
-          }
-        }
-      }
-    },
     "Custom notch size - %.0f" : {
       "localizations" : {
         "ar" : {
@@ -6698,106 +6559,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "自定义Notch大小 - %.0f"
-          }
-        }
-      }
-    },
-    "Custom vizualizers (Lottie)" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom vizualizers (Lottie)"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Vlastní vizualizátory (Lottie)"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Eigene Audiovisualisierung (via Lottie)"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom vizualizers (Lottie)"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom visualisers (Lottie)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Visualizadores personalizados (Lottie)"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Visualiseurs personnalisés (Lottie)"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom vizualizers (Lottie)"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Visualizzatori personalizzati (Lottie)"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "사용자 지정 시각화 도구(Lottie)"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Niestandardowe wizualizatory (Lottie)"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customizar visualizadores (Lottie)"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom vizualizers (Lottie)"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Özel görselleştirmeler (Lottie)"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Користувацькі візуалізатори (Лотті)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "自定义可视化器（Lottie）"
           }
         }
       }
@@ -7102,6 +6863,9 @@
         }
       }
     },
+    "Delivery Style" : {
+
+    },
     "Description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7305,7 +7069,6 @@
       }
     },
     "Disabled" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8106,6 +7869,12 @@
         }
       }
     },
+    "Enable 'Show weather' above to request location permission." : {
+
+    },
+    "Enable Bluetooth Integration" : {
+
+    },
     "Enable blur effect behind album art" : {
       "localizations" : {
         "ar" : {
@@ -8302,107 +8071,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "启用虚拟镜像"
-          }
-        }
-      }
-    },
-    "Enable colored spectrograms" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable colored spectrograms"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Povolit barevné spektrogramy"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Farbe für Audiovisualisierung aktivieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable colored spectrograms"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable coloured spectrograms"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Habilitar espectrogramas de colores"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Activer les spectrogrammes de couleurs"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable colored spectrograms"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Abilita spettrogramma colorato"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "컬러 스펙트로그램을 활성화하세요"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Włącz kolorowe spektrogramy"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable colored spectrograms"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable colored spectrograms"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Renkli spektrogramları aktifleştir"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable colored spectrograms"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "启用彩色谱图"
           }
         }
       }
@@ -8706,6 +8374,12 @@
           }
         }
       }
+    },
+    "Enable location access" : {
+
+    },
+    "Enable shadow" : {
+
     },
     "Enable shelf" : {
       "localizations" : {
@@ -9408,6 +9082,9 @@
         }
       }
     },
+    "Feels %@" : {
+
+    },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
         "ar" : {
@@ -10108,6 +9785,9 @@
         }
       }
     },
+    "Get your free API key" : {
+
+    },
     "GitHub" : {
       "localizations" : {
         "ar" : {
@@ -10207,6 +9887,12 @@
           }
         }
       }
+    },
+    "Glass Effect" : {
+
+    },
+    "Glass Style" : {
+
     },
     "Got it!" : {
       "localizations" : {
@@ -10407,6 +10093,9 @@
           }
         }
       }
+    },
+    "Grant Access" : {
+
     },
     "Hide all-day events" : {
       "localizations" : {
@@ -11008,6 +10697,9 @@
         }
       }
     },
+    "Hide windows on non-notch displays from Mission Control" : {
+
+    },
     "Hierarchical" : {
       "localizations" : {
         "ar" : {
@@ -11207,6 +10899,9 @@
           }
         }
       }
+    },
+    "History" : {
+
     },
     "Hover delay" : {
       "localizations" : {
@@ -11708,6 +11403,15 @@
         }
       }
     },
+    "Inactive notch height" : {
+
+    },
+    "Inactive notch sizing (For non-notch displays)" : {
+
+    },
+    "Info & Updates" : {
+
+    },
     "Inline" : {
       "localizations" : {
         "ar" : {
@@ -11909,6 +11613,12 @@
         }
       }
     },
+    "Keep history for %lld days" : {
+
+    },
+    "Last Updated" : {
+
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -12009,7 +11719,29 @@
         }
       }
     },
+    "Liquid Glass Effect" : {
+
+    },
+    "Loading weather..." : {
+
+    },
+    "Location" : {
+
+    },
+    "Location Access" : {
+
+    },
+    "Location access granted" : {
+
+    },
+    "Location access is denied. Please enable it in System Settings." : {
+
+    },
+    "Location access is required to show weather information." : {
+
+    },
     "Lottie JSON URL" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -12409,6 +12141,9 @@
         }
       }
     },
+    "Mark All Read" : {
+
+    },
     "Mark as complete" : {
       "localizations" : {
         "ar" : {
@@ -12608,6 +12343,9 @@
           }
         }
       }
+    },
+    "Mark as Read" : {
+
     },
     "Match menu bar height" : {
       "localizations" : {
@@ -13709,6 +13447,9 @@
         }
       }
     },
+    "Minimal" : {
+
+    },
     "Mirror" : {
       "localizations" : {
         "ar" : {
@@ -14008,6 +13749,12 @@
           }
         }
       }
+    },
+    "Music Service Unavailable" : {
+
+    },
+    "Music Settings" : {
+
     },
     "Music Source" : {
       "localizations" : {
@@ -14310,6 +14057,7 @@
       }
     },
     "Name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14509,205 +14257,8 @@
         }
       }
     },
-    "No custom animation available" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Žádná vlastní animace není k dispozici"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Keine benutzerdefinierte Animation verfügbar"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No custom animation available"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No custom animation available"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sin animación personalizada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aucune animation personnalisée disponible"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nessuna animazione personalizzata disponibile"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "사용자 정의 애니메이션 없음"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Brak dostępnych niestandardowych animacji"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Özel animasyon mevcut değil"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "没有可用的自定义动画"
-          }
-        }
-      }
-    },
-    "No custom visualizer" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Žádný vlastní vizualizér není k dispozici"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Keine benutzerdefinierte Audiovisualisierung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No custom visualizer"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No custom visualiser"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sin visualizador personalizado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aucun visualiseur personnalisé"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nessun visualizzatore personalizzato"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "사용자 지정 시각화 도구 없음"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Brak niestandardowych wizualizerów"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Özel görselleştirici bulunmuyor"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "没有自定义可视化器"
-          }
-        }
-      }
+    "No connected devices found" : {
+
     },
     "No events" : {
       "localizations" : {
@@ -15010,6 +14561,9 @@
         }
       }
     },
+    "No weather data" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -15109,6 +14663,9 @@
           }
         }
       }
+    },
+    "Notch Background" : {
+
     },
     "Notch behavior" : {
       "localizations" : {
@@ -15510,6 +15067,18 @@
         }
       }
     },
+    "Notes" : {
+
+    },
+    "Notification Style" : {
+
+    },
+    "Notifications" : {
+
+    },
+    "Notifications are disabled. Please enable in Settings." : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -15609,6 +15178,12 @@
           }
         }
       }
+    },
+    "Open Location Settings" : {
+
+    },
+    "Open macOS settings" : {
+
     },
     "Open Notch" : {
       "localizations" : {
@@ -15910,6 +15485,9 @@
         }
       }
     },
+    "Open Settings" : {
+
+    },
     "Open shelf by default if items are present" : {
       "localizations" : {
         "ar" : {
@@ -16009,6 +15587,9 @@
           }
         }
       }
+    },
+    "OpenWeatherMap API Key" : {
+
     },
     "Option key behaviour" : {
       "localizations" : {
@@ -16110,6 +15691,9 @@
         }
       }
     },
+    "Permission Status" : {
+
+    },
     "Pick a Color" : {
       "localizations" : {
         "ar" : {
@@ -16209,6 +15793,12 @@
           }
         }
       }
+    },
+    "Play sound" : {
+
+    },
+    "Player tinting" : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -17310,6 +16900,9 @@
         }
       }
     },
+    "Remove from Favorites" : {
+
+    },
     "Remove from shelf after dragging" : {
       "localizations" : {
         "ar" : {
@@ -17710,6 +17303,15 @@
         }
       }
     },
+    "Request Calendar Access" : {
+
+    },
+    "Request permission" : {
+
+    },
+    "Request Reminders Access" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -17809,6 +17411,9 @@
           }
         }
       }
+    },
+    "Respect Do Not Disturb / Focus" : {
+
     },
     "Restart" : {
       "extractionState" : "stale",
@@ -18112,6 +17717,82 @@
         }
       }
     },
+    "Scale corner radius for closed notch" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skalierung Eckenradius"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scale corner radius for closed notch"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scale corner radius for closed notch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Escalado del radio de las esquinas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Redimensionnement du rayon des angles"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Scala raggio angoli"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "모서리 반경 크기 조정"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Skalowanie zaokrąglenia narożników"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Köşe yarıçap ölçeği"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Масштабування радіусу кутів"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "圆角半径"
+          }
+        }
+      }
+    },
+    "Search SF Symbols" : {
+
+    },
+    "Select Icon for %@" : {
+
+    },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
         "ar" : {
@@ -18213,6 +17894,7 @@
       }
     },
     "selected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18313,6 +17995,7 @@
       }
     },
     "Selected animation" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18611,6 +18294,9 @@
           }
         }
       }
+    },
+    "Shelf Events" : {
+
     },
     "Shortcuts" : {
       "localizations" : {
@@ -19011,6 +18697,9 @@
           }
         }
       }
+    },
+    "Show connection notifications" : {
+
     },
     "Show cool face animation while inactive" : {
       "localizations" : {
@@ -20212,6 +19901,15 @@
         }
       }
     },
+    "Show weather" : {
+
+    },
+    "Shuffle Off" : {
+
+    },
+    "Shuffle On" : {
+
+    },
     "Slider color" : {
       "localizations" : {
         "ar" : {
@@ -20311,6 +20009,9 @@
           }
         }
       }
+    },
+    "Sneak peak duration" : {
+
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {
@@ -20612,7 +20313,14 @@
         }
       }
     },
+    "Sound" : {
+
+    },
+    "Sources" : {
+
+    },
     "Speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -20812,6 +20520,12 @@
         }
       }
     },
+    "Standard" : {
+
+    },
+    "Status" : {
+
+    },
     "Stopped" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -20909,107 +20623,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "已停止"
-          }
-        }
-      }
-    },
-    "Support Us" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Support Us"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Podpořte nás"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Unterstütze uns"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Support Us"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Support Us"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Apóyenos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Soutenez-nous"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Support Us"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Supportaci"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "후원하기"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Wesprzyj nas"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Support Us"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Support Us"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Bizi Destekle"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Support Us"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "支持我们"
           }
         }
       }
@@ -21114,6 +20727,9 @@
         }
       }
     },
+    "System Events" : {
+
+    },
     "System features" : {
       "localizations" : {
         "ar" : {
@@ -21213,6 +20829,9 @@
           }
         }
       }
+    },
+    "Temperature" : {
+
     },
     "Time to Full Charge: %lld min" : {
       "localizations" : {
@@ -21413,6 +21032,9 @@
           }
         }
       }
+    },
+    "Title" : {
+
     },
     "Toggle Notch Open:" : {
       "localizations" : {
@@ -22215,105 +21837,8 @@
         }
       }
     },
-    "Use music visualizer spectrogram" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use music visualizer spectrogram"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Použít hudební vizualizér"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Musik-Visualizer Spektrogramm verwenden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use music visualizer spectrogram"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use music visualiser spectrogram"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Usar espectrograma del visualizador musical"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Utiliser le spectrogramme du visualiseur de musique"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use music visualizer spectrogram"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Usa spettrogramma per la visualizzatore musicale"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "음악 시각화 스펙트로그램 사용"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Użyj spektrogramu wizualizera muzyki"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use music visualizer spectrogram"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use music visualizer spectrogram"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Müzik görselleştirici spektrogram kullanın"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use music visualizer spectrogram"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "使用音乐可视化器谱图"
-          }
-        }
-      }
+    "Use smaller height when inactive" : {
+
     },
     "Use your macOS system accent color" : {
       "localizations" : {
@@ -22814,6 +22339,9 @@
           }
         }
       }
+    },
+    "Weather" : {
+
     },
     "Welcome" : {
       "localizations" : {

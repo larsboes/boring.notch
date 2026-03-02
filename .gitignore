@@ -53,3 +53,5 @@ build/
 *.xcarchive
 *.dSYM
 
+# Build logs
+build_log*.txt

@@ -6,20 +6,22 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct InlineHUD: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
     @Binding var type: SneakContentType
     @Binding var value: CGFloat
     @Binding var icon: String
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
+    @Environment(\.settings) var settings
+    @Environment(\.pluginManager) var pluginManager
+    
     var body: some View {
         HStack {
             HStack(spacing: 5) {
                 Group {
-                    switch (type) {
+                    switch type {
                         case .volume:
                             if icon.isEmpty {
                                 Image(systemName: SpeakerSymbol(value))
@@ -68,7 +70,7 @@ struct InlineHUD: View {
                 .frame(width: vm.closedNotchSize.width - 20)
             
             HStack {
-                if (type == .mic) {
+                if type == .mic {
                     Text(value.isZero ? "muted" : "unmuted")
                         .foregroundStyle(.gray)
                         .lineLimit(1)
@@ -80,12 +82,12 @@ struct InlineHUD: View {
                         HStack {
                         DraggableProgressBar(value: $value, onChange: { v in
                             if type == .volume {
-                                VolumeManager.shared.setAbsolute(Float32(v))
+                                pluginManager?.services.volume.setAbsolute(Float32(v))
                             } else if type == .brightness {
-                                BrightnessManager.shared.setAbsolute(value: Float32(v))
+                                pluginManager?.services.brightness.setAbsolute(value: Float32(v))
                             }
                         })
-                        if (type == .volume && value.isZero) {
+                        if type == .volume && value.isZero {
                             Text("muted")
                                 .font(.caption)
                                 .fontWeight(.medium)
@@ -93,7 +95,7 @@ struct InlineHUD: View {
                                 .lineLimit(1)
                                 .allowsTightening(true)
                                 .multilineTextAlignment(.trailing)
-                        } else if Defaults[.showClosedNotchHUDPercentage] {
+                        } else if settings.showClosedNotchHUDPercentage {
                             Text("\(Int(value * 100))%")
                                 .font(.caption)
                                 .fontWeight(.medium)
@@ -112,7 +114,7 @@ struct InlineHUD: View {
     }
     
     func SpeakerSymbol(_ value: CGFloat) -> String {
-        switch(value) {
+        switch value {
             case 0:
                 return "speaker"
             case 0...0.3:
@@ -127,7 +129,7 @@ struct InlineHUD: View {
     }
     
     func BrightnessSymbol(_ value: CGFloat) -> String {
-        switch(value) {
+        switch value {
             case 0...0.6:
                 return "sun.min"
             case 0.6...1:
@@ -138,7 +140,7 @@ struct InlineHUD: View {
     }
     
     func Type2Name(_ type: SneakContentType) -> String {
-        switch(type) {
+        switch type {
             case .volume:
                 return "Volume"
             case .brightness:
@@ -158,5 +160,5 @@ struct InlineHUD: View {
         .padding(.horizontal, 8)
         .background(Color.black)
         .padding()
-        .environmentObject(BoringViewModel())
+        .environment(BoringViewModel())
 }

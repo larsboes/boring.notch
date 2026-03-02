@@ -4,36 +4,31 @@
 //
 //  Created by Harsh Vardhan  Goswami  on 19/08/24.
 //
-import AVFoundation
+@preconcurrency import AVFoundation
 import SwiftUI
 
-class WebcamManager: NSObject, ObservableObject {
-    static let shared = WebcamManager()
+@MainActor class WebcamManager: NSObject, WebcamServiceProtocol {
     
-    @Published var previewLayer: AVCaptureVideoPreviewLayer? {
-        didSet {
-            objectWillChange.send()
-        }
+    var previewLayer: AVCaptureVideoPreviewLayer?
+    
+    // Wrapper to handle non-Sendable AVCaptureSession safely across actors
+    private final class SessionContainer: @unchecked Sendable {
+        var session: AVCaptureSession?
     }
     
-    private var captureSession: AVCaptureSession?
-    @Published var isSessionRunning: Bool = false {
-        didSet {
-            objectWillChange.send()
-        }
-    }
+    nonisolated private let sessionContainer = SessionContainer()
     
-    @Published var authorizationStatus: AVAuthorizationStatus = .notDetermined {
-        didSet {
-            objectWillChange.send()
-        }
+    // Computed property for easier access (internal usage only)
+    private var captureSession: AVCaptureSession? {
+        get { sessionContainer.session }
+        set { sessionContainer.session = newValue }
     }
+
+    var isSessionRunning: Bool = false
     
-    @Published var cameraAvailable: Bool = false {
-        didSet {
-            objectWillChange.send()
-        }
-    }
+    var authorizationStatus: AVAuthorizationStatus = .notDetermined
+    
+    var cameraAvailable: Bool = false
 
     private let sessionQueue = DispatchQueue(label: "BoringNotch.WebcamManager.SessionQueue", qos: .userInitiated)
     
@@ -60,24 +55,22 @@ class WebcamManager: NSObject, ObservableObject {
     
     // MARK: - Properties
     
-    private override init() {
+    override init() {
         super.init()
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceWasDisconnected), name: .AVCaptureDeviceWasDisconnected, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(deviceWasConnected), name: .AVCaptureDeviceWasConnected, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceWasDisconnected), name: AVCaptureDevice.wasDisconnectedNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceWasConnected), name: AVCaptureDevice.wasConnectedNotification, object: nil)
         checkCameraAvailability()
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self)
         
-        if let session = captureSession {
+        if let session = sessionContainer.session {
             if session.isRunning {
                 session.stopRunning()
             }
         }
-        captureSession = nil
-            
-        previewLayer = nil
+        // No need to nil out sessionContainer, it will be deallocated
     }
 
     // MARK: - Camera Management
@@ -104,7 +97,7 @@ class WebcamManager: NSObject, ObservableObject {
     /// Requests access to the camera
     private func requestVideoAccess() {
         AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.authorizationStatus = granted ? .authorized : .denied
                 if granted {
                     self?.checkCameraAvailability() // Check availability if access granted
@@ -129,7 +122,7 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     /// Sets up the capture session with a completion handler
-    private func setupCaptureSession(completion: @escaping (Bool) -> Void) {
+    nonisolated private func setupCaptureSession(completion: @escaping @Sendable (Bool) -> Void) {
         sessionQueue.async { [weak self] in
             guard let self = self else { 
                 completion(false)
@@ -181,7 +174,8 @@ class WebcamManager: NSObject, ObservableObject {
                 }
                 session.commitConfiguration()
                 
-                self.captureSession = session
+                // Update session container
+                self.sessionContainer.session = session
                 
                 // Create and set up preview layer on main thread
                 DispatchQueue.main.async {
@@ -208,8 +202,8 @@ class WebcamManager: NSObject, ObservableObject {
     }
     
     /// Cleans up an existing capture session, removing all inputs and outputs
-    private func cleanupExistingSession() {
-        if let existingSession = self.captureSession {
+    nonisolated private func cleanupExistingSession() {
+        if let existingSession = self.sessionContainer.session {
             // First stop the session if running
             if existingSession.isRunning {
                 existingSession.stopRunning()
@@ -227,7 +221,7 @@ class WebcamManager: NSObject, ObservableObject {
             }
             
             existingSession.commitConfiguration()
-            self.captureSession = nil
+            self.sessionContainer.session = nil
             
             // Clear preview layer on main thread
             DispatchQueue.main.async {
@@ -238,9 +232,12 @@ class WebcamManager: NSObject, ObservableObject {
 
     @objc private func deviceWasDisconnected(notification: Notification) {
         NSLog("Camera device was disconnected")
-        sessionQueue.async { [weak self] in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            self.stopSession()
+            self.sessionContainer.session?.stopRunning()
+            Task { @MainActor in
+                self.isSessionRunning = self.sessionContainer.session?.isRunning ?? false
+            }
             DispatchQueue.main.async {
                 self.cameraAvailable = false
             }
@@ -251,12 +248,14 @@ class WebcamManager: NSObject, ObservableObject {
         NSLog("Camera device was connected")
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
-            self.checkCameraAvailability()
+            Task { @MainActor in
+                self.checkCameraAvailability()
+            }
         }
     }
 
-    private func updateSessionState() {
-        let isRunning = self.captureSession?.isRunning ?? false
+    nonisolated private func updateSessionState() {
+        let isRunning = self.sessionContainer.session?.isRunning ?? false
         DispatchQueue.main.async {
             self.isSessionRunning = isRunning
         }
@@ -267,7 +266,7 @@ class WebcamManager: NSObject, ObservableObject {
             guard let self = self else { return }
             
             // If no session exists, create new session
-            if self.captureSession == nil {
+            if self.sessionContainer.session == nil {
                 self.setupCaptureSession { success in
                     if success {
                         // Only start the session if setup was successful
@@ -281,9 +280,9 @@ class WebcamManager: NSObject, ObservableObject {
         }
     }
     
-    private func startRunningCaptureSession() {
+    nonisolated private func startRunningCaptureSession() {
         sessionQueue.async { [weak self] in
-            guard let self = self, let session = self.captureSession, !session.isRunning else {
+            guard let self = self, let session = self.sessionContainer.session, !session.isRunning else {
                 return
             }
             

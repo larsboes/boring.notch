@@ -47,7 +47,6 @@ func AppIcon(for bundleID: String) -> Image {
     return Image(nsImage: workspace.icon(for: .applicationBundle))
 }
 
-
 func AppIconAsNSImage(for bundleID: String) -> NSImage? {
     let workspace = NSWorkspace.shared
     
@@ -58,4 +57,3 @@ func AppIconAsNSImage(for bundleID: String) -> NSImage? {
     }
     return nil
 }
-

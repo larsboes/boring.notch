@@ -12,9 +12,8 @@ import AVFoundation
 
 private let kSystemDefinedEventType = CGEventType(rawValue: 14)!
 
+@MainActor
 final class MediaKeyInterceptor {
-    static let shared = MediaKeyInterceptor()
-    
     private enum NXKeyType: Int {
         case soundUp = 0
         case soundDown = 1
@@ -24,35 +23,51 @@ final class MediaKeyInterceptor {
         case keyboardBrightnessUp = 21
         case keyboardBrightnessDown = 22
     }
-    
+
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private let step: Float = 1.0 / 16.0
     private var audioPlayer: AVAudioPlayer?
     
-    private init() {}
+    // Dependencies
+    private let volumeService: any VolumeServiceProtocol
+    private let brightnessService: any BrightnessServiceProtocol
+    private let keyboardBacklightService: any KeyboardBacklightServiceProtocol
+    private let coordinator: BoringViewCoordinator
     
+    init(
+        volumeService: any VolumeServiceProtocol,
+        brightnessService: any BrightnessServiceProtocol,
+        keyboardBacklightService: any KeyboardBacklightServiceProtocol,
+        coordinator: BoringViewCoordinator
+    ) {
+        self.volumeService = volumeService
+        self.brightnessService = brightnessService
+        self.keyboardBacklightService = keyboardBacklightService
+        self.coordinator = coordinator
+    }
+
     // MARK: - Accessibility (via XPC)
-    
+
     func requestAccessibilityAuthorization() {
         XPCHelperClient.shared.requestAccessibilityAuthorization()
     }
-    
+
     func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
         await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: promptIfNeeded)
     }
-    
+
     // MARK: - Event Tap
     
     func start(promptIfNeeded: Bool = false) async {
         guard eventTap == nil else { return }
-        
+
         // Ensure HUD replacement is enabled
         guard Defaults[.hudReplacement] else {
             stop()
             return
         }
-        
+
         // Check accessibility authorization
         let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
         if !authorized {
@@ -63,7 +78,7 @@ final class MediaKeyInterceptor {
                 return
             }
         }
-        
+
         let mask = CGEventMask(1 << kSystemDefinedEventType.rawValue)
         eventTap = CGEvent.tapCreate(
             tap: .cghidEventTap,
@@ -86,61 +101,64 @@ final class MediaKeyInterceptor {
             CGEvent.tapEnable(tap: eventTap, enable: true)
         }
     }
-    
+
     func stop() {
         if let eventTap {
             CGEvent.tapEnable(tap: eventTap, enable: false)
+            CFMachPortInvalidate(eventTap)
         }
         if let runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         }
+
         runLoopSource = nil
         eventTap = nil
     }
-    
+
     // MARK: - Event Handling
-    
+
     private func handleEvent(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
         // Ensure the CGEvent has a valid type before converting to NSEvent
         guard cgEvent.type != .null else {
-            return Unmanaged.passRetained(cgEvent)
+            return Unmanaged.passUnretained(cgEvent)
         }
+
         guard let nsEvent = NSEvent(cgEvent: cgEvent),
               nsEvent.type == .systemDefined,
               nsEvent.subtype.rawValue == 8 else {
-            return Unmanaged.passRetained(cgEvent)
+            return Unmanaged.passUnretained(cgEvent)
         }
-        
+
         let data1 = nsEvent.data1
         let keyCode = (data1 & 0xFFFF_0000) >> 16
         let stateByte = ((data1 & 0xFF00) >> 8)
-        
+
         // 0xA = key down, 0xB = key up. Only handle key down.
         guard stateByte == 0xA,
               let keyType = NXKeyType(rawValue: keyCode) else {
-            return Unmanaged.passRetained(cgEvent)
+            return Unmanaged.passUnretained(cgEvent)
         }
-        
+
         let flags = nsEvent.modifierFlags
         let option = flags.contains(.option)
         let shift = flags.contains(.shift)
         let command = flags.contains(.command)
-        
+
         // Handle option key action (without shift)
         if option && !shift {
             if handleOptionAction(for: keyType, command: command) {
                 return nil
             }
         }
-        
+
         // Handle normal key press
         handleKeyPress(keyType: keyType, option: option, shift: shift, command: command)
         return nil
     }
-    
+
     private func handleOptionAction(for keyType: NXKeyType, command: Bool) -> Bool {
         let action = Defaults[.optionKeyAction]
-        
+
         switch action {
         case .openSettings:
             openSystemSettings(for: keyType, command: command)
@@ -152,7 +170,7 @@ final class MediaKeyInterceptor {
             return true
         }
     }
-    
+
     private func prepareAudioPlayerIfNeeded() {
         guard audioPlayer == nil else { return }
 
@@ -198,22 +216,16 @@ final class MediaKeyInterceptor {
 
     private func handleKeyPress(keyType: NXKeyType, option: Bool, shift: Bool, command: Bool) {
         let stepDivisor: Float = (option && shift) ? 4.0 : 1.0
-        
+
         switch keyType {
         case .soundUp:
-            Task { @MainActor in
-                self.playFeedbackSound()
-                VolumeManager.shared.increase(stepDivisor: stepDivisor)
-            }
+            self.playFeedbackSound()
+            volumeService.increase(stepDivisor: stepDivisor)
         case .soundDown:
-            Task { @MainActor in
-                self.playFeedbackSound()
-                VolumeManager.shared.decrease(stepDivisor: stepDivisor)
-            }
+            self.playFeedbackSound()
+            volumeService.decrease(stepDivisor: stepDivisor)
         case .mute:
-            Task { @MainActor in
-                VolumeManager.shared.toggleMuteAction()
-            }
+            volumeService.toggleMuteAction()
         case .brightnessUp, .keyboardBrightnessUp:
             let delta = step / stepDivisor
             adjustBrightness(delta: delta, keyboard: keyType == .keyboardBrightnessUp || command)
@@ -222,41 +234,37 @@ final class MediaKeyInterceptor {
             adjustBrightness(delta: delta, keyboard: keyType == .keyboardBrightnessDown || command)
         }
     }
-    
+
     private func adjustBrightness(delta: Float, keyboard: Bool) {
-        Task { @MainActor in
-            if keyboard {
-                KeyboardBacklightManager.shared.setRelative(delta: delta)
-            } else {
-                BrightnessManager.shared.setRelative(delta: delta)
-            }
+        if keyboard {
+            keyboardBacklightService.setRelative(delta: delta)
+        } else {
+            brightnessService.setRelative(delta: delta)
         }
     }
-    
+
     private func showHUD(for keyType: NXKeyType, command: Bool) {
-        Task { @MainActor in
-            switch keyType {
-            case .soundUp, .soundDown, .mute:
-                let v = VolumeManager.shared.rawVolume
-                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .volume, value: CGFloat(v))
-            case .brightnessUp, .brightnessDown:
-                if command {
-                    let v = KeyboardBacklightManager.shared.rawBrightness
-                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
-                } else {
-                    let v = BrightnessManager.shared.rawBrightness
-                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v))
-                }
-            case .keyboardBrightnessUp, .keyboardBrightnessDown:
-                let v = KeyboardBacklightManager.shared.rawBrightness
-                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
+        switch keyType {
+        case .soundUp, .soundDown, .mute:
+            let v = volumeService.rawVolume
+            coordinator.toggleSneakPeek(status: true, type: .volume, value: CGFloat(v))
+        case .brightnessUp, .brightnessDown:
+            if command {
+                let v = keyboardBacklightService.rawBrightness
+                coordinator.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
+            } else {
+                let v = brightnessService.rawBrightness
+                coordinator.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v))
             }
+        case .keyboardBrightnessUp, .keyboardBrightnessDown:
+            let v = keyboardBacklightService.rawBrightness
+            coordinator.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
         }
     }
-    
+
     private func openSystemSettings(for keyType: NXKeyType, command: Bool) {
         let urlString: String
-        
+
         switch keyType {
         case .soundUp, .soundDown, .mute:
             urlString = "x-apple.systempreferences:com.apple.preference.sound"
@@ -269,7 +277,7 @@ final class MediaKeyInterceptor {
         case .keyboardBrightnessUp, .keyboardBrightnessDown:
             urlString = "x-apple.systempreferences:com.apple.preference.keyboard"
         }
-        
+
         guard let url = URL(string: urlString) else { return }
         NSWorkspace.shared.open(url)
     }

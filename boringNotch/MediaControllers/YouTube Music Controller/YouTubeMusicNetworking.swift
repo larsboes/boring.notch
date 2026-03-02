@@ -57,7 +57,6 @@ final class YouTubeMusicHTTPClient: ObservableObject {
         let state: String?
     }
 
-
     func getLikeState(token: String) async throws -> LikeStateResponse {
         let data = try await sendCommand(endpoint: "/like-state", method: "GET", token: token)
         return try Self.decoder.decode(LikeStateResponse.self, from: data)

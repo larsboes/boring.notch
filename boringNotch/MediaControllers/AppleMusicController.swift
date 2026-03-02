@@ -41,11 +41,11 @@ class AppleMusicController: MediaControllerProtocol {
     }
     
     private func setupPlaybackStateChangeObserver() {
-        notificationTask = Task { @Sendable [weak self] in
+        notificationTask = Task { [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.apple.Music.playerInfo")
             )
-            
+
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
             }
@@ -117,9 +117,9 @@ class AppleMusicController: MediaControllerProtocol {
 
     func setFavorite(_ favorite: Bool) async {
         let script = """
-        tell application \"Music\"
+        tell application "Music"
             try
-                set favorited of current track to " + (favorite ? "true" : "false") + "
+                set favorited of current track to \(favorite)
             end try
         end tell
         """

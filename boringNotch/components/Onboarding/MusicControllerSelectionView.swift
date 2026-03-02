@@ -6,23 +6,21 @@
 //
 
 import SwiftUI
-import Defaults
-
 
 struct MusicControllerSelectionView: View {
     let onContinue: () -> Void
 
-    @Default(.mediaController) var mediaController
+    @Environment(\.bindableSettings) var settings
     
     private var availableMediaControllers: [MediaControllerType] {
-        if MusicManager.shared.isNowPlayingDeprecated {
+        if MusicManager.isNowPlayingDeprecatedStatic {
             return MediaControllerType.allCases.filter { $0 != .nowPlaying }
         } else {
             return MediaControllerType.allCases
         }
     }
     
-    @State private var selectedMediaController: MediaControllerType = Defaults[.mediaController]
+    @State private var selectedMediaController: MediaControllerType = .nowPlaying
     
     var body: some View {
         VStack(spacing: 20) {
@@ -51,13 +49,13 @@ struct MusicControllerSelectionView: View {
                 }
                 .padding()
             }
-            //Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
+            // Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
             .scrollDisabled(availableMediaControllers.count <= 4)
 
 //            Spacer()
 
             Button("Continue", action: {
-                self.mediaController = self.selectedMediaController
+                settings.mediaController = self.selectedMediaController
                 NotificationCenter.default.post(
                     name: Notification.Name.mediaControllerChanged,
                     object: nil
@@ -73,6 +71,9 @@ struct MusicControllerSelectionView: View {
             VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 .ignoresSafeArea()
         )
+        .onAppear {
+            self.selectedMediaController = settings.mediaController
+        }
     }
 }
 
@@ -117,7 +118,6 @@ struct ControllerOptionView: View {
         .contentShape(Rectangle())
     }
 }
-
 
 extension MediaControllerType {
     var description: String {

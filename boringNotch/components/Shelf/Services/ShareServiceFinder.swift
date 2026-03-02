@@ -28,18 +28,19 @@ class ShareServiceFinder: NSObject, NSSharingServicePickerDelegate {
                 self.onServicesCaptured = { services in
                     guard !didResume else { return }
                     didResume = true
+                    picker.close()
                     continuation.resume(returning: services)
                 }
             }
 
             picker.show(relativeTo: dummyView.bounds, of: dummyView, preferredEdge: .minY)
 
-
             // Timeout task
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(timeout))
                 guard !didResume else { return }
                 didResume = true
+                picker.close()  // Ensure picker is closed even on timeout
                 print("Warning: timed out waiting for sharing services")
                 continuation.resume(returning: [])
             }

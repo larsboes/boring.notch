@@ -24,9 +24,12 @@ public enum NotchState {
     case open
 }
 
-public enum NotchViews {
+public enum NotchViews: Sendable {
     case home
     case shelf
+    case notifications
+    case clipboard
+    case notes
 }
 
 enum SettingsEnum {

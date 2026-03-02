@@ -14,22 +14,18 @@ private let _shelfTypeAnchor: Bool = {
 }()
 
 @MainActor
-final class ShelfSelectionModel: ObservableObject {
-    static let shared = ShelfSelectionModel()
+@Observable final class ShelfSelectionModel {
 
-    @Published private(set) var selectedIDs: Set<UUID> = []
+    private(set) var selectedIDs: Set<UUID> = []
 
     // Anchor for shift-range selection
-    private var lastAnchorID: UUID? = nil
+    private var lastAnchorID: UUID?
 
     func isSelected(_ id: UUID) -> Bool { selectedIDs.contains(id) }
 
     var hasSelection: Bool { !selectedIDs.isEmpty }
 
-    var firstSelectedItem: ShelfItem? {
-        guard let firstID = selectedIDs.first else { return nil }
-        return ShelfStateViewModel.shared.items.first(where: { $0.id == firstID })
-    }
+
 
     func selectedItems(in allItems: [ShelfItem]) -> [ShelfItem] {
         allItems.filter { selectedIDs.contains($0.id) }
@@ -75,7 +71,7 @@ final class ShelfSelectionModel: ObservableObject {
         }
     }
 
-    @Published private(set) var isDragging: Bool = false
+    private(set) var isDragging: Bool = false
 
     func beginDrag() {
         isDragging = true

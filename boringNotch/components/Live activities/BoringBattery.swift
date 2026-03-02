@@ -1,5 +1,4 @@
 import SwiftUI
-import Defaults
 
 /// A view that displays the battery status with an icon and charging indicator.
 struct BatteryView: View {
@@ -10,18 +9,17 @@ struct BatteryView: View {
     var isInLowPowerMode: Bool
     var batteryWidth: CGFloat = 26
     var isForNotification: Bool
-
+    var settings: NotchSettings
+    
     var icon: String = "battery.0"
 
     /// Determines the icon to display when charging.
     var iconStatus: String {
         if isCharging {
             return "bolt"
-        }
-        else if isPluggedIn {
+        } else if isPluggedIn {
             return "plug"
-        }
-        else {
+        } else {
             return ""
         }
     }
@@ -59,7 +57,7 @@ struct BatteryView: View {
                 )
                 .padding(.leading, 2)
 
-            if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
+            if iconStatus != "" && (isForNotification || settings.showPowerStatusIcons) {
                 ZStack {
                     Image(iconStatus)
                         .resizable()
@@ -182,9 +180,10 @@ struct BoringBatteryView: View {
     @State private var isPressed: Bool = false
     @State private var isHoveringButton: Bool = false
     @State private var isHoveringPopover: Bool = false
-    @State private var hideTask: Task<Void, Never>? = nil
+    @State private var hideTask: Task<Void, Never>?
 
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
 
     var body: some View {
         Button(action: {
@@ -193,7 +192,7 @@ struct BoringBatteryView: View {
             }
         }) {
             HStack {
-                if Defaults[.showBatteryPercentage] {
+                if settings.showBatteryPercentage {
                     Text("\(Int32(levelBattery))%")
                         .font(.callout)
                         .foregroundStyle(.white)
@@ -204,7 +203,8 @@ struct BoringBatteryView: View {
                     isCharging: isCharging,
                     isInLowPowerMode: isInLowPowerMode,
                     batteryWidth: batteryWidth,
-                    isForNotification: isForNotification
+                    isForNotification: isForNotification,
+                    settings: settings
                 )
             }
         }
@@ -254,14 +254,27 @@ struct BoringBatteryView: View {
 }
 
 #Preview {
-    BoringBatteryView(
-        batteryWidth: 30,
-        isCharging: false,
-        isInLowPowerMode: false,
-        isPluggedIn: true,
-        levelBattery: 80,
-        maxCapacity: 100,
-        timeToFullCharge: 10,
-        isForNotification: false
-    ).frame(width: 200, height: 200)
+    Group {
+        BoringBatteryView(
+            batteryWidth: 30,
+            isCharging: false,
+            isInLowPowerMode: false,
+            isPluggedIn: true,
+            levelBattery: 80,
+            maxCapacity: 100,
+            timeToFullCharge: 10,
+            isForNotification: false
+        ).frame(width: 200, height: 200)
+        BoringBatteryView(
+            batteryWidth: 30,
+            isCharging: false,
+            isInLowPowerMode: false,
+            isPluggedIn: true,
+            levelBattery: 80,
+            maxCapacity: 100,
+            timeToFullCharge: 10,
+            isForNotification: false
+        ).frame(width: 200, height: 200)
+    }
+    .background(.black)
 }

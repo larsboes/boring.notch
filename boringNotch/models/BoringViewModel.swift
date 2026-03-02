@@ -3,143 +3,302 @@
 //  boringNotch
 //
 //  Created by Harsh Vardhan  Goswami  on 04/08/24.
+//  Refactored: Thin orchestrator using extracted controllers
 //
 
 import Combine
 import Defaults
 import SwiftUI
 
-class BoringViewModel: NSObject, ObservableObject {
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @ObservedObject var detector = FullscreenMediaDetector.shared
+@MainActor
+@Observable class BoringViewModel: NSObject {
+    // MARK: - Dependencies (injected, not @ObservedObject to singletons)
+
+    /// View coordinator - accessed as property, not @ObservedObject
+    /// This prevents the VM from republishing on every coordinator change
+    private let coordinator: BoringViewCoordinator
+
+    /// Fullscreen media detector - accessed as property, not @ObservedObject
+    private let detector: FullscreenMediaDetector
+
+    /// Settings provider (injected, replaces direct Defaults access)
+    private let settings: NotchViewModelSettings
+
+    /// Hover controller for mouse interaction
+    private let hoverController: NotchHoverController
+
+    /// Size calculator for notch dimensions
+    private let sizeCalculator: NotchSizeCalculator
+
+    /// Observer setup manager
+    private let observerSetup: NotchObserverSetup
 
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
 
-    @Published var contentType: ContentType = .normal
-    @Published private(set) var notchState: NotchState = .closed
+    var contentType: ContentType = .normal
 
-    @Published var dragDetectorTargeting: Bool = false
-    @Published var generalDropTargeting: Bool = false
-    @Published var dropZoneTargeting: Bool = false
-    @Published var dropEvent: Bool = false
-    @Published var anyDropZoneTargeting: Bool = false
-    var cancellables: Set<AnyCancellable> = []
-    
-    @Published var hideOnClosed: Bool = true
+    // MARK: - Phase State (replaces notchState + hoverController)
 
-    @Published var edgeAutoOpenActive: Bool = false
-    @Published var isHoveringCalendar: Bool = false
-    @Published var isBatteryPopoverActive: Bool = false
+    /// The current phase of the notch UI (closed, opening, open, closing)
+    private(set) var phase: NotchPhase = .closed
 
-    @Published var screenUUID: String?
+    /// Backwards compatibility: computed notchState based on phase
+    var notchState: NotchState {
+        phase.isVisible ? .open : .closed
+    }
 
-    @Published var notchSize: CGSize = getClosedNotchSize()
-    @Published var closedNotchSize: CGSize = getClosedNotchSize()
-    
-    let webcamManager = WebcamManager.shared
-    @Published var isCameraExpanded: Bool = false
-    @Published var isRequestingAuthorization: Bool = false
-    
+    var dragDetectorTargeting: Bool = false
+    var generalDropTargeting: Bool = false
+    var dropZoneTargeting: Bool = false
+    var dropEvent: Bool = false
+    var anyDropZoneTargeting: Bool {
+        dropZoneTargeting || dragDetectorTargeting || generalDropTargeting
+    }
+
+    var hideOnClosed: Bool = true
+
+    var edgeAutoOpenActive: Bool = false
+    var isHoveringCalendar: Bool = false
+
+    var isBatteryPopoverActive: Bool = false {
+        didSet {
+            hoverController.isBatteryPopoverActive = isBatteryPopoverActive
+        }
+    }
+
+    var backgroundImage: NSImage?
+
+    var screenUUID: String? {
+        didSet {
+            Task { @MainActor in
+                updateNotchSize()
+            }
+        }
+    }
+
+    // Notch size properties delegated to sizeCalculator
+    var notchSize: CGSize {
+        get { sizeCalculator.notchSize }
+        set { sizeCalculator.notchSize = newValue }
+    }
+
+    var closedNotchSize: CGSize {
+        get { sizeCalculator.closedNotchSize }
+        set { sizeCalculator.closedNotchSize = newValue }
+    }
+
+    var inactiveNotchSize: CGSize {
+        get { sizeCalculator.inactiveNotchSize }
+        set { sizeCalculator.inactiveNotchSize = newValue }
+    }
+
+    private let webcamService: any WebcamServiceProtocol
+    var isCameraExpanded: Bool = false
+    var isRequestingAuthorization: Bool = false
+
     deinit {
-        destroy()
+        NotificationCenter.default.removeObserver(self, name: Notification.Name.notchHeightChanged, object: nil)
     }
 
-    func destroy() {
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
+    nonisolated func destroy() {
+        // This method is kept for external cleanup calls if needed
     }
 
-    init(screenUUID: String? = nil) {
-        animation = animationLibrary.animation
+    private let musicService: any MusicServiceProtocol
+    private let soundService: any SoundServiceProtocol
+    private let dragDropService: any DragDropServiceProtocol
+    var shelfService: ShelfServiceProtocol?
+
+    /// Window reference for position validation
+    weak var window: NSWindow?
+
+    /// Whether mouse is currently inside the notch region (delegated to hoverController)
+    var isHoveringNotch: Bool {
+        hoverController.isHoveringNotch
+    }
+
+    // MARK: - Initialization
+
+    /// Initialize with dependency injection.
+    @MainActor
+    init(
+        screenUUID: String? = nil,
+        coordinator: BoringViewCoordinator,
+        detector: FullscreenMediaDetector,
+        webcamService: any WebcamServiceProtocol,
+        musicService: any MusicServiceProtocol,
+        soundService: any SoundServiceProtocol,
+        dragDropService: any DragDropServiceProtocol,
+        settings: NotchViewModelSettings = DefaultNotchViewModelSettings()
+    ) {
+        self.coordinator = coordinator
+        self.detector = detector
+        self.webcamService = webcamService
+        self.musicService = musicService
+        self.soundService = soundService
+        self.dragDropService = dragDropService
+        self.settings = settings
+        self.animation = animationLibrary.animation
+
+        // Initialize extracted components
+        self.hoverController = NotchHoverController(settings: settings)
+        self.sizeCalculator = NotchSizeCalculator(settings: settings, musicService: musicService)
+        self.observerSetup = NotchObserverSetup(settings: settings, detector: detector)
+
+        // Shelf service will be injected via property setter
+        self.shelfService = nil
 
         super.init()
-        
+
+        // Configure hover controller's close prevention check
+        hoverController.shouldPreventClose = { [weak self] in
+            // Replace SharingStateManager.shared.preventNotchClose
+            SharingStateManager.shared.preventNotchClose
+        }
+
+        setupDragDropCallbacks()
+
         self.screenUUID = screenUUID
-        notchSize = getClosedNotchSize(screenUUID: screenUUID)
-        closedNotchSize = notchSize
+        sizeCalculator.notchSize = getClosedNotchSize(screenUUID: screenUUID)
+        sizeCalculator.closedNotchSize = sizeCalculator.notchSize
+        sizeCalculator.inactiveNotchSize = getInactiveNotchSize(screenUUID: screenUUID)
 
-        Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
-            .map { shelf, drag, general in
-                shelf || drag || general
-            }
-            .assign(to: \.anyDropZoneTargeting, on: self)
-            .store(in: &cancellables)
-        
+        // Initialize hover zone with screen coordinates
+        hoverController.updateHoverZone(screenUUID: screenUUID)
+
         setupDetectorObserver()
+        setupBackgroundImageObserver()
+        setupNotchHeightObserver()
     }
-    
-    private func setupDetectorObserver() {
-        // Publisher for the user’s fullscreen detection setting
-        let enabledPublisher = Defaults
-            .publisher(.hideNotchOption)
-            .map(\.newValue)
-            .map { $0 != .never }
-            .removeDuplicates()
 
-        // Publisher for the current screen UUID (non-nil, distinct)
-        let screenPublisher = $screenUUID
-            .compactMap { $0 }
-            .removeDuplicates()
+    /// Convenience initializer for previews only
+    @MainActor
+    override convenience init() {
+        let musicService = MusicService(manager: MusicManager())
+        self.init(
+            coordinator: BoringViewCoordinator(),
+            detector: FullscreenMediaDetector(musicService: musicService),
+            webcamService: WebcamManager(),
+            musicService: musicService,
+            soundService: SoundService(),
+            dragDropService: DragDropService()
+        )
+    }
 
-        // Publisher for fullscreen status dictionary
-        let fullscreenStatusPublisher = detector.$fullscreenStatus
-            .removeDuplicates()
+    // MARK: - Setup Methods
 
-        // Combine all three: screen UUID, fullscreen status, and enabled setting
-        Publishers.CombineLatest3(screenPublisher, fullscreenStatusPublisher, enabledPublisher)
-            .map { screenUUID, fullscreenStatus, enabled in
-                let isFullscreen = fullscreenStatus[screenUUID] ?? false
-                return enabled && isFullscreen
+    private func setupDragDropCallbacks() {
+        dragDropService.onDragEntersNotchRegion = { [weak self] in
+            Task { @MainActor in
+                guard let self = self else { return }
+                self.dragDetectorTargeting = true
+                self.open()
+                // Switch to shelf view when dragging over notch
+                self.coordinator.currentView = .shelf
             }
-            .removeDuplicates()
-            .receive(on: RunLoop.main)
-            .sink { [weak self] shouldHide in
+        }
+
+        dragDropService.onDragExitsNotchRegion = { [weak self] in
+            Task { @MainActor in
+                guard let self = self else { return }
+                self.dragDetectorTargeting = false
+                // Optional: Close notch or switch back?
+                // For now, we keep it open to allow dropping
+            }
+        }
+
+        dragDropService.startMonitoring()
+    }
+
+    private func setupNotchHeightObserver() {
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.notchHeightChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.updateNotchSize()
+            }
+        }
+    }
+
+    private func updateNotchSize() {
+        let result = sizeCalculator.updateNotchSize(
+            screenUUID: self.screenUUID,
+            currentState: self.notchState
+        )
+
+        withAnimation(.smooth(duration: 0.3)) {
+            if result.shouldUpdateNotchSize {
+                self.notchSize = result.closedSize
+            }
+
+            // Update drag detector region
+            if let screenFrame = getScreenFrame(self.screenUUID) {
+                let width = openNotchSize.width
+                let height = openNotchSize.height
+                let x = screenFrame.midX - (width / 2)
+                let y = screenFrame.maxY - height
+
+                let region = CGRect(x: x, y: y, width: width, height: height)
+                self.dragDropService.updateNotchRegion(region)
+            }
+        }
+    }
+
+    private func setupBackgroundImageObserver() {
+        observerSetup.setupBackgroundImageObserver { [weak self] image in
+            self?.backgroundImage = image
+        }
+    }
+
+    private func setupDetectorObserver() {
+        observerSetup.setupDetectorObserver(screenUUID: screenUUID) { [weak self] shouldHide in
+            guard let self = self else { return }
+            if self.hideOnClosed != shouldHide {
                 withAnimation(.smooth) {
-                    self?.hideOnClosed = shouldHide
+                    self.hideOnClosed = shouldHide
                 }
             }
-            .store(in: &cancellables)
+        }
     }
 
-    // Computed property for effective notch height
+    // MARK: - Computed Properties
+
     var effectiveClosedNotchHeight: CGFloat {
-        let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
-        let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
-        return noNotchAndFullscreen ? 0 : closedNotchSize.height
+        sizeCalculator.effectiveClosedNotchHeight(
+            screenUUID: screenUUID,
+            hideOnClosed: hideOnClosed,
+            sneakPeekActive: coordinator.sneakPeek.show,
+            expandingViewActive: coordinator.expandingView.show,
+            expandingViewType: coordinator.expandingView.type,
+            coordinator: coordinator
+        )
     }
 
     var chinHeight: CGFloat {
-        if !Defaults[.hideTitleBar] {
-            return 0
-        }
-
-        guard let currentScreen = screenUUID.flatMap({ NSScreen.screen(withUUID: $0) }) else {
-            return 0
-        }
-
-        if notchState == .open { return 0 }
-
-        let menuBarHeight = currentScreen.frame.maxY - currentScreen.visibleFrame.maxY
-        let currentHeight = effectiveClosedNotchHeight
-
-        if currentHeight == 0 { return 0 }
-
-        return max(0, menuBarHeight - currentHeight)
+        sizeCalculator.chinHeight(
+            screenUUID: screenUUID,
+            notchState: notchState,
+            effectiveClosedHeight: effectiveClosedNotchHeight
+        )
     }
+
+    // MARK: - Camera Methods
 
     func toggleCameraPreview() {
         if isRequestingAuthorization {
             return
         }
 
-        switch webcamManager.authorizationStatus {
+        switch webcamService.authorizationStatus {
         case .authorized:
-            if webcamManager.isSessionRunning {
-                webcamManager.stopSession()
+            if webcamService.isSessionRunning {
+                webcamService.stopSession()
                 isCameraExpanded = false
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
+            } else if webcamService.cameraAvailable {
+                webcamService.startSession()
                 isCameraExpanded = true
             }
 
@@ -166,7 +325,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
         case .notDetermined:
             isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
+            webcamService.checkAndRequestVideoAuthorization()
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.isRequestingAuthorization = false
             }
@@ -175,46 +334,149 @@ class BoringViewModel: NSObject, ObservableObject {
             break
         }
     }
-    
-    func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
-        let screenFrame = getScreenFrame(screenUUID)
-        if let frame = screenFrame {
-            
-            let baseY = frame.maxY - notchSize.height
-            let baseX = frame.midX - notchSize.width / 2
-            
-            return position.y >= baseY && position.x >= baseX && position.x <= baseX + notchSize.width
-        }
-        
-        return false
+
+    // MARK: - Hover Zone Management
+
+    /// Set the window reference for hover validation
+    func setHoverWindow(_ window: NSWindow?) {
+        self.window = window
     }
+
+    /// Updates the hover zone geometry. Call when screen changes, not during animation.
+    func updateHoverZone() {
+        hoverController.updateHoverZone(screenUUID: screenUUID)
+    }
+
+    /// Single entry point for hover signals from TrackingAreaView.
+    func handleHoverSignal(_ signal: HoverSignal) {
+        hoverController.handleHoverSignal(
+            signal,
+            currentPhase: phase,
+            sneakPeekActive: coordinator.sneakPeek.show
+        ) { [weak self] in
+            self?.open()
+        }
+
+        // Handle exited signal for scheduling close
+        if case .exited = signal {
+            scheduleClose()
+        }
+    }
+
+    // MARK: - Legacy Compatibility
+
+    /// Called by TrackingAreaView when mouse enters (legacy API)
+    func mouseEntered() {
+        handleHoverSignal(.entered)
+    }
+
+    /// Called by TrackingAreaView when mouse exits (legacy API)
+    func mouseExited() {
+        handleHoverSignal(.exited)
+    }
+
+    /// Schedule a close after the appropriate delay
+    private func scheduleClose() {
+        hoverController.scheduleClose(
+            currentPhase: phase,
+            currentView: coordinator.currentView
+        ) { [weak self] in
+            self?.close(force: true)
+        }
+    }
+
+    /// Setup hover controller (kept for API compatibility)
+    func setupHoverController() {
+        // No-op: hover logic is now in hoverController
+    }
+
+    /// Legacy compatibility - cancel pending close
+    func cancelPendingClose() {
+        hoverController.cancelPendingClose()
+    }
+
+    // MARK: - Open/Close Methods
 
     func open() {
-        self.notchSize = openNotchSize
-        self.notchState = .open
-        
+        // Guard against opening when not closed
+        guard phase == .closed else { return }
+
+        // Cancel any pending close
+        hoverController.cancelPendingClose()
+
+        // Transition to opening phase
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            self.notchSize = openNotchSize
+            self.phase = .opening
+        }
+
+        // Complete the opening after animation
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            if self.phase == .opening {
+                self.phase = .open
+                self.syncWindowState()
+            }
+        }
+
         // Force music information update when notch is opened
-        MusicManager.shared.forceUpdate()
+        musicService.forceUpdate()
     }
 
-    func close() {
+    func close(force: Bool = false) {
         // Do not close while a share picker or sharing service is active
-        if SharingStateManager.shared.preventNotchClose {
-            return
+        // NOTE: Still uses SharingStateManager.shared until full refactor
+        if SharingStateManager.shared.preventNotchClose { return }
+
+        // Safety Check: If mouse is inside and not forced, REFUSE to close.
+        if !force && isHoveringNotch && phase == .open { return }
+
+        // Guard against closing when not open
+        guard phase == .open || force else { return }
+
+        // Cancel any pending open
+        hoverController.cancelPendingOpen()
+
+        // Transition to closing phase
+        withAnimation(.spring(response: 0.30, dampingFraction: 0.9)) {
+            self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
+            self.closedNotchSize = self.notchSize
+            self.phase = .closing
         }
-        self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
-        self.closedNotchSize = self.notchSize
-        self.notchState = .closed
+
+        // Complete the closing after animation
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(300))
+            if self.phase == .closing {
+                self.phase = .closed
+                self.syncWindowState()
+
+                // Check if mouse is still in hover zone and should reopen
+                if self.hoverController.isMouseInHoverZone() {
+                    self.handleHoverSignal(.entered)
+                }
+            }
+        }
+
         self.isBatteryPopoverActive = false
         self.coordinator.sneakPeek.show = false
         self.edgeAutoOpenActive = false
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
-        // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+        let isShelfEmpty = shelfService?.isEmpty ?? true
+        if !isShelfEmpty && settings.openShelfByDefault {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
+        }
+    }
+
+    /// Sync window's isNotchOpen state with current phase
+    private func syncWindowState() {
+        if let boringWindow = window as? BoringNotchWindow {
+            boringWindow.isNotchOpen = phase.isInteractive
+        } else if let skyLightWindow = window as? BoringNotchSkyLightWindow {
+            skyLightWindow.isNotchOpen = phase.isInteractive
         }
     }
 
@@ -225,5 +487,12 @@ class BoringViewModel: NSObject, ObservableObject {
                 close()
             }
         }
+    }
+
+    // MARK: - Static Utility Methods
+
+    /// Copy background image to app storage
+    static func copyBackgroundImageToAppStorage(sourceURL: URL) -> URL? {
+        NotchObserverSetup.copyBackgroundImageToAppStorage(sourceURL: sourceURL)
     }
 }

@@ -6,24 +6,25 @@
 //
 
 import AppKit
-import Defaults
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct FileShareView: View {
-    @EnvironmentObject private var vm: BoringViewModel
-    @StateObject private var quickShare = QuickShareService.shared
-    @Default(.quickShareProvider) var quickShareProvider: String
+    @Environment(BoringViewModel.self) private var vm
+    @Environment(\.settings) var settings
+    @Environment(\.pluginManager) var pluginManager
+    private var quickShare = QuickShareService.shared
 
     @State private var hostView: NSView?
     @State private var interactionNonce: UUID = .init()
     @State private var isProcessing = false
     
     private var selectedProvider: QuickShareProvider {
-        quickShare.availableProviders.first(where: { $0.id == quickShareProvider }) ?? QuickShareProvider(id: "System Share Menu", imageData: nil, supportsRawText: true)
+        quickShare.availableProviders.first(where: { $0.id == settings.quickShareProvider }) ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
     }
 
     var body: some View {
+        @Bindable var vm = vm
         dropArea
             .background(NSViewHost(view: $hostView))
             .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data, .image], isTargeted: $vm.dropZoneTargeting) { providers in
@@ -64,10 +65,9 @@ struct FileShareView: View {
                             vm.dropZoneTargeting ? 0.11 : 0.09
                         ))
                         .frame(width: 55, height: 55)
-                    Image(systemName: "square.and.arrow.up")
                     Group {
-                        if let imgData = selectedProvider.imageData, let nsImg = NSImage(data: imgData) {
-                            Image(nsImage: nsImg)
+                        if let icon = quickShare.icon(for: selectedProvider.id, size: 34) {
+                            Image(nsImage: icon)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                         } else {
@@ -87,6 +87,7 @@ struct FileShareView: View {
                 Text(selectedProvider.id)
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
 
             }
             .padding(18)
@@ -110,7 +111,7 @@ struct FileShareView: View {
     private func handleDrop(_ providers: [NSItemProvider]) async {
         isProcessing = true
         defer { isProcessing = false }
-        await quickShare.shareDroppedFiles(providers, using: selectedProvider, from: hostView)
+        await quickShare.shareDroppedFiles(providers, using: selectedProvider, from: hostView, service: pluginManager!.services.shelf)
     }
     
     private func handleClick() async {

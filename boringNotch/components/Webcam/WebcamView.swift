@@ -6,12 +6,12 @@
 //
 
 import AVFoundation
-import Defaults
 import SwiftUI
 
 struct CameraPreviewView: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager: WebcamManager
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
+    let webcamManager: any WebcamServiceProtocol
     
     // Track if authorization request is in progress to avoid multiple requests
     @State private var isRequestingAuthorization: Bool = false
@@ -22,14 +22,14 @@ struct CameraPreviewView: View {
                 if let previewLayer = webcamManager.previewLayer {
                     CameraPreviewLayerView(previewLayer: previewLayer)
                         .scaleEffect(x: -1, y: 1)
-                        .clipShape(RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? !Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.closed : MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
+                        .clipShape(RoundedRectangle(cornerRadius: settings.mirrorShape == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
                         .frame(width: geometry.size.width, height: geometry.size.width)
                         .opacity(webcamManager.isSessionRunning ? 1 : 0)
                 }
 
                 if !webcamManager.isSessionRunning {
                     ZStack {
-                        RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? !Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.closed : 12 : 100)
+                        RoundedRectangle(cornerRadius: settings.mirrorShape == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : 100)
                             .fill(Color(red: 20/255, green: 20/255, blue: 20/255))
                             .strokeBorder(.white.opacity(0.04), lineWidth: 1)
                             .frame(width: geometry.size.width, height: geometry.size.width)
@@ -114,5 +114,5 @@ struct CameraPreviewLayerView: NSViewRepresentable {
 }
 
 #Preview {
-    CameraPreviewView(webcamManager: .shared)
+    CameraPreviewView(webcamManager: WebcamManager())
 }
