@@ -9,7 +9,6 @@
 import Foundation
 import AppKit
 import Combine
-import Defaults
 import Observation
 
 @MainActor
@@ -23,10 +22,12 @@ final class FaceService: FaceServiceProtocol {
     private var mouseMonitor: Any?
     private var idleTimer: Timer?
     private let idleThreshold: TimeInterval = 10.0
-    
+    private let settings: any MediaSettings
+
     // MARK: - Initialization
-    
-    init() {
+
+    init(settings: any MediaSettings) {
+        self.settings = settings
         // Don't start monitoring immediately on init, wait for explicit call or use a lazy approach
         // But for now, to match previous behavior, we can start it.
         // Better pattern: Start when the service is initialized by the container.
@@ -77,8 +78,8 @@ final class FaceService: FaceServiceProtocol {
         if self.isSleepy {
             self.isSleepy = false
             // Reset mood if it was sleepy
-            if Defaults[.selectedMood] == .sleepy {
-                Defaults[.selectedMood] = .neutral
+            if settings.selectedMood == .sleepy {
+                settings.selectedMood = .neutral
             }
         }
     }

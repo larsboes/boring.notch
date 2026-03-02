@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import Defaults
 import IOKit.ps
 
 @MainActor
@@ -23,7 +22,8 @@ class BatteryService: BatteryServiceProtocol {
     // Internal state
     private var isInitial: Bool = true
     private let eventBus: PluginEventBus
-    
+    private let settings: any BatterySettings
+
     // Wrapper to handle non-Sendable CFRunLoopSource safely
     private final class SourceContainer: @unchecked Sendable {
         var source: CFRunLoopSource?
@@ -40,8 +40,9 @@ class BatteryService: BatteryServiceProtocol {
     
     // MARK: - Initialization
     
-    init(eventBus: PluginEventBus) {
+    init(eventBus: PluginEventBus, settings: any BatterySettings) {
         self.eventBus = eventBus
+        self.settings = settings
         // Initial update
         updateBatteryInfo()
         
@@ -181,9 +182,9 @@ class BatteryService: BatteryServiceProtocol {
             if levelChanged, let notificationType = checkBatteryLevel(level: Int(self.levelBattery), initial: self.isInitial) {
                 var soundToPlay = "Disabled"
                 if notificationType == "Low Battery" {
-                    soundToPlay = Defaults[.lowBatteryNotificationSound]
+                    soundToPlay = settings.lowBatteryNotificationSound
                 } else if notificationType == "High Battery" {
-                    soundToPlay = Defaults[.highBatteryNotificationSound]
+                    soundToPlay = settings.highBatteryNotificationSound
                 }
                 
                 eventBus.emit(SneakPeekRequestedEvent(
@@ -195,9 +196,9 @@ class BatteryService: BatteryServiceProtocol {
                     NSSound(named: NSSound.Name(soundToPlay))?.play()
                 }
                 
-            } else if Defaults[.showPowerStatusNotifications] && !isInitial {
+            } else if settings.showPowerStatusNotifications && !isInitial {
                 // Standard power status notification
-                let soundToPlay = Defaults[.powerStatusNotificationSound]
+                let soundToPlay = settings.powerStatusNotificationSound
                 eventBus.emit(SneakPeekRequestedEvent(
                     sourcePluginId: "com.boringnotch.system.battery",
                     request: SneakPeekRequest(style: .expanding, type: .battery)
@@ -211,8 +212,8 @@ class BatteryService: BatteryServiceProtocol {
     }
     
     private func checkBatteryLevel(level: Int, initial: Bool) -> String? {
-        let lowThreshold = Defaults[.lowBatteryNotificationLevel]
-        let highThreshold = Defaults[.highBatteryNotificationLevel]
+        let lowThreshold = settings.lowBatteryNotificationLevel
+        let highThreshold = settings.highBatteryNotificationLevel
         
         if !self.isCharging && (level == lowThreshold || (initial && level <= lowThreshold)) && lowThreshold > 0 {
             return "Low Battery"

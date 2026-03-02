@@ -11,7 +11,7 @@
 
 ---
 
-## Current State (updated 2026-02-24)
+## Current State (updated 2026-02-25 — audited against codebase)
 
 **Active branch:** `refactor/singleton-elimination-tier3`
 **Stable branch:** `developer` (always green, same commit as working branch until next merge)
@@ -25,14 +25,77 @@
 | ✅ | Task 3 — MusicManager decomposition | MusicManager → thin façade (147L); MusicPlaybackController (294L) + MusicArtworkService (142L) extracted |
 | ✅ | Task 4 — ContentView split | ContentView 285L; NotchGestureCoordinator + NotchDropDelegate extracted to Core/ |
 | ✅ | Task 5 — boringNotchApp split | AppObjectGraph extracted (242L); boringNotchApp thinned (247L) |
-| 🟡 | Task 6 — Defaults access | 2 violations remain (see below) |
+| 🔴 | Task 6 — Defaults access | **62 `Defaults[` violations in 13 files + 2 `@Default` violations** (see below) |
 | ✅ | Task 7 — NotchSettings ISP split | 11 focused sub-protocols in NotchSettingsSubProtocols.swift |
-| ✅ | Task 8 — BoringViewCoordinator.shared | Fully eliminated — 0 usages |
+| ✅ | Task 8 — BoringViewCoordinator.shared | `.shared` eliminated — **but 24 non-allowed `.shared` singletons remain across 10 custom types** |
 
-**Phase 1 is ≈95% done. Two Task 6 violations block full sign-off:**
+**Phase 1 is ≈50% done.** Previous assessment (95%) only counted `@Default` property wrappers, missing the bulk of violations.
 
-1. `boringNotchApp.swift:41` — `@Default(.menubarIcon)` used as `$showMenuBarIcon` binding in `MenuBarExtra`. Fix requires `AppObjectGraph.settings` exposed as concrete `DefaultsNotchSettings` (not `NotchSettings` protocol) so `@Bindable` can produce a binding.
-2. `LottieAnimationContainer.swift:12` — `@Default(.selectedVisualizer)`. Fix requires adding `selectedVisualizer` to a settings sub-protocol first, then converting to `@Environment(\.settings)`.
+### Remaining Violations — `Defaults[` Direct Access (62 violations, 13 files)
+
+Only `DefaultsNotchSettings.swift` (186) and `PluginSettings.swift` (4) are allowed `Defaults[` access.
+
+| File | Count | Category |
+|------|-------|----------|
+| `BoringViewCoordinator.swift` | 25 | Legacy coordinator — biggest offender |
+| `Color+AccentColor.swift` | 8 | Extension |
+| `NotificationCenterManager.swift` | 6 | Manager |
+| `BatteryService.swift` | 6 | Service (should use NotchSettings) |
+| `MusicPlaybackController.swift` | 4 | Manager |
+| `MusicArtworkService.swift` | 2 | Manager |
+| `ImageService.swift` | 2 | Manager |
+| `CalendarService.swift` | 2 | Service |
+| `FaceService.swift` | 2 | Service |
+| `MediaKeyInterceptor.swift` | 2 | Observer |
+| `FullscreenMediaDetection.swift` | 1 | Observer |
+| `WeatherService.swift` | 1 | Service |
+| `MusicManager.swift` | 1 | Manager |
+
+**Borderline files (need review):**
+- `NotchViewModelSettings.swift` (7) — settings helper, may be acceptable
+- `sizing/matters.swift` (14) — sizing calculations, may be acceptable
+
+### Remaining Violations — `@Default` Property Wrapper (2 violations)
+
+1. **`boringNotchApp.swift:41`** — `@Default(.menubarIcon)` binding for `MenuBarExtra`. Fix: expose `AppObjectGraph.settings` as concrete `DefaultsNotchSettings` for `@Bindable`.
+2. **`LottieAnimationView.swift:12`** — `@Default(.selectedVisualizer)`. Fix: add to `WidgetSettings` sub-protocol, then use `@Environment(\.settings)`.
+
+### Remaining Violations — Non-Allowed `.shared` Singletons (24 usages, 10 types)
+
+System-allowed `.shared` (NSWorkspace, NSApplication, URLSession, URLCache, XPCHelperClient, FullScreenMonitor, QLThumbnailGenerator, QLPreviewPanel, NSScreenUUIDCache, SkyLightOperator, DefaultsNotchSettings) are excluded.
+
+| Singleton | Usages | Files |
+|-----------|--------|-------|
+| `SettingsWindowController.shared` | 4 | boringNotchApp, BoringHeader, BoringExtrasMenu, SettingsWindowController |
+| `NotchSpaceManager.shared` | 4 | WindowCoordinator |
+| `SharingStateManager.shared` | 5 | BoringViewModel, QuickShareService, ServiceContainer |
+| `ShelfPersistenceService.shared` | 3 | ShelfService |
+| `NotificationCenterManager.shared` | 3 | ServiceContainer, NotificationsView, NotificationsSettingsView |
+| `QuickShareService.shared` | 2 | ShelfSettingsView, FileShareView |
+| `ImageService.shared` | 2 | SpotifyController, YouTubeMusicController |
+| `BluetoothManager.shared` | 1 | BluetoothSettingsView (+declaration) |
+| `NotesManager.shared` | 2 | NotesView |
+| `ClipboardManager.shared` | 1 | ClipboardView |
+
+### Remaining Violations — 300-Line Limit (13 files)
+
+`DefaultsNotchSettings.swift` (412L) is excluded — settings file, splitting would hurt cohesion.
+
+| File | Lines | Priority |
+|------|-------|----------|
+| `BoringViewModel.swift` | 498 | Critical — god object |
+| `BoringCalendar.swift` | 459 | High |
+| `NowPlayingController.swift` | 425 | High |
+| `VolumeManager.swift` | 380 | Medium |
+| `BoringViewCoordinator.swift` | 379 | High (also 25 Defaults violations) |
+| `MusicSlotConfigurationView.swift` | 370 | Medium |
+| `PluginManager.swift` | 350 | Medium |
+| `PluginMusicPlayerView.swift` | 336 | Medium |
+| `AdvancedSettingsView.swift` | 329 | Low |
+| `WindowCoordinator.swift` | 318 | Medium |
+| `WebcamManager.swift` | 312 | Low |
+| `LyricsService.swift` | 310 | Low |
+| `Constants.swift` | 308 | Low |
 
 ### State Management
 `NotchHoverController` exists in `models/` with `HoverZoneChecking` DI and unit tests. Current implementation is task/async based. Phase 2 (Task 9) upgrades to heartbeat-based truth polling to eliminate ~15 edge cases.
@@ -94,16 +157,40 @@ Also fixed during audit (2026-02-24): `ShelfItemView.swift` (363L → 137L) by e
 
 ---
 
-### Task 6: Fix Remaining Direct `Defaults[.]` Access 🟡 PARTIAL
+### Task 6: Fix Direct `Defaults[.]` Access 🔴 MOSTLY OPEN
 
-Most violations resolved. **2 remain:**
+**Previous assessment was wrong.** Only `@Default` property wrappers (2 violations) were counted. The bulk of violations are direct `Defaults[` key access — **62 violations across 13 files.**
 
-1. **`boringNotchApp.swift:41`** — `@Default(.menubarIcon)` used as `$showMenuBarIcon` binding in `MenuBarExtra`. Requires `AppObjectGraph.settings` typed as concrete `DefaultsNotchSettings` (currently typed as `NotchSettings` protocol) to enable `@Bindable` in App body.
-2. **`LottieAnimationContainer.swift:12`** — `@Default(.selectedVisualizer)`. Requires adding `selectedVisualizer` to a settings sub-protocol + `DefaultsNotchSettings` + `MockNotchSettings`, then converting to `@Environment(\.settings)`.
+#### Task 6a: `@Default` Property Wrapper Violations (2 remaining)
 
-**Fix for #1:** Change `AppObjectGraph.settings` from `let settings: NotchSettings = DefaultsNotchSettings()` to `let settings = DefaultsNotchSettings()` (concrete inferred type), then in `DynamicNotchApp.body` use `@Bindable var settings = appDelegate.graph.settings` and bind `$settings.menubarIcon`.
+1. **`boringNotchApp.swift:41`** — `@Default(.menubarIcon)` binding for `MenuBarExtra`. Fix: expose `AppObjectGraph.settings` as concrete `DefaultsNotchSettings` for `@Bindable`.
+2. **`LottieAnimationView.swift:12`** — `@Default(.selectedVisualizer)`. Fix: add to `WidgetSettings` sub-protocol, then use `@Environment(\.settings)`.
 
-**Fix for #2:** Add to `WidgetSettings` sub-protocol, implement in `DefaultsNotchSettings`/`MockNotchSettings`, then replace `@Default(.selectedVisualizer)` with `@Environment(\.settings) var settings` and `settings.selectedVisualizer`.
+#### Task 6b: `Defaults[` Direct Access Violations (62 remaining, 13 files) 🔴 NEW
+
+Every `Defaults[.key]` outside `DefaultsNotchSettings.swift` and `PluginSettings.swift` must be routed through `NotchSettings` sub-protocols or `PluginSettings`.
+
+**Strategy:** Work tier-by-tier. Services first (they already receive settings), then managers, then observers/extensions.
+
+| Tier | File | Count | Fix Approach |
+|------|------|-------|--------------|
+| **Services** | `BatteryService.swift` | 6 | Already has settings injection — use it |
+| | `CalendarService.swift` | 2 | Already has settings injection — use it |
+| | `WeatherService.swift` | 1 | Already has settings injection — use it |
+| | `FaceService.swift` | 2 | Add settings injection |
+| **Managers** | `BoringViewCoordinator.swift` | 25 | Largest offender — inject settings via init |
+| | `NotificationCenterManager.swift` | 6 | Inject settings via init |
+| | `MusicPlaybackController.swift` | 4 | Inject settings via init |
+| | `MusicArtworkService.swift` | 2 | Inject settings via init |
+| | `ImageService.swift` | 2 | Inject settings via init |
+| | `MusicManager.swift` | 1 | Inject settings via init |
+| **Observers** | `MediaKeyInterceptor.swift` | 2 | Inject settings via init |
+| | `FullscreenMediaDetection.swift` | 1 | Inject settings via init |
+| **Extensions** | `Color+AccentColor.swift` | 8 | Convert to methods that take settings as parameter |
+
+**Borderline (review needed):**
+- `NotchViewModelSettings.swift` (7) — settings helper, may be acceptable as extension of settings layer
+- `sizing/matters.swift` (14) — sizing calculations using Defaults directly, should be migrated
 
 ---
 
@@ -113,9 +200,46 @@ Most violations resolved. **2 remain:**
 
 ---
 
-### Task 8: Wire `BoringViewCoordinator` Remaining `.shared` Points ✅ COMPLETE
+### Task 8: Eliminate Non-Allowed `.shared` Singletons 🔴 MOSTLY OPEN
 
-**Implementation:** `BoringViewCoordinator.shared` fully eliminated — 0 usages across codebase. All injection routed through `AppObjectGraph`.
+**Previous assessment was misleading.** `BoringViewCoordinator.shared` was eliminated (Task 8 original scope), but **24 usages of 10 other non-allowed `.shared` singletons remain.**
+
+Allowed `.shared` per CLAUDE.md: NSWorkspace, NSApplication, URLSession, URLCache, XPCHelperClient, FullScreenMonitor, QLThumbnailGenerator, QLPreviewPanel, NSScreenUUIDCache, SkyLightOperator, DefaultsNotchSettings.
+
+| Singleton | Usages | Fix Approach |
+|-----------|--------|--------------|
+| `SettingsWindowController.shared` | 4 | Inject via `AppObjectGraph` or `@Environment` |
+| `NotchSpaceManager.shared` | 4 | Inject into `WindowCoordinator` via init |
+| `SharingStateManager.shared` | 5 | Already in `ServiceContainer` — use DI path |
+| `ShelfPersistenceService.shared` | 3 | Inject into `ShelfService` via init |
+| `NotificationCenterManager.shared` | 3 | Already in `ServiceContainer` — use DI path |
+| `QuickShareService.shared` | 2 | Inject via `ServiceContainer` |
+| `ImageService.shared` | 2 | Inject into MediaControllers via init |
+| `BluetoothManager.shared` | 1+decl | Inject via `ServiceContainer` |
+| `NotesManager.shared` | 2 | Inject via `@Environment` |
+| `ClipboardManager.shared` | 1 | Inject via `@Environment` |
+
+---
+
+### Task 8c: Split Files Exceeding 300-Line Limit 🔴 NEW
+
+13 files exceed the 300-line hard limit. `DefaultsNotchSettings.swift` (412L) is excluded — splitting would hurt settings cohesion.
+
+| File | Lines | Split Strategy |
+|------|-------|----------------|
+| `BoringViewModel.swift` | 498 | Extract notification handling, shelf logic, gesture handling into separate files |
+| `BoringCalendar.swift` | 459 | Extract subviews (day cell, event row, month header) |
+| `NowPlayingController.swift` | 425 | Extract per-app controller logic |
+| `VolumeManager.swift` | 380 | Extract OSD/HUD display logic |
+| `BoringViewCoordinator.swift` | 379 | Extract settings-dependent logic (also 25 Defaults violations) |
+| `MusicSlotConfigurationView.swift` | 370 | Extract slot editor subviews |
+| `PluginManager.swift` | 350 | Extract lifecycle management |
+| `PluginMusicPlayerView.swift` | 336 | Extract subviews (artwork, controls, lyrics) |
+| `AdvancedSettingsView.swift` | 329 | Extract setting sections |
+| `WindowCoordinator.swift` | 318 | Extract window creation logic |
+| `WebcamManager.swift` | 312 | Extract capture session setup |
+| `LyricsService.swift` | 310 | Extract lyrics parsing |
+| `Constants.swift` | 308 | Split by domain (UI constants, timing constants, etc.) |
 
 ---
 
@@ -458,7 +582,7 @@ High-level requirements:
 
 | Phase | Done When |
 |-------|-----------|
-| 1 | All 8 known violations fixed. Zero files > 300 lines. No direct `Defaults[.]` outside `NotchSettings.swift`. No `.shared` except system APIs. Build green, tests pass. |
+| 1 | Zero `Defaults[` outside `DefaultsNotchSettings.swift`/`PluginSettings.swift`. Zero `@Default` outside `DefaultsNotchSettings.swift`. Zero non-allowed `.shared`. Zero files > 300 lines (except `DefaultsNotchSettings.swift`). Build green, tests pass. **Remaining: 62 Defaults[ + 2 @Default + 24 .shared + 13 oversized files.** |
 | 2 | Hover is heartbeat-based. `NotchHoverController` has unit tests. 6 manual edge cases verified. |
 | 3 | `ExportablePlugin` protocol exists. Music, Calendar, Shelf export. Export UI in Settings. |
 | 4 | HabitTracker + Pomodoro shipped. Both export. Both have unit tests. |
