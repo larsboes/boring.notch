@@ -26,16 +26,21 @@ final class DragDetectionCoordinator {
     /// Settings for reading drag detection and display preferences
     private let settings: NotchSettings
 
+    /// Factory for creating per-screen DragDropService instances
+    private let makeDragDropService: () -> DragDropService
+
     // MARK: - Initialization
 
     init(
         windowCoordinator: WindowCoordinator,
         coordinator: BoringViewCoordinator,
-        settings: NotchSettings
+        settings: NotchSettings,
+        makeDragDropService: @escaping () -> DragDropService = { DragDropService() }
     ) {
         self.windowCoordinator = windowCoordinator
         self.coordinator = coordinator
         self.settings = settings
+        self.makeDragDropService = makeDragDropService
     }
 
     // MARK: - Setup
@@ -78,7 +83,7 @@ final class DragDetectionCoordinator {
             height: notchHeight
         )
 
-        let service = DragDropService()
+        let service = makeDragDropService()
         service.updateNotchRegion(notchRegion)
 
         service.onDragEntersNotchRegion = { [weak self] in

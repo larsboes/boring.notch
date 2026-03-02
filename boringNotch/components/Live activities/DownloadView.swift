@@ -23,6 +23,7 @@ struct DownloadFile {
 import Observation
 
 @Observable
+@MainActor
 class DownloadWatcher {
     var downloadFiles: [DownloadFile] = []
 }

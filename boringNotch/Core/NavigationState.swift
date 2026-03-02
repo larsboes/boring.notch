@@ -6,7 +6,9 @@
 //
 
 import Combine
-import Defaults  // Required for Defaults.updates() observer
+// Settings-adjacent service: uses Defaults.updates() for reactive settings stream.
+// This is an accepted exception — no protocol-based reactive stream alternative exists yet.
+import Defaults
 import SwiftUI
 
 // MARK: - Navigation State Protocol

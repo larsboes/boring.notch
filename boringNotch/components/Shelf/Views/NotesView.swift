@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct NotesView: View {
-    @ObservedObject var manager: NotesManager
+    var manager: NotesManager
     @State private var newNoteTitle = ""
     @State private var newNoteContent = ""
     @State private var isAdding = false
@@ -59,7 +59,7 @@ struct NotesView: View {
 
 struct NoteRow: View {
     let note: NoteItem
-    @ObservedObject var manager: NotesManager
+    var manager: NotesManager
     @State private var isHovering = false
     
     var body: some View {

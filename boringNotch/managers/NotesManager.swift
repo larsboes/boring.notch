@@ -7,7 +7,6 @@
 
 import Foundation
 import SQLite
-import Combine
 
 struct NoteItem: Identifiable, Equatable {
     let id: Int64
@@ -16,8 +15,10 @@ struct NoteItem: Identifiable, Equatable {
     let timestamp: Date
 }
 
-class NotesManager: ObservableObject {
-    @Published var notes: [NoteItem] = []
+@Observable
+@MainActor
+final class NotesManager {
+    var notes: [NoteItem] = []
 
     private var db: Connection?
     private let notesTable = Table("notes")
@@ -54,12 +55,10 @@ class NotesManager: ObservableObject {
         do {
             let query = notesTable.order(timestamp.desc)
             let rows = try db?.prepare(query)
-            
-            DispatchQueue.main.async {
-                self.notes = rows?.map { row in
-                    NoteItem(id: row[self.id], title: row[self.title], content: row[self.content], timestamp: row[self.timestamp])
-                } ?? []
-            }
+
+            self.notes = rows?.map { row in
+                NoteItem(id: row[self.id], title: row[self.title], content: row[self.content], timestamp: row[self.timestamp])
+            } ?? []
         } catch {
             print("NotesManager: Failed to fetch notes: \(error)")
         }

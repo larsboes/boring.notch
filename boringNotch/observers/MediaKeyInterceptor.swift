@@ -32,20 +32,20 @@ final class MediaKeyInterceptor {
     private let volumeService: any VolumeServiceProtocol
     private let brightnessService: any BrightnessServiceProtocol
     private let keyboardBacklightService: any KeyboardBacklightServiceProtocol
-    private let coordinator: BoringViewCoordinator
+    private let eventBus: PluginEventBus
     private let settings: any HUDSettings
 
     init(
         volumeService: any VolumeServiceProtocol,
         brightnessService: any BrightnessServiceProtocol,
         keyboardBacklightService: any KeyboardBacklightServiceProtocol,
-        coordinator: BoringViewCoordinator,
+        eventBus: PluginEventBus,
         settings: any HUDSettings
     ) {
         self.volumeService = volumeService
         self.brightnessService = brightnessService
         self.keyboardBacklightService = keyboardBacklightService
-        self.coordinator = coordinator
+        self.eventBus = eventBus
         self.settings = settings
     }
 
@@ -249,19 +249,26 @@ final class MediaKeyInterceptor {
         switch keyType {
         case .soundUp, .soundDown, .mute:
             let v = volumeService.rawVolume
-            coordinator.toggleSneakPeek(status: true, type: .volume, value: CGFloat(v))
+            emitSneakPeek(type: .volume, value: CGFloat(v))
         case .brightnessUp, .brightnessDown:
             if command {
                 let v = keyboardBacklightService.rawBrightness
-                coordinator.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
+                emitSneakPeek(type: .backlight, value: CGFloat(v))
             } else {
                 let v = brightnessService.rawBrightness
-                coordinator.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v))
+                emitSneakPeek(type: .brightness, value: CGFloat(v))
             }
         case .keyboardBrightnessUp, .keyboardBrightnessDown:
             let v = keyboardBacklightService.rawBrightness
-            coordinator.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
+            emitSneakPeek(type: .backlight, value: CGFloat(v))
         }
+    }
+
+    private func emitSneakPeek(type: SneakContentType, value: CGFloat) {
+        eventBus.emit(SneakPeekRequestedEvent(
+            sourcePluginId: "com.boringnotch.system.mediakeys",
+            request: SneakPeekRequest(style: .standard, type: type, value: value)
+        ))
     }
 
     private func openSystemSettings(for keyType: NXKeyType, command: Bool) {

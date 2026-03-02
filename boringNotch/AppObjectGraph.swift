@@ -19,6 +19,13 @@ final class AppObjectGraph {
     let settingsWindowController = SettingsWindowController()
     lazy var coordinator = BoringViewCoordinator(settings: settings)
 
+    init() {
+        // One-time legacy URL cache migration
+        if settings.consumeLegacyCacheCleanupFlag() {
+            URLCache.shared.removeAllCachedResponses()
+        }
+    }
+
     lazy var pluginManager: PluginManager = {
         PluginManager(
             services: ServiceContainer(eventBus: eventBus, settings: settings),
@@ -64,7 +71,7 @@ final class AppObjectGraph {
             volumeService: pluginManager.services.volume,
             brightnessService: pluginManager.services.brightness,
             keyboardBacklightService: pluginManager.services.keyboardBacklight,
-            coordinator: coordinator,
+            eventBus: eventBus,
             settings: settings
         )
     }()
@@ -88,7 +95,7 @@ final class AppObjectGraph {
     }()
 
     lazy var keyboardShortcutCoordinator: KeyboardShortcutCoordinator = {
-        KeyboardShortcutCoordinator(coordinator: coordinator, windowCoordinator: windowCoordinator, settings: settings)
+        KeyboardShortcutCoordinator(coordinator: coordinator, eventBus: eventBus, windowCoordinator: windowCoordinator, settings: settings)
     }()
 
     lazy var dragDetectionCoordinator: DragDetectionCoordinator = {

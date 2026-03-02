@@ -9,18 +9,27 @@ import AppKit
 import Combine
 import Foundation
 
-final class NowPlayingController: ObservableObject, MediaControllerProtocol {
+@Observable
+@MainActor
+final class NowPlayingController: MediaControllerProtocol {
     func updatePlaybackInfo() async {
         await fetchFavoriteStateIfSupported()
     }
 
     // MARK: - Properties
-    @Published private(set) var playbackState: PlaybackState = .init(
+    private(set) var playbackState: PlaybackState = .init(
         bundleIdentifier: "com.apple.Music"
+    ) {
+        didSet { _playbackStateSubject.send(playbackState) }
+    }
+
+    @ObservationIgnored
+    private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
+        .init(bundleIdentifier: "com.apple.Music")
     )
 
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
-        $playbackState.eraseToAnyPublisher()
+        _playbackStateSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {

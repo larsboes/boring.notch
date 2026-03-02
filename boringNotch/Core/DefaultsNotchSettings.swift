@@ -435,4 +435,15 @@ final class DefaultsNotchSettings: NotchSettings {
         get { Defaults[.bluetoothDeviceIconMappings] }
         set { Defaults[.bluetoothDeviceIconMappings] = newValue }
     }
+
+    // MARK: - One-Time Migrations
+
+    /// Returns `true` if the legacy URL cache still needs to be cleared, and marks it as done.
+    func consumeLegacyCacheCleanupFlag() -> Bool {
+        if !Defaults[.didClearLegacyURLCacheV1] {
+            Defaults[.didClearLegacyURLCacheV1] = true
+            return true
+        }
+        return false
+    }
 }

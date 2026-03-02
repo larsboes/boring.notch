@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Defaults
 
 public protocol ImageServiceProtocol {
     func fetchImageData(from url: URL) async throws -> Data
@@ -15,7 +14,9 @@ public protocol ImageServiceProtocol {
 public final class ImageService: ImageServiceProtocol {
     private let session: URLSession
 
-    public init() {
+    /// - Parameter needsLegacyCacheCleanup: When `true`, clears the shared URLCache once.
+    ///   Callers (e.g. AppObjectGraph) read/write the Defaults flag and pass the result.
+    public init(needsLegacyCacheCleanup: Bool = false) {
         let config = URLSessionConfiguration.default
         let cache = URLCache(memoryCapacity: 50 * 1024 * 1024, // 50MB
                              diskCapacity: 100 * 1024 * 1024, // 100MB
@@ -26,14 +27,8 @@ public final class ImageService: ImageServiceProtocol {
         config.httpShouldSetCookies = false
         self.session = URLSession(configuration: config)
 
-        performLegacyCacheCleanupIfNeeded()
-    }
-
-    private func performLegacyCacheCleanupIfNeeded() {
-
-        if !Defaults[.didClearLegacyURLCacheV1] {
+        if needsLegacyCacheCleanup {
             URLCache.shared.removeAllCachedResponses()
-            Defaults[.didClearLegacyURLCacheV1] = true
         }
     }
 

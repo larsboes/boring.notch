@@ -10,17 +10,25 @@ import Foundation
 import Combine
 import SwiftUI
 
+@Observable
 @MainActor
 final class YouTubeMusicController: MediaControllerProtocol {
-    // MARK: - Published Properties
-    @Published var playbackState = PlaybackState(
+    // MARK: - Properties
+    var playbackState = PlaybackState(
         bundleIdentifier: YouTubeMusicConfiguration.default.bundleIdentifier
-    )
+    ) {
+        didSet { _playbackStateSubject.send(playbackState) }
+    }
 
     var artworkFetchTask: Task<Void, Never>?
 
+    @ObservationIgnored
+    private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
+        PlaybackState(bundleIdentifier: YouTubeMusicConfiguration.default.bundleIdentifier)
+    )
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
-        $playbackState.eraseToAnyPublisher()
+        _playbackStateSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {

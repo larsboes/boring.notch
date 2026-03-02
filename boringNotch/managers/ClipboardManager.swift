@@ -8,7 +8,6 @@
 import Foundation
 import AppKit
 import SQLite
-import Combine
 
 struct ClipboardItem: Identifiable, Equatable {
     let id: Int64
@@ -17,8 +16,10 @@ struct ClipboardItem: Identifiable, Equatable {
     let type: String // "text", "image", etc.
 }
 
-class ClipboardManager: ObservableObject {
-    @Published var items: [ClipboardItem] = []
+@Observable
+@MainActor
+final class ClipboardManager {
+    var items: [ClipboardItem] = []
 
     private var db: Connection?
     private let clipboardTable = Table("clipboard")
@@ -88,12 +89,10 @@ class ClipboardManager: ObservableObject {
         do {
             let query = clipboardTable.order(timestamp.desc).limit(50)
             let rows = try db?.prepare(query)
-            
-            DispatchQueue.main.async {
-                self.items = rows?.map { row in
-                    ClipboardItem(id: row[self.id], content: row[self.id] == 0 ? "" : row[self.content], timestamp: row[self.timestamp], type: row[self.type])
-                } ?? []
-            }
+
+            self.items = rows?.map { row in
+                ClipboardItem(id: row[self.id], content: row[self.id] == 0 ? "" : row[self.content], timestamp: row[self.timestamp], type: row[self.type])
+            } ?? []
         } catch {
             print("ClipboardManager: Failed to fetch items: \(error)")
         }

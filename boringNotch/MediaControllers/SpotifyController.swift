@@ -9,19 +9,27 @@ import Foundation
 import Combine
 import SwiftUI
 
+@Observable
 @MainActor
-class SpotifyController: MediaControllerProtocol {
+final class SpotifyController: MediaControllerProtocol {
     func setFavorite(_ favorite: Bool) async {
         // Placeholder
     }
-    
+
     // MARK: - Properties
-    @Published private var playbackState: PlaybackState = PlaybackState(
+    private var playbackState: PlaybackState = PlaybackState(
         bundleIdentifier: "com.spotify.client"
+    ) {
+        didSet { _playbackStateSubject.send(playbackState) }
+    }
+
+    @ObservationIgnored
+    private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
+        PlaybackState(bundleIdentifier: "com.spotify.client")
     )
-    
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
-        $playbackState.eraseToAnyPublisher()
+        _playbackStateSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {

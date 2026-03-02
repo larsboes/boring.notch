@@ -30,14 +30,23 @@
 | ✅ | Task 8 — Singleton elimination | **All 10 custom `.shared` singletons eliminated** (2026-03-02) |
 | ✅ | Task 8c — 300-line limit | **All 13 oversized files split** into 17 extraction files (2026-03-02) |
 
-**Phase 1 is 100% done.** All architecture violations resolved.
+**Phase 1 is 100% done.** Original scope (Defaults, singletons, file sizes) resolved.
 
-### Violation Summary (2026-03-02 audit)
+### Violation Summary (2026-03-02 deep audit)
 
-- `Defaults[` outside allowed files: **0** (was 72). Only `DefaultsNotchSettings.swift` and `PluginSettings.swift` use `Defaults[` directly. `sizing/matters.swift` has 2 write-backs for sync — intentional.
+**Resolved (Phase 1):**
+- `Defaults[` outside allowed files: **0** (was 72). Only `DefaultsNotchSettings.swift` and `PluginSettings.swift` use `Defaults[` directly.
 - `@Default` property wrappers: **0** (was 2). Replaced with `@Environment(\.settings)` and AppObjectGraph bindings.
 - Custom `.shared` singletons: **0** (was 35 usages across 10 types). All replaced with DI via AppObjectGraph/ServiceContainer.
 - Files over 300 lines: **0** (was 13). `DefaultsNotchSettings.swift` (438L) intentionally excluded — splitting hurts settings cohesion.
+
+**Phase 1b resolved (2026-03-02):**
+- ~~`ObservableObject` + `@Published`: 11 files, 14 usages~~ → **0**. All migrated to `@Observable`/`@MainActor`. `MediaControllerProtocol` now `: AnyObject`. Combine publishers preserved via `CurrentValueSubject` + `didSet`.
+- ~~Defaults framework coupling: 4 files~~ → **2 accepted exceptions** (`ScreenSelectionService` + `NavigationState` use `Defaults.updates()` — settings-adjacent, no protocol alternative yet). `ImageService` Defaults access moved to `DefaultsNotchSettings.consumeLegacyCacheCleanupFlag()`.
+- ~~Direct coordinator calls bypassing event bus: 6 calls~~ → **0 "show" calls**. All show-path calls now use `PluginEventBus.emit(SneakPeekRequestedEvent(...))`. Hide-path still calls coordinator (correct — event bus is for requests, not dismissals).
+- ~~Missing `@MainActor`~~ → **0**. `DownloadWatcher` fixed.
+- ~~Direct service construction~~ → **0**. `DragDetectionCoordinator` now uses injected factory closure.
+- ~~Deprecated code~~ → **deleted** (`LiquidGlassManager.swift` + `MetalBlurRenderer.swift`, no live consumers).
 
 ### State Management
 `NotchHoverController` exists in `models/` with `HoverZoneChecking` DI and unit tests. Current implementation is task/async based. Phase 2 (Task 9) upgrades to heartbeat-based truth polling to eliminate ~15 edge cases.
@@ -169,7 +178,25 @@ Only system singletons remain (NSApp, URLSession, XPCHelperClient, SkyLightOpera
 
 ---
 
-## Phase 2 — State Management Overhaul (Current Sprint)
+## Phase 1b — Observable Migration + Remaining Violations ✅ COMPLETE
+
+**Goal:** Migrate all `ObservableObject`/`@Published` types to `@Observable`/`@MainActor`. Fix remaining Defaults coupling, event bus bypasses, and deprecated code.
+
+**Completed 2026-03-02.** All violations resolved. Pending macOS build verification.
+
+| Status | Task | Notes |
+|--------|------|-------|
+| ✅ | Task 8d — MediaControllerProtocol + controllers → @Observable | Protocol changed to `: AnyObject`. 4 controllers + networking migrated. `CurrentValueSubject` + `didSet` preserves Combine publishers. |
+| ✅ | Task 8e — Remaining managers → @Observable | BluetoothManager (kept NSObject for CBCentralManagerDelegate), ClipboardManager, NotesManager, SoftwareUpdater, drop.swift. 3 consumer views updated. |
+| ✅ | Task 8f — Route HUD/sneak peek through event bus | MediaKeyInterceptor: 4 calls → `PluginEventBus.emit()`. KeyboardShortcutCoordinator: show-path via event bus, hide-path stays on coordinator (correct). |
+| ✅ | Task 8g — Defaults coupling + misc | ImageService: flag moved to `DefaultsNotchSettings.consumeLegacyCacheCleanupFlag()`. DownloadWatcher: `@MainActor` added. DragDetectionCoordinator: factory closure injection. ScreenSelectionService + NavigationState: `Defaults.updates()` accepted as settings-adjacent exceptions. |
+| ✅ | Task 8h — Remove deprecated code | `LiquidGlassManager.swift` + `MetalBlurRenderer.swift` deleted (no live consumers). |
+
+**Post-Phase 1b audit:** Zero `ObservableObject`, zero `@Published`, zero `@ObservedObject` in entire codebase.
+
+---
+
+## Phase 2 — State Management Overhaul (Next Sprint)
 
 **Goal:** Replace event-driven hover with heartbeat-based truth polling.
 
@@ -509,6 +536,7 @@ High-level requirements:
 | Phase | Done When |
 |-------|-----------|
 | 1 | ✅ Zero `Defaults[` outside allowed files. Zero `@Default`. Zero non-allowed `.shared`. Zero files > 300 lines (except `DefaultsNotchSettings.swift`). **Completed 2026-03-02.** |
+| 1b | ✅ Zero `ObservableObject`/`@Published`. Zero direct coordinator HUD show-calls. Deprecated managers removed. **Completed 2026-03-02.** Pending macOS build verification. |
 | 2 | Hover is heartbeat-based. `NotchHoverController` has unit tests. 6 manual edge cases verified. |
 | 3 | `ExportablePlugin` protocol exists. Music, Calendar, Shelf export. Export UI in Settings. |
 | 4 | HabitTracker + Pomodoro shipped. Both export. Both have unit tests. |

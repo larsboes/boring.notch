@@ -16,6 +16,7 @@ final class KeyboardShortcutCoordinator {
     // MARK: - Properties
 
     private let coordinator: BoringViewCoordinator
+    private let eventBus: PluginEventBus
     private let windowCoordinator: WindowCoordinator
     private let settings: NotchSettings
     private var closeNotchTask: Task<Void, Never>?
@@ -24,10 +25,12 @@ final class KeyboardShortcutCoordinator {
 
     init(
         coordinator: BoringViewCoordinator,
+        eventBus: PluginEventBus,
         windowCoordinator: WindowCoordinator,
         settings: NotchSettings
     ) {
         self.coordinator = coordinator
+        self.eventBus = eventBus
         self.windowCoordinator = windowCoordinator
         self.settings = settings
     }
@@ -51,14 +54,23 @@ final class KeyboardShortcutCoordinator {
 
     private func handleToggleSneakPeek() {
         if settings.sneakPeekStyles == .inline {
-            let newStatus = !coordinator.expandingView.show
-            coordinator.toggleExpandingView(status: newStatus, type: .music)
+            if !coordinator.expandingView.show {
+                eventBus.emit(SneakPeekRequestedEvent(
+                    sourcePluginId: "com.boringnotch.system.keyboard",
+                    request: SneakPeekRequest(style: .inline, type: .music)
+                ))
+            } else {
+                coordinator.toggleExpandingView(status: false, type: .music)
+            }
         } else {
-            coordinator.toggleSneakPeek(
-                status: !coordinator.sneakPeek.show,
-                type: .music,
-                duration: 3.0
-            )
+            if !coordinator.sneakPeek.show {
+                eventBus.emit(SneakPeekRequestedEvent(
+                    sourcePluginId: "com.boringnotch.system.keyboard",
+                    request: SneakPeekRequest(style: .standard, type: .music)
+                ))
+            } else {
+                coordinator.toggleSneakPeek(status: false, type: .music)
+            }
         }
     }
 

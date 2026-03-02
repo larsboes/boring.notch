@@ -67,8 +67,10 @@ enum StandardAnimations {
     }
 }
 
-public class BoringAnimations {
-    @Published var notchStyle: Style = .notch
+@Observable
+@MainActor
+public final class BoringAnimations {
+    var notchStyle: Style = .notch
     
     init() {
         self.notchStyle = .notch

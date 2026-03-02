@@ -9,15 +9,24 @@ import Foundation
 import Combine
 import SwiftUI
 
-class AppleMusicController: MediaControllerProtocol {
+@Observable
+@MainActor
+final class AppleMusicController: MediaControllerProtocol {
     // MARK: - Properties
-    @Published private var playbackState: PlaybackState = PlaybackState(
+    private var playbackState: PlaybackState = PlaybackState(
         bundleIdentifier: "com.apple.Music",
         playbackRate: 1
+    ) {
+        didSet { _playbackStateSubject.send(playbackState) }
+    }
+
+    @ObservationIgnored
+    private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
+        PlaybackState(bundleIdentifier: "com.apple.Music", playbackRate: 1)
     )
-    
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
-        $playbackState.eraseToAnyPublisher()
+        _playbackStateSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {

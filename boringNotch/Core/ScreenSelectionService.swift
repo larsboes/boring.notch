@@ -7,7 +7,8 @@
 
 import AppKit
 import Combine
-// Required for Defaults.updates() reactive stream observers
+// Settings-adjacent service: uses Defaults.updates() for reactive preference stream.
+// This is an accepted exception — no protocol-based reactive stream alternative exists yet.
 import Defaults
 
 /// Manages which screen the notch is displayed on.

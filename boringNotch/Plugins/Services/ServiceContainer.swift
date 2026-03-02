@@ -62,7 +62,7 @@ final class ServiceContainer {
     /// Bluetooth service (wraps BluetoothManager) - optional until implemented
     var bluetooth: (any BluetoothServiceProtocol)?
 
-    /// Concrete BluetoothManager for views that need ObservableObject conformance
+    /// Concrete BluetoothManager for views that need @Observable access
     let bluetoothManager: BluetoothManager
 
     /// Notes manager for shelf notes

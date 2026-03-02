@@ -2,15 +2,14 @@ import IOBluetooth
 import CoreBluetooth
 import SwiftUI
 import Defaults
-import Combine
-
+@Observable
 @MainActor
-class BluetoothManager: NSObject, ObservableObject {
+final class BluetoothManager: NSObject {
 
-    @Published var connectedDevices: [BluetoothDevice] = []
-    @Published var isScanning = false
-    @Published var bluetoothState: CBManagerState = .unknown
-    @Published var isInitialized = false
+    var connectedDevices: [BluetoothDevice] = []
+    var isScanning = false
+    var bluetoothState: CBManagerState = .unknown
+    var isInitialized = false
 
     private var centralManager: CBCentralManager?
     private var timer: Timer?
