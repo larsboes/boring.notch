@@ -18,21 +18,19 @@ struct ClipboardItem: Identifiable, Equatable {
 }
 
 class ClipboardManager: ObservableObject {
-    static let shared = ClipboardManager()
-    
     @Published var items: [ClipboardItem] = []
-    
+
     private var db: Connection?
     private let clipboardTable = Table("clipboard")
     private let id = Expression<Int64>("id")
     private let content = Expression<String>("content")
     private let timestamp = Expression<Date>("timestamp")
     private let type = Expression<String>("type")
-    
+
     private var lastChangeCount: Int = NSPasteboard.general.changeCount
     private var timer: Timer?
-    
-    private init() {
+
+    init() {
         setupDatabase()
         fetchItems()
         startMonitoring()

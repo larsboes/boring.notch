@@ -111,6 +111,7 @@ import SwiftUI
     private let musicService: any MusicServiceProtocol
     private let soundService: any SoundServiceProtocol
     private let dragDropService: any DragDropServiceProtocol
+    private let sharingService: any SharingServiceProtocol
     var shelfService: ShelfServiceProtocol?
 
     /// Window reference for position validation
@@ -133,6 +134,7 @@ import SwiftUI
         musicService: any MusicServiceProtocol,
         soundService: any SoundServiceProtocol,
         dragDropService: any DragDropServiceProtocol,
+        sharingService: any SharingServiceProtocol = SharingStateManager(),
         settings: NotchViewModelSettings = DefaultNotchViewModelSettings(),
         displaySettings: any DisplaySettings = DefaultsNotchSettings.shared
     ) {
@@ -142,6 +144,7 @@ import SwiftUI
         self.musicService = musicService
         self.soundService = soundService
         self.dragDropService = dragDropService
+        self.sharingService = sharingService
         self.settings = settings
         self.displaySettings = displaySettings
         self.animation = animationLibrary.animation
@@ -158,8 +161,7 @@ import SwiftUI
 
         // Configure hover controller's close prevention check
         hoverController.shouldPreventClose = { [weak self] in
-            // Replace SharingStateManager.shared.preventNotchClose
-            SharingStateManager.shared.preventNotchClose
+            self?.sharingService.preventNotchClose ?? false
         }
 
         setupDragDropCallbacks()
@@ -431,8 +433,7 @@ import SwiftUI
 
     func close(force: Bool = false) {
         // Do not close while a share picker or sharing service is active
-        // NOTE: Still uses SharingStateManager.shared until full refactor
-        if SharingStateManager.shared.preventNotchClose { return }
+        if sharingService.preventNotchClose { return }
 
         // Safety Check: If mouse is inside and not forced, REFUSE to close.
         if !force && isHoveringNotch && phase == .open { return }

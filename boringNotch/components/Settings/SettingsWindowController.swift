@@ -11,13 +11,12 @@ import Defaults
 import Sparkle
 
 class SettingsWindowController: NSWindowController {
-    static let shared = SettingsWindowController()
     private var updaterController: SPUStandardUpdaterController?
     private var coordinator: BoringViewCoordinator?
     private var pluginManager: PluginManager?
     private var hasSetupContent = false
 
-    private init() {
+    init() {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 700, height: 600),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],

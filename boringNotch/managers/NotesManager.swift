@@ -17,18 +17,16 @@ struct NoteItem: Identifiable, Equatable {
 }
 
 class NotesManager: ObservableObject {
-    static let shared = NotesManager()
-    
     @Published var notes: [NoteItem] = []
-    
+
     private var db: Connection?
     private let notesTable = Table("notes")
     private let id = Expression<Int64>("id")
     private let title = Expression<String>("title")
     private let content = Expression<String>("content")
     private let timestamp = Expression<Date>("timestamp")
-    
-    private init() {
+
+    init() {
         setupDatabase()
         fetchNotes()
     }

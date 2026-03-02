@@ -47,6 +47,9 @@ final class WindowCoordinator {
     /// Fullscreen Media Detector
     private let detector: FullscreenMediaDetector
 
+    /// Notch space manager for window space management
+    private let spaceManager: NotchSpaceManager
+
     /// Track screen lock state
     var isScreenLocked: Bool = false
 
@@ -56,6 +59,9 @@ final class WindowCoordinator {
     /// Callback when drag detectors need to be reconfigured
     var onDragDetectorsNeedSetup: (() -> Void)?
 
+    /// Callback to show the settings window (injected from AppObjectGraph)
+    var showSettingsWindow: (() -> Void)?
+
     // MARK: - Initialization
 
     init(
@@ -63,13 +69,15 @@ final class WindowCoordinator {
         coordinator: BoringViewCoordinator,
         settings: NotchSettings,
         pluginManager: PluginManager,
-        detector: FullscreenMediaDetector
+        detector: FullscreenMediaDetector,
+        spaceManager: NotchSpaceManager
     ) {
         self.primaryViewModel = primaryViewModel
         self.coordinator = coordinator
         self.settings = settings
         self.pluginManager = pluginManager
         self.detector = detector
+        self.spaceManager = spaceManager
     }
 
     // MARK: - Window Lifecycle
@@ -81,14 +89,14 @@ final class WindowCoordinator {
         if shouldCleanupMulti {
             windows.values.forEach { window in
                 window.close()
-                NotchSpaceManager.shared.notchSpace.windows.remove(window)
+                spaceManager.notchSpace.windows.remove(window)
             }
             windows.removeAll()
             viewModels.removeAll()
             stateMachines.removeAll()
         } else if let window = window {
             window.close()
-            NotchSpaceManager.shared.notchSpace.windows.remove(window)
+            spaceManager.notchSpace.windows.remove(window)
             if let obs = windowScreenDidChangeObserver {
                 NotificationCenter.default.removeObserver(obs)
                 windowScreenDidChangeObserver = nil
@@ -125,10 +133,11 @@ final class WindowCoordinator {
                 .environment(coordinator)
                 .environment(stateMachine)
                 .environment(\.pluginManager, pluginManager)
+                .environment(\.showSettingsWindow, showSettingsWindow ?? {})
         )
 
         window.orderFrontRegardless()
-        NotchSpaceManager.shared.notchSpace.windows.insert(window)
+        spaceManager.notchSpace.windows.insert(window)
 
         // Setup hover controller with window reference
         viewModel.setHoverWindow(window)
@@ -184,7 +193,7 @@ final class WindowCoordinator {
         for uuid in windows.keys where !currentScreenUUIDs.contains(uuid) {
             if let window = windows[uuid] {
                 window.close()
-                NotchSpaceManager.shared.notchSpace.windows.remove(window)
+                spaceManager.notchSpace.windows.remove(window)
                 windows.removeValue(forKey: uuid)
                 viewModels.removeValue(forKey: uuid)
             }
@@ -203,6 +212,7 @@ final class WindowCoordinator {
                     musicService: pluginManager.services.music,
                     soundService: pluginManager.services.sound,
                     dragDropService: pluginManager.services.dragDrop,
+                    sharingService: pluginManager.services.sharing,
                     displaySettings: settings
                 )
                 let stateMachine = NotchStateMachine(settings: settings)

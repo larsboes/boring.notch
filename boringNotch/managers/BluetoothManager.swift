@@ -6,7 +6,6 @@ import Combine
 
 @MainActor
 class BluetoothManager: NSObject, ObservableObject {
-    static let shared = BluetoothManager(settings: DefaultsNotchSettings.shared)
 
     @Published var connectedDevices: [BluetoothDevice] = []
     @Published var isScanning = false

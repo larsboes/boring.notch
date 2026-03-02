@@ -13,6 +13,7 @@ import SwiftUIIntrospect
 struct SettingsView: View {
     @State private var selectedTab = "General"
     @State private var accentColorUpdateTrigger = UUID()
+    @Environment(\.pluginManager) var pluginManager
 
     let updaterController: SPUStandardUpdaterController?
 
@@ -87,7 +88,9 @@ struct SettingsView: View {
                 case "Battery":
                     Charge()
                 case "Bluetooth":
-                    BluetoothSettingsView()
+                    if let pm = pluginManager {
+                        BluetoothSettingsView(bluetoothManager: pm.services.bluetoothManager)
+                    }
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":

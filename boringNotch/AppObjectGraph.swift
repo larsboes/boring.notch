@@ -15,6 +15,8 @@ final class AppObjectGraph {
 
     let eventBus = PluginEventBus()
     let settings = DefaultsNotchSettings()
+    let spaceManager = NotchSpaceManager()
+    let settingsWindowController = SettingsWindowController()
     lazy var coordinator = BoringViewCoordinator(settings: settings)
 
     lazy var pluginManager: PluginManager = {
@@ -46,6 +48,7 @@ final class AppObjectGraph {
             musicService: pluginManager.services.music,
             soundService: pluginManager.services.sound,
             dragDropService: pluginManager.services.dragDrop,
+            sharingService: pluginManager.services.sharing,
             displaySettings: settings
         )
     }()
@@ -72,10 +75,14 @@ final class AppObjectGraph {
             coordinator: coordinator,
             settings: settings,
             pluginManager: pluginManager,
-            detector: fullscreenDetector
+            detector: fullscreenDetector,
+            spaceManager: spaceManager
         )
         wc.onDragDetectorsNeedSetup = { [weak self] in
             self?.dragDetectionCoordinator.setupDragDetectors()
+        }
+        wc.showSettingsWindow = { [weak self] in
+            self?.settingsWindowController.showWindow()
         }
         return wc
     }()

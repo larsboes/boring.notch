@@ -48,9 +48,8 @@ struct DynamicNotchApp: App {
         updaterController = SPUStandardUpdaterController(
             startingUpdater: !isRunningTests, updaterDelegate: nil, userDriverDelegate: userDriverDelegate)
 
-        if !isRunningTests {
-            SettingsWindowController.shared.setUpdaterController(updaterController)
-        }
+        // Pass the updater controller to appDelegate for wiring in applicationDidFinishLaunching
+        appDelegate.updaterController = updaterController
     }
 
     private var isRunningTests: Bool {
@@ -67,7 +66,7 @@ struct DynamicNotchApp: App {
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: showMenuBarIconBinding) {
             Button("Settings") {
-                SettingsWindowController.shared.showWindow()
+                appDelegate.graph.settingsWindowController.showWindow()
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
@@ -89,6 +88,9 @@ struct DynamicNotchApp: App {
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     let graph = AppObjectGraph()
+
+    /// Set by DynamicNotchApp after init to wire up Sparkle updater
+    var updaterController: SPUStandardUpdaterController?
 
     var statusItem: NSStatusItem?
     var whatsNewWindow: NSWindow?
@@ -128,7 +130,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             mediaKeyInterceptor: graph.mediaKeyInterceptor
         )
 
-        SettingsWindowController.shared.configure(
+        if let updaterController = updaterController {
+            graph.settingsWindowController.setUpdaterController(updaterController)
+        }
+
+        graph.settingsWindowController.configure(
             coordinator: coordinator,
             pluginManager: pluginManager
         )
@@ -234,9 +240,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         window.close()
                         NSApp.deactivate()
                     },
-                    onOpenSettings: {
+                    onOpenSettings: { [weak self] in
                         window.close()
-                        SettingsWindowController.shared.showWindow()
+                        self?.graph.settingsWindowController.showWindow()
                     }
                 )
                 .environment(self.graph.coordinator)

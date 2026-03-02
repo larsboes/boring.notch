@@ -12,7 +12,6 @@ import Foundation
 @MainActor
 @Observable
 final class SharingStateManager: SharingServiceProtocol {
-    static let shared = SharingStateManager()
     private var activeSessions: Int = 0 {
 		didSet {
 			let newValue = activeSessions > 0

@@ -48,17 +48,19 @@ final class YouTubeMusicController: MediaControllerProtocol {
     private let configuration: YouTubeMusicConfiguration
     private let httpClient: YouTubeMusicHTTPClient
     private let authManager: YouTubeMusicAuthManager
+    private let imageService: ImageServiceProtocol
     private var webSocketClient: YouTubeMusicWebSocketClient?
-    
+
     private var updateTimer: Timer?
     private var appStateObserver: Task<Void, Never>?
     private var reconnectDelay: TimeInterval = 1.0
-    
+
     // MARK: - Initialization
-    init(configuration: YouTubeMusicConfiguration = .default) {
+    init(configuration: YouTubeMusicConfiguration = .default, imageService: ImageServiceProtocol = ImageService()) {
         self.configuration = configuration
         self.httpClient = YouTubeMusicHTTPClient(baseURL: configuration.baseURL)
         self.authManager = YouTubeMusicAuthManager(httpClient: httpClient)
+        self.imageService = imageService
         
         setupAppStateObserver()
         
@@ -444,7 +446,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
                let url = URL(string: artworkURL) {
                 artworkFetchTask = Task {
                     do {
-                        let data = try await ImageService.shared.fetchImageData(from: url)
+                        let data = try await imageService.fetchImageData(from: url)
                         await MainActor.run { [weak self] in
                             self?.playbackState.artwork = data
 

@@ -5,7 +5,7 @@ struct NotificationsView: View {
     @Namespace private var animation
     
     private var manager: any NotificationServiceProtocol {
-        pluginManager?.services.notifications ?? NotificationCenterManager.shared
+        pluginManager!.services.notifications
     }
 
     var body: some View {

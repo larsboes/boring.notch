@@ -25,16 +25,18 @@ final class ClipboardPlugin: NotchPlugin {
     )
     
     var isEnabled: Bool = true
-    
+
     private(set) var state: PluginState = .inactive
-    
+    private var context: PluginContext?
+
     // MARK: - Initialization
-    
+
     init() {}
-    
+
     // MARK: - Lifecycle
-    
+
     func activate(context: PluginContext) async throws {
+        self.context = context
         state = .active
     }
     
@@ -49,8 +51,8 @@ final class ClipboardPlugin: NotchPlugin {
     }
     
     func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        return AnyView(ClipboardView())
+        guard isEnabled, state.isActive, let context else { return nil }
+        return AnyView(ClipboardView(manager: context.services.clipboardManager))
     }
     
     func settingsContent() -> AnyView? {

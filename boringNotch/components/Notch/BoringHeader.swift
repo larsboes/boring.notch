@@ -12,6 +12,7 @@ struct BoringHeader: View {
     @Environment(\.settings) var settings
     @Environment(\.pluginManager) var pluginManager
     @Environment(BoringViewCoordinator.self) var coordinator
+    @Environment(\.showSettingsWindow) var showSettingsWindow
 
     var body: some View {
         @Bindable var coordinator = coordinator
@@ -78,7 +79,7 @@ struct BoringHeader: View {
                         }
                         if settings.settingsIconInNotch {
                             Button(action: {
-                                SettingsWindowController.shared.showWindow()
+                                showSettingsWindow()
                             }) {
                                 ZStack {
                                     Color.black.opacity(0.001)

@@ -11,13 +11,11 @@ import Foundation
 @_exported import struct Foundation.URL
 
 final class ShelfPersistenceService {
-    static let shared = ShelfPersistenceService()
-
     private let fileURL: URL
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    private init() {
+    init() {
         let fm = FileManager.default
         let support = try? fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         let dir = (support ?? fm.temporaryDirectory).appendingPathComponent("boringNotch", isDirectory: true).appendingPathComponent("Shelf", isDirectory: true)

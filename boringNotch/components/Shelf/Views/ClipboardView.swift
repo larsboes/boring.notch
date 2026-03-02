@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ClipboardView: View {
-    @ObservedObject var manager = ClipboardManager.shared
+    @ObservedObject var manager: ClipboardManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -27,7 +27,7 @@ struct ClipboardView: View {
             ScrollView {
                 LazyVStack(spacing: 4) {
                     ForEach(manager.items) { item in
-                        ClipboardRow(item: item)
+                        ClipboardRow(item: item, manager: manager)
                     }
                 }
                 .padding(.horizontal)
@@ -39,7 +39,7 @@ struct ClipboardView: View {
 
 struct ClipboardRow: View {
     let item: ClipboardItem
-    @ObservedObject var manager = ClipboardManager.shared
+    @ObservedObject var manager: ClipboardManager
     @State private var isHovering = false
     
     var body: some View {

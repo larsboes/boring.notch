@@ -33,16 +33,19 @@ final class ShelfService: ShelfServiceProtocol {
     // Injected helpers
     let imageProcessor: any ShelfImageProcessorProtocol
     let fileHandler: any ShelfFileHandlerProtocol
-    
+    private let persistenceService: ShelfPersistenceService
+
     // MARK: - Initialization
-    
+
     init(
         imageProcessor: any ShelfImageProcessorProtocol,
-        fileHandler: any ShelfFileHandlerProtocol
+        fileHandler: any ShelfFileHandlerProtocol,
+        persistenceService: ShelfPersistenceService = ShelfPersistenceService()
     ) {
         self.imageProcessor = imageProcessor
         self.fileHandler = fileHandler
-        items = ShelfPersistenceService.shared.load()
+        self.persistenceService = persistenceService
+        items = persistenceService.load()
     }
     
     // MARK: - Methods
@@ -52,7 +55,7 @@ final class ShelfService: ShelfServiceProtocol {
         persistenceTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: self?.persistenceDelay ?? .seconds(1))
             guard let self = self, !Task.isCancelled else { return }
-            await ShelfPersistenceService.shared.saveAsync(self.items)
+            await persistenceService.saveAsync(self.items)
         }
     }
     
@@ -138,6 +141,6 @@ final class ShelfService: ShelfServiceProtocol {
         persistenceTask = nil
         
         // Perform a synchronous, atomic save to disk
-        ShelfPersistenceService.shared.save(self.items)
+        persistenceService.save(self.items)
     }
 }

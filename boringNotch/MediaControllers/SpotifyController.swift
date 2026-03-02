@@ -37,8 +37,10 @@ class SpotifyController: MediaControllerProtocol {
 
     private var lastArtworkURL: String?
     private var artworkFetchTask: Task<Void, Never>?
-    
-    init() {
+    private let imageService: ImageServiceProtocol
+
+    init(imageService: ImageServiceProtocol = ImageService()) {
+        self.imageService = imageService
         setupPlaybackStateChangeObserver()
         Task {
             if isActive() {
@@ -142,7 +144,7 @@ class SpotifyController: MediaControllerProtocol {
 
             artworkFetchTask = Task {
                 do {
-                    let data = try await ImageService.shared.fetchImageData(from: url)
+                    let data = try await imageService.fetchImageData(from: url)
 
                     await MainActor.run { [weak self] in
                         guard let self = self else { return }

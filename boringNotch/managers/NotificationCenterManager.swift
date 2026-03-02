@@ -4,9 +4,6 @@ import UserNotifications
 
 @Observable
 class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNotificationCenterDelegate {
-    /// Transitional shared instance — will be removed in singleton elimination pass.
-    static let shared = NotificationCenterManager(settings: DefaultsNotchSettings.shared)
-
     var notifications: [NotchNotification] = []
     var authorizationStatus: UNAuthorizationStatus = .notDetermined
 

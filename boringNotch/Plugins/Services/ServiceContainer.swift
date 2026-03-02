@@ -62,6 +62,15 @@ final class ServiceContainer {
     /// Bluetooth service (wraps BluetoothManager) - optional until implemented
     var bluetooth: (any BluetoothServiceProtocol)?
 
+    /// Concrete BluetoothManager for views that need ObservableObject conformance
+    let bluetoothManager: BluetoothManager
+
+    /// Notes manager for shelf notes
+    let notesManager: NotesManager
+
+    /// Clipboard manager for clipboard history
+    let clipboardManager: ClipboardManager
+
     /// Face tracking service
     public let face: any FaceServiceProtocol
     
@@ -109,9 +118,12 @@ final class ServiceContainer {
         self.volume = VolumeManager(eventBus: eventBus)
         self.brightness = BrightnessManager(eventBus: eventBus)
         self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus)
-        self.sharing = SharingStateManager.shared
+        self.sharing = SharingStateManager()
         self.quickLook = QuickLookService()
-        self.quickShare = QuickShareService(temporaryFileStorage: self.temporaryFileStorage)
+        self.quickShare = QuickShareService(temporaryFileStorage: self.temporaryFileStorage, sharingStateManager: self.sharing)
+        self.bluetoothManager = BluetoothManager(settings: settings)
+        self.notesManager = NotesManager()
+        self.clipboardManager = ClipboardManager()
     }
 
     /// Full initializer for testing or custom configurations
@@ -138,7 +150,10 @@ final class ServiceContainer {
         shelfFileHandler: any ShelfFileHandlerProtocol,
         quickLook: QuickLookService,
         quickShare: QuickShareService,
-        bluetooth: (any BluetoothServiceProtocol)? = nil
+        bluetooth: (any BluetoothServiceProtocol)? = nil,
+        bluetoothManager: BluetoothManager,
+        notesManager: NotesManager = NotesManager(),
+        clipboardManager: ClipboardManager = ClipboardManager()
     ) {
         self.music = music
         self.sound = sound
@@ -163,5 +178,8 @@ final class ServiceContainer {
         self.quickLook = quickLook
         self.quickShare = quickShare
         self.bluetooth = bluetooth
+        self.bluetoothManager = bluetoothManager
+        self.notesManager = notesManager
+        self.clipboardManager = clipboardManager
     }
 }

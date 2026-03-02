@@ -13,7 +13,8 @@ struct FileShareView: View {
     @Environment(BoringViewModel.self) private var vm
     @Environment(\.settings) var settings
     @Environment(\.pluginManager) var pluginManager
-    private var quickShare = QuickShareService.shared
+
+    private var quickShare: QuickShareService { pluginManager!.services.quickShare }
 
     @State private var hostView: NSView?
     @State private var interactionNonce: UUID = .init()

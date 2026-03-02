@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct NotesView: View {
-    @ObservedObject var manager = NotesManager.shared
+    @ObservedObject var manager: NotesManager
     @State private var newNoteTitle = ""
     @State private var newNoteContent = ""
     @State private var isAdding = false
@@ -47,7 +47,7 @@ struct NotesView: View {
             ScrollView {
                 LazyVStack(spacing: 4) {
                     ForEach(manager.notes) { note in
-                        NoteRow(note: note)
+                        NoteRow(note: note, manager: manager)
                     }
                 }
                 .padding(.horizontal)
@@ -59,7 +59,7 @@ struct NotesView: View {
 
 struct NoteRow: View {
     let note: NoteItem
-    @ObservedObject var manager = NotesManager.shared
+    @ObservedObject var manager: NotesManager
     @State private var isHovering = false
     
     var body: some View {

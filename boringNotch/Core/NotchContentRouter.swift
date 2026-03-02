@@ -193,8 +193,10 @@ struct NotchContentRouter: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             case .notes:
-                NotesView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if let pluginManager {
+                    NotesView(manager: pluginManager.services.notesManager)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

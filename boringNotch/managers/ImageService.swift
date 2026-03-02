@@ -13,11 +13,9 @@ public protocol ImageServiceProtocol {
 }
 
 public final class ImageService: ImageServiceProtocol {
-    public static let shared = ImageService()
-
     private let session: URLSession
 
-    private init() {
+    public init() {
         let config = URLSessionConfiguration.default
         let cache = URLCache(memoryCapacity: 50 * 1024 * 1024, // 50MB
                              diskCapacity: 100 * 1024 * 1024, // 100MB

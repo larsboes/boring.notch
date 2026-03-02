@@ -20,8 +20,6 @@ import Observation
 @MainActor
 @Observable
 class QuickShareService {
-    static let shared = QuickShareService(temporaryFileStorage: TemporaryFileStorageService())
-    
     var availableProviders: [QuickShareProvider] = []
     var isPickerOpen = false
     private var cachedServices: [String: NSSharingService] = [:]
@@ -29,11 +27,13 @@ class QuickShareService {
     // Hold security-scoped URLs during sharing
     private var sharingAccessingURLs: [URL] = []
     private var lifecycleDelegate: SharingLifecycleDelegate?
-    
+
     private let temporaryFileStorage: any TemporaryFileStorageServiceProtocol
-   
-    init(temporaryFileStorage: any TemporaryFileStorageServiceProtocol) {
+    private let sharingStateManager: any SharingServiceProtocol
+
+    init(temporaryFileStorage: any TemporaryFileStorageServiceProtocol, sharingStateManager: any SharingServiceProtocol = SharingStateManager()) {
         self.temporaryFileStorage = temporaryFileStorage
+        self.sharingStateManager = sharingStateManager
         Task {
             await discoverAvailableProviders()
         }
@@ -120,7 +120,7 @@ class QuickShareService {
         }
 
         isPickerOpen = true
-        SharingStateManager.shared.beginInteraction()
+        sharingStateManager.beginInteraction()
 
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
@@ -132,7 +132,7 @@ class QuickShareService {
         let completion: (NSApplication.ModalResponse) -> Void = { [weak self] response in
             defer {
                 self?.isPickerOpen = false
-                SharingStateManager.shared.endInteraction()
+                sharingStateManager.endInteraction()
             }
 
             if response == .OK && !panel.urls.isEmpty {
@@ -156,7 +156,7 @@ class QuickShareService {
         sharingAccessingURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
 
         // Setup lifecycle delegate to keep notch open during picker/service
-        let delegate = SharingStateManager.shared.makeDelegate { [weak self] in
+        let delegate = sharingStateManager.makeDelegate { [weak self] in
             self?.lifecycleDelegate = nil
             self?.stopSharingAccessingURLs()
         }
@@ -267,12 +267,10 @@ private class SharingServiceDelegate: NSObject {}
 // MARK: - App Storage Extension for Provider Selection
 
 extension QuickShareProvider {
-    @MainActor static var defaultProvider: QuickShareProvider {
-        let svc = QuickShareService.shared
-
-        if let airdrop = svc.availableProviders.first(where: { $0.id == "AirDrop" }) {
+    @MainActor static func defaultProvider(from service: QuickShareService) -> QuickShareProvider {
+        if let airdrop = service.availableProviders.first(where: { $0.id == "AirDrop" }) {
             return airdrop
         }
-        return svc.availableProviders.first ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
+        return service.availableProviders.first ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
     }
 }

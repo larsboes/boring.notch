@@ -9,7 +9,9 @@ import SwiftUI
 
 struct Shelf: View {
     @Environment(\.bindableSettings) var settings
-    private var quickShareService = QuickShareService.shared
+    @Environment(\.pluginManager) var pluginManager
+
+    private var quickShareService: QuickShareService { pluginManager!.services.quickShare }
 
     private var selectedProvider: QuickShareProvider? {
         quickShareService.availableProviders.first(where: { $0.id == settings.quickShareProvider })
