@@ -114,13 +114,13 @@ struct HelloAnimation: View {
             try? await Task.sleep(for: .seconds(0.6))
             
             withAnimation(
-                .easeInOut(duration: 4.0)
+                StandardAnimations.hello
             ) {
                 progress = 1.0
             }
             
             // Wait for the animation to complete
-            try? await Task.sleep(for: .seconds(4.0))
+            try? await Task.sleep(for: .seconds(3.0))
             
             onFinish()
         }

@@ -5,30 +5,33 @@
 
 import AppKit
 
-final class BrightnessManager: ObservableObject {
-	static let shared = BrightnessManager()
-
-	@Published private(set) var rawBrightness: Float = 0
-	@Published private(set) var animatedBrightness: Float = 0
-	@Published private(set) var lastChangeAt: Date = .distantPast
+@MainActor
+@Observable final class BrightnessManager: BrightnessServiceProtocol {
+	var rawBrightness: Float = 0
+	var animatedBrightness: Float = 0
+	var lastChangeAt: Date = .distantPast
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
+	private let eventBus: PluginEventBus
 
-	private init() { refresh() }
+	init(eventBus: PluginEventBus) {
+		self.eventBus = eventBus
+		refresh()
+	}
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
 	func refresh() {
-		Task { @MainActor in
+		Task {
 			if let current = await client.currentScreenBrightness() {
 				publish(brightness: current, touchDate: false)
 			}
 		}
 	}
 
-	@MainActor func setRelative(delta: Float) {
-		Task { @MainActor in
+	func setRelative(delta: Float) {
+		Task {
 			let starting = await client.currentScreenBrightness() ?? rawBrightness
 			let target = max(0, min(1, starting + delta))
 			let ok = await client.setScreenBrightness(target)
@@ -37,13 +40,16 @@ final class BrightnessManager: ObservableObject {
 			} else {
 				refresh()
 			}
-			BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(target))
+			eventBus.emit(SneakPeekRequestedEvent(
+			sourcePluginId: "com.boringnotch.system.brightness",
+			request: SneakPeekRequest(style: .standard, type: .brightness, value: CGFloat(target))
+		))
 		}
 	}
 
 	func setAbsolute(value: Float) {
 		let clamped = max(0, min(1, value))
-		Task { @MainActor in
+		Task {
 			let ok = await client.setScreenBrightness(clamped)
 			if ok {
 				publish(brightness: clamped, touchDate: true)
@@ -54,12 +60,10 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	private func publish(brightness: Float, touchDate: Bool) {
-		DispatchQueue.main.async {
-			if self.rawBrightness != brightness || touchDate {
-				if touchDate { self.lastChangeAt = Date() }
-				self.rawBrightness = brightness
-				self.animatedBrightness = brightness
-			}
+		if self.rawBrightness != brightness || touchDate {
+			if touchDate { self.lastChangeAt = Date() }
+			self.rawBrightness = brightness
+			self.animatedBrightness = brightness
 		}
 	}
 }
@@ -67,29 +71,32 @@ final class BrightnessManager: ObservableObject {
 // (DisplayServices helpers moved into XPC helper)
 
 // MARK: - Keyboard Backlight Controller
-final class KeyboardBacklightManager: ObservableObject {
-	static let shared = KeyboardBacklightManager()
-
-	@Published private(set) var rawBrightness: Float = 0
-	@Published private(set) var lastChangeAt: Date = .distantPast
+@MainActor
+@Observable final class KeyboardBacklightManager: KeyboardBacklightServiceProtocol {
+	var rawBrightness: Float = 0
+	var lastChangeAt: Date = .distantPast
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
+	private let eventBus: PluginEventBus
 
-	private init() { refresh() }
+	init(eventBus: PluginEventBus) {
+		self.eventBus = eventBus
+		refresh()
+	}
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
 	func refresh() {
-		Task { @MainActor in
+		Task {
 			if let current = await client.currentKeyboardBrightness() {
 				publish(brightness: current, touchDate: false)
 			}
 		}
 	}
 
-	@MainActor func setRelative(delta: Float) {
-		Task { @MainActor in
+	func setRelative(delta: Float) {
+		Task {
 			let starting = await client.currentKeyboardBrightness() ?? rawBrightness
 			let target = max(0, min(1, starting + delta))
 			let ok = await client.setKeyboardBrightness(target)
@@ -98,17 +105,16 @@ final class KeyboardBacklightManager: ObservableObject {
 			} else {
 				refresh()
 			}
-			BoringViewCoordinator.shared.toggleSneakPeek(
-				status: true,
-				type: .backlight,
-				value: CGFloat(target)
-			)
+			eventBus.emit(SneakPeekRequestedEvent(
+				sourcePluginId: "com.boringnotch.system.backlight",
+				request: SneakPeekRequest(style: .standard, type: .backlight, value: CGFloat(target))
+			))
 		}
 	}
 
 	func setAbsolute(value: Float) {
 		let clamped = max(0, min(1, value))
-		Task { @MainActor in
+		Task {
 			let ok = await client.setKeyboardBrightness(clamped)
 			if ok {
 				publish(brightness: clamped, touchDate: true)
@@ -119,12 +125,9 @@ final class KeyboardBacklightManager: ObservableObject {
 	}
 
 	private func publish(brightness: Float, touchDate: Bool) {
-		DispatchQueue.main.async {
-			if self.rawBrightness != brightness || touchDate {
-				if touchDate { self.lastChangeAt = Date() }
-				self.rawBrightness = brightness
-			}
+		if self.rawBrightness != brightness || touchDate {
+			if touchDate { self.lastChangeAt = Date() }
+			self.rawBrightness = brightness
 		}
 	}
 }
-

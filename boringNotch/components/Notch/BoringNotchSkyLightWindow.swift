@@ -32,14 +32,20 @@ extension SkyLightOperator {
 }
 
 class BoringNotchSkyLightWindow: NSPanel {
+    private let settings: NotchSettings
     private var isSkyLightEnabled: Bool = false
-    
-    override init(
+
+    /// Whether the notch is currently open (enables click handling)
+    var isNotchOpen: Bool = false
+
+    init(
         contentRect: NSRect,
         styleMask: NSWindow.StyleMask,
         backing: NSWindow.BackingStoreType,
-        defer flag: Bool
+        defer flag: Bool,
+        settings: NotchSettings
     ) {
+        self.settings = settings
         super.init(
             contentRect: contentRect,
             styleMask: styleMask,
@@ -48,7 +54,12 @@ class BoringNotchSkyLightWindow: NSPanel {
         )
         
         configureWindow()
+        configureWindow()
         setupObservers()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     private func configureWindow() {
@@ -65,12 +76,7 @@ class BoringNotchSkyLightWindow: NSPanel {
         // Force dark appearance regardless of system setting
         appearance = NSAppearance(named: .darkAqua)
         
-        collectionBehavior = [
-            .fullScreenAuxiliary,
-            .stationary,
-            .canJoinAllSpaces,
-            .ignoresCycle,
-        ]
+        updateCollectionBehavior()
         
         // Apply initial sharing type setting
         updateSharingType()
@@ -83,13 +89,42 @@ class BoringNotchSkyLightWindow: NSPanel {
                 self?.updateSharingType()
             }
             .store(in: &observers)
+            
+        Defaults.publisher(.hideNonNotchedFromMissionControl)
+            .sink { [weak self] _ in
+                self?.updateCollectionBehavior()
+            }
+            .store(in: &observers)
+            
+        NotificationCenter.default.publisher(for: NSWindow.didChangeScreenNotification, object: self)
+            .sink { [weak self] _ in
+                self?.updateCollectionBehavior()
+            }
+            .store(in: &observers)
+    }
+    
+    private func updateCollectionBehavior() {
+        var newBehavior: NSWindow.CollectionBehavior = [
+            .fullScreenAuxiliary,
+            .stationary,
+            .canJoinAllSpaces,
+            .ignoresCycle
+        ]
+        
+        let hasNotch = (self.screen?.safeAreaInsets.top ?? 0) > 0
+        
+        if settings.hideNonNotchedFromMissionControl && !hasNotch {
+            newBehavior.insert(.transient)
+        }
+        
+        collectionBehavior = newBehavior
     }
     
     private func updateSharingType() {
-        if Defaults[.hideFromScreenRecording] {
+        if settings.hideFromScreenRecording {
             sharingType = .none
         } else {
-            sharingType = .readWrite
+            sharingType = .readOnly
         }
     }
     
@@ -109,6 +144,8 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     private var observers: Set<AnyCancellable> = []
     
-    override var canBecomeKey: Bool { false }
+    /// Dynamic canBecomeKey: only accept key status when notch is open.
+    /// This enables button clicks while preventing focus stealing when closed.
+    override var canBecomeKey: Bool { isNotchOpen }
     override var canBecomeMain: Bool { false }
 }

@@ -112,16 +112,21 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch --no-quarantine
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
 - [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
+- [x] Clipboard history manager 📌
 - [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
 - [ ] Weather integration ⛅️
 - [ ] Customizable Layout options 🛠️
 - [ ] Lock Screen Widgets 🔒
 - [ ] Extension system 🧩
 - [ ] Notifications (under consideration) 🔔
-<!-- - [ ] Clipboard history manager 📌 `Extension` -->
 <!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
 <!-- - [ ] Customizable function buttons 🎛️ -->
 <!-- - [ ] App switcher 🪄 -->
+
+## 🏗️ Architecture
+
+Boring Notch is built on a modular, plugin-first architecture. Every feature is a plugin!
+Want to learn how it works? Check out our [Architecture Guide](docs/ARCHITECTURE.md).
 
 <!-- ## 🧩 Extensions
 > [!NOTE]

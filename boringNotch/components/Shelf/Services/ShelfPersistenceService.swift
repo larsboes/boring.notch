@@ -10,15 +10,12 @@ import Foundation
 // Access model types
 @_exported import struct Foundation.URL
 
-
 final class ShelfPersistenceService {
-    static let shared = ShelfPersistenceService()
-
     private let fileURL: URL
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    private init() {
+    init() {
         let fm = FileManager.default
         let support = try? fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         let dir = (support ?? fm.temporaryDirectory).appendingPathComponent("boringNotch", isDirectory: true).appendingPathComponent("Shelf", isDirectory: true)
@@ -77,5 +74,16 @@ final class ShelfPersistenceService {
         } catch {
             print("Failed to save shelf items: \(error.localizedDescription)")
         }
+    }
+    
+    func saveAsync(_ items: [ShelfItem]) async {
+        await Task.detached(priority: .utility) { [fileURL, encoder] in
+            do {
+                let data = try encoder.encode(items)
+                try data.write(to: fileURL, options: Data.WritingOptions.atomic)
+            } catch {
+                print("Failed to save shelf items: \(error.localizedDescription)")
+            }
+        }.value
     }
 }

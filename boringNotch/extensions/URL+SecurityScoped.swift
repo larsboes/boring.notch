@@ -46,4 +46,3 @@ extension [URL] {
         return try await accessor(self)
     }
 }
-

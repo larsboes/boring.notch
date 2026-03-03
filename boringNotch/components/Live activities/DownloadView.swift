@@ -20,12 +20,16 @@ struct DownloadFile {
     var browser: Browser
 }
 
-class DownloadWatcher: ObservableObject {
-    @Published var downloadFiles: [DownloadFile] = []
+import Observation
+
+@Observable
+@MainActor
+class DownloadWatcher {
+    var downloadFiles: [DownloadFile] = []
 }
 
 struct DownloadArea: View {
-    @EnvironmentObject var watcher: DownloadWatcher
+    @Environment(DownloadWatcher.self) var watcher
 
     var body: some View {
         HStack(alignment: .center) {
@@ -33,7 +37,7 @@ struct DownloadArea: View {
                 if watcher.downloadFiles.first!.browser == .safari {
                     AppIcon(for: "com.apple.safari")
                 } else {
-                    Image(.chrome).resizable().scaledToFit().frame(width: 30, height: 30)
+                    AppIcon(for: "com.google.Chrome")
                 }
                 VStack(alignment: .leading) {
                     Text("Download")

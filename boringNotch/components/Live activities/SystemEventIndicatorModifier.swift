@@ -1,4 +1,4 @@
-    //
+//
     //  SystemEventIndicatorModifier.swift
     //  boringNotch
     //
@@ -6,16 +6,15 @@
     //
 
 import SwiftUI
-import Defaults
 
 struct SystemEventIndicatorModifier: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
     @Binding var eventType: SneakContentType
     @Binding var value: CGFloat {
         didSet {
             DispatchQueue.main.async {
                 self.sendEventBack(value)
-                self.vm.objectWillChange.send()
             }
         }
     }
@@ -25,7 +24,7 @@ struct SystemEventIndicatorModifier: View {
     
     var body: some View {
         HStack(spacing: 14) {
-            switch (eventType) {
+            switch eventType {
                 case .volume:
                     if icon.isEmpty {
                         Image(systemName: SpeakerSymbol(value))
@@ -58,9 +57,9 @@ struct SystemEventIndicatorModifier: View {
                 default:
                     EmptyView()
             }
-            if (eventType != .mic) {
+            if eventType != .mic {
                 DraggableProgressBar(value: $value)
-                if Defaults[.showClosedNotchHUDPercentage] {
+                if settings.showClosedNotchHUDPercentage {
                     Text("\(Int(value * 100))%")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white)
@@ -80,7 +79,7 @@ struct SystemEventIndicatorModifier: View {
     }
     
     func SpeakerSymbol(_ value: CGFloat) -> String {
-        switch(value) {
+        switch value {
             case 0:
                 return "speaker.slash"
             case 0...0.3:
@@ -96,9 +95,10 @@ struct SystemEventIndicatorModifier: View {
 }
 
 struct DraggableProgressBar: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
     @Binding var value: CGFloat
-    var onChange: ((CGFloat) -> Void)? = nil
+    var onChange: ((CGFloat) -> Void)?
     
     @State private var isDragging = false
     @State private var dragOffset: CGFloat = 0
@@ -111,20 +111,20 @@ struct DraggableProgressBar: View {
                         .fill(.tertiary)
                     Capsule()
                         .fill(
-                            Defaults[.enableGradient] ?
+                            settings.enableGradient ?
                                 AnyShapeStyle(LinearGradient(
-                                    colors: Defaults[.systemEventIndicatorUseAccent] ?
-                                        [Color.effectiveAccent, Color.effectiveAccent.ensureMinimumBrightness(factor: 0.2)] :
+                                    colors: settings.systemEventIndicatorUseAccent ?
+                                        [Color.effectiveAccent(from: settings), Color.effectiveAccent(from: settings).ensureMinimumBrightness(factor: 0.2)] :
                                         [Color.white, Color.white.opacity(0.2)],
                                     startPoint: .trailing,
                                     endPoint: .leading
                                 )) :
-                                AnyShapeStyle(Defaults[.systemEventIndicatorUseAccent] ? Color.effectiveAccent : Color.white)
+                                AnyShapeStyle(settings.systemEventIndicatorUseAccent ? Color.effectiveAccent(from: settings) : Color.white)
                         )
                         .frame(width: max(0, min(geo.size.width * value, geo.size.width)))
-                        .shadow(color: Defaults[.systemEventIndicatorShadow] ?
-                            (Defaults[.systemEventIndicatorUseAccent] ?
-                                Color.effectiveAccent.ensureMinimumBrightness(factor: 0.7) :
+                        .shadow(color: settings.systemEventIndicatorShadow ?
+                            (settings.systemEventIndicatorUseAccent ?
+                                Color.effectiveAccent(from: settings).ensureMinimumBrightness(factor: 0.7) :
                                 Color.white) :
                             Color.clear,
                             radius: 8, x: 3)
@@ -145,7 +145,7 @@ struct DraggableProgressBar: View {
                         }
                 )
             }
-            .frame(height: Defaults[.inlineHUD] ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
+            .frame(height: settings.showInlineHUD ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
         }
     }
     

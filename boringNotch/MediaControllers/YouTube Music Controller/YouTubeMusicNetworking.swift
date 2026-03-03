@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - HTTP Client
-final class YouTubeMusicHTTPClient: ObservableObject {
+final class YouTubeMusicHTTPClient {
     private let session: URLSession
     private let baseURL: String
     private static let decoder = JSONDecoder()
@@ -56,7 +56,6 @@ final class YouTubeMusicHTTPClient: ObservableObject {
     struct LikeStateResponse: Decodable, Sendable {
         let state: String?
     }
-
 
     func getLikeState(token: String) async throws -> LikeStateResponse {
         let data = try await sendCommand(endpoint: "/like-state", method: "GET", token: token)

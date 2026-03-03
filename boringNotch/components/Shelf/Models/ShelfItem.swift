@@ -49,21 +49,21 @@ enum ShelfItemKind: Codable, Equatable, Sendable {
 }
 
 @MainActor
-struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
+struct ShelfItem: Identifiable, Codable, Equatable {
     let id: UUID
-    var kind: ShelfItemKind
-    var isTemporary: Bool
+    let kind: ShelfItemKind
+    let isTemporary: Bool
     init(id: UUID = UUID(), kind: ShelfItemKind, isTemporary: Bool = false) {
         self.id = id
         self.kind = kind
         self.isTemporary = isTemporary
     }
-    
+
     var displayName: String {
         switch kind {
         case .file(let bookmarkData):
             let bookmark = Bookmark(data: bookmarkData)
-            guard let resolvedURL = bookmark.resolveURL() else { return "" }
+            guard let resolvedURL = bookmark.resolvedURL else { return "" }
             
             // Check for stored data files (text blocks, weblocs, etc.) to provide friendly names
             if resolvedURL.pathExtension.lowercased() == "json" && resolvedURL.path.contains("TextBlocks") {
@@ -119,36 +119,38 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
     }
     
     var fileURL: URL? {
-        guard case .file = kind else { return nil }
-        return ShelfStateViewModel.shared.resolveFileURL(for: self)
+        guard case let .file(bookmarkData) = kind else { return nil }
+        return Bookmark(data: bookmarkData).resolvedURL
     }
     
     var URL: URL? {
-        if case let .file(bookmark) = kind { return resolvedContext(for: bookmark)?.url }
-        else if case let .link(url) = kind { return url }
-        else { return nil }
+        switch kind {
+        case .file(let bookmarkData):
+            return Bookmark(data: bookmarkData).resolvedURL
+        case .link(let url):
+            return url
+        case .text:
+            return nil
+        }
     }
     
     var icon: NSImage {
         guard case .file = kind else {
             return Self.thumbnailSymbolImage(systemName: kind.iconSymbolName) ?? NSImage()
         }
-        if let resolvedURL = ShelfStateViewModel.shared.resolveFileURL(for: self) {
+        if let resolvedURL = fileURL {
             return NSWorkspace.shared.icon(forFile: resolvedURL.path)
         }
         return NSImage()
     }
     
-
-    func cleanupStoredData() {
-        guard case let .file(bookmark) = kind,
-              let context = resolvedContext(for: bookmark) else { return }
-        
-        let url = context.url
+    func cleanupStoredData(storage: any TemporaryFileStorageServiceProtocol) {
+        guard case let .file(bookmarkData) = kind,
+              let url = Bookmark(data: bookmarkData).resolvedURL else { return }
         
         // Handle temporary files
         if isTemporary {
-            TemporaryFileStorageService.shared.removeTemporaryFileIfNeeded(at: url)
+            storage.removeTemporaryFileIfNeeded(at: url)
             return
         }
     }
@@ -190,11 +192,11 @@ private extension ShelfItem {
 extension ShelfItem {
     var identityKey: String {
         switch kind {
-        case .file(let bookmark):
-            if let url = resolvedContext(for: bookmark)?.url {
+        case .file(let bookmarkData):
+            if let url = Bookmark(data: bookmarkData).resolvedURL {
                 return "file://" + url.standardizedFileURL.path
             }
-            return "file://missing/" + bookmark.base64EncodedString()
+            return "file://missing/" + bookmarkData.base64EncodedString()
         case .link(let u):
             return "link://" + u.absoluteString
         case .text(let s):
@@ -214,15 +216,5 @@ private extension ShelfItemKind {
         case .link:
             return "link"
         }
-    }
-}
-
-private extension ShelfItem {
-    func resolvedContext(for bookmarkData: Data) -> (url: URL, bookmark: Data)? {
-        let bookmark = Bookmark(data: bookmarkData)
-        if let url = bookmark.resolveURL() {
-            return (url, bookmark.refreshedData ?? bookmarkData)
-        }
-        return nil
     }
 }

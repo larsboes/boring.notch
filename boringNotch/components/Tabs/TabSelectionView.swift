@@ -16,11 +16,14 @@ struct TabModel: Identifiable {
 
 let tabs = [
     TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
+    TabModel(label: "Notifications", icon: "bell.fill", view: .notifications),
+    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf),
+    TabModel(label: "Clipboard", icon: "doc.on.clipboard.fill", view: .clipboard),
+    TabModel(label: "Notes", icon: "note.text", view: .notes)
 ]
 
 struct TabSelectionView: View {
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Environment(BoringViewCoordinator.self) var coordinator
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
@@ -51,5 +54,5 @@ struct TabSelectionView: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel())
+    BoringHeader().environment(BoringViewModel())
 }

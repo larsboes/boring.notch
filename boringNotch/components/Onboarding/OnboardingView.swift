@@ -3,6 +3,7 @@
 //  boringNotch
 //
 //  Created by Alexander on 2025-06-23.
+//  Modified by Arsh Anwar
 //
 
 import SwiftUI
@@ -13,15 +14,17 @@ enum OnboardingStep {
     case cameraPermission
     case calendarPermission
     case remindersPermission
+    case weatherPermission
     case accessibilityPermission
     case musicPermission
     case finished
 }
 
-private let calendarService = CalendarService()
+private let calendarService = CalendarDataProvider()
 
 struct OnboardingView: View {
     @State var step: OnboardingStep = .welcome
+    @Environment(BoringViewCoordinator.self) var coordinator
     let onFinish: () -> Void
     let onOpenSettings: () -> Void
 
@@ -90,6 +93,28 @@ struct OnboardingView: View {
                             Task {
                                 await requestRemindersPermission()
                                 withAnimation(.easeInOut(duration: 0.6)) {
+                                    step = .weatherPermission
+                                }
+                            }
+                        },
+                        onSkip: {
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .weatherPermission
+                            }
+                        }
+                    )
+                    .transition(.opacity)
+                
+                case .weatherPermission:
+                    PermissionRequestView(
+                        icon: Image(systemName: "cloud.sun.fill"),
+                        title: "Enable Weather Access",
+                        description: "Boring Notch can display current weather conditions right in the notch. Location access is needed to show weather for your current location.",
+                        privacyNote: "Your location is only used to fetch weather data and is never shared or stored.",
+                        onAllow: {
+                            Task {
+                                requestWeatherPermission()
+                                withAnimation(.easeInOut(duration: 0.6)) {
                                     step = .accessibilityPermission
                                 }
                             }
@@ -128,7 +153,7 @@ struct OnboardingView: View {
                 MusicControllerSelectionView(
                     onContinue: {
                         withAnimation(.easeInOut(duration: 0.6)) {
-                            BoringViewCoordinator.shared.firstLaunch = false
+                            coordinator.firstLaunch = false
                             step = .finished
                         }
                     }
@@ -141,6 +166,8 @@ struct OnboardingView: View {
         }
         .frame(width: 400, height: 600)
     }
+
+    @Environment(\.pluginManager) var pluginManager
 
     // MARK: - Permission Request Logic
 
@@ -156,7 +183,11 @@ struct OnboardingView: View {
         _ = try? await calendarService.requestAccess(to: .reminder)
     }
     
+    func requestWeatherPermission() {
+        pluginManager?.services.weather.checkLocationAuthorization()
+    }
+    
     func requestAccessibilityPermission() async {
-        await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+        _ = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
     }
 }

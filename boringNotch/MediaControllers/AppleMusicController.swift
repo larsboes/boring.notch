@@ -9,15 +9,24 @@ import Foundation
 import Combine
 import SwiftUI
 
-class AppleMusicController: MediaControllerProtocol {
+@Observable
+@MainActor
+final class AppleMusicController: MediaControllerProtocol {
     // MARK: - Properties
-    @Published private var playbackState: PlaybackState = PlaybackState(
+    private var playbackState: PlaybackState = PlaybackState(
         bundleIdentifier: "com.apple.Music",
         playbackRate: 1
+    ) {
+        didSet { _playbackStateSubject.send(playbackState) }
+    }
+
+    @ObservationIgnored
+    private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
+        PlaybackState(bundleIdentifier: "com.apple.Music", playbackRate: 1)
     )
-    
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
-        $playbackState.eraseToAnyPublisher()
+        _playbackStateSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {
@@ -28,7 +37,7 @@ class AppleMusicController: MediaControllerProtocol {
         return true
     }
 
-    private var notificationTask: Task<Void, Never>?
+    nonisolated(unsafe) private var notificationTask: Task<Void, Never>?
     
     // MARK: - Initialization
     init() {
@@ -41,11 +50,11 @@ class AppleMusicController: MediaControllerProtocol {
     }
     
     private func setupPlaybackStateChangeObserver() {
-        notificationTask = Task { @Sendable [weak self] in
+        notificationTask = Task { [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.apple.Music.playerInfo")
             )
-            
+
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
             }
@@ -117,9 +126,9 @@ class AppleMusicController: MediaControllerProtocol {
 
     func setFavorite(_ favorite: Bool) async {
         let script = """
-        tell application \"Music\"
+        tell application "Music"
             try
-                set favorited of current track to " + (favorite ? "true" : "false") + "
+                set favorited of current track to \(favorite)
             end try
         end tell
         """

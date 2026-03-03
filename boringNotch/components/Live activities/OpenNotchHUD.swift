@@ -6,14 +6,14 @@
 //
 
 import SwiftUI
-import Defaults
 
 struct OpenNotchHUD: View {
-    @EnvironmentObject var vm: BoringViewModel
+    @Environment(BoringViewModel.self) var vm
     @Binding var type: SneakContentType
     @Binding var value: CGFloat
     @Binding var icon: String
-    @Default(.showOpenNotchHUDPercentage) var showPercentage
+    @Environment(\.settings) var settings
+    @Environment(\.pluginManager) var pluginManager
     
     var body: some View {
         HStack(spacing: 8) {
@@ -51,7 +51,7 @@ struct OpenNotchHUD: View {
                 DraggableProgressBar(value: $value, onChange: { newVal in
                      updateSystemValue(newVal)
                 })
-                .frame(width: showPercentage ? 65 : 108) // Fixed width for consistency
+                .frame(width: settings.showOpenNotchHUDPercentage ? 65 : 108) // Fixed width for consistency
             } else {
                 Text(value > 0 ? "Unmuted" : "Muted")
                     .font(.system(size: 13, weight: .medium))
@@ -60,7 +60,7 @@ struct OpenNotchHUD: View {
             }
             
             // Percentage Text
-            if type != .mic && showPercentage {
+            if type != .mic && settings.showOpenNotchHUDPercentage {
                 Text("\(Int(value * 100))%")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.gray)
@@ -78,7 +78,7 @@ struct OpenNotchHUD: View {
     }
     
     func SpeakerSymbol(_ value: CGFloat) -> String {
-        switch(value) {
+        switch value {
             case 0: return "speaker.slash"
             case 0...0.33: return "speaker.wave.1"
             case 0.33...0.66: return "speaker.wave.2"
@@ -89,9 +89,9 @@ struct OpenNotchHUD: View {
     func updateSystemValue(_ newVal: CGFloat) {
         switch type {
         case .volume:
-            VolumeManager.shared.setAbsolute(Float32(newVal))
+            pluginManager?.services.volume.setAbsolute(Float32(newVal))
         case .brightness:
-            BrightnessManager.shared.setAbsolute(value: Float32(newVal))
+            pluginManager?.services.brightness.setAbsolute(value: Float32(newVal))
         default:
             break
         }
@@ -100,7 +100,7 @@ struct OpenNotchHUD: View {
 
 #Preview {
     OpenNotchHUD(type: .constant(.volume), value: .constant(0.5), icon: .constant(""))
-        .environmentObject(BoringViewModel())
+        .environment(BoringViewModel())
         .padding()
         .background(Color.gray)
 }

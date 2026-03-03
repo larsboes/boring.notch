@@ -5,19 +5,22 @@
 //  Created by Harsh Vardhan  Goswami  on 04/08/24.
 //
 
-import Defaults
 import SwiftUI
 
 struct BoringHeader: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @StateObject var tvm = ShelfStateViewModel.shared
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.settings) var settings
+    @Environment(\.pluginManager) var pluginManager
+    @Environment(BoringViewCoordinator.self) var coordinator
+    @Environment(\.showSettingsWindow) var showSettingsWindow
+
     var body: some View {
+        @Bindable var coordinator = coordinator
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
                     TabSelectionView()
+                        .padding(.leading, 8)
                 } else if vm.notchState == .open {
                     EmptyView()
                 }
@@ -27,76 +30,95 @@ struct BoringHeader: View {
             .blur(radius: vm.notchState == .closed ? 20 : 0)
             .zIndex(2)
 
-            if vm.notchState == .open {
-                Rectangle()
-                    .fill(NSScreen.screen(withUUID: coordinator.selectedScreenUUID)?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
-                    .frame(width: vm.closedNotchSize.width)
-                    .mask {
-                        NotchShape()
-                    }
+            // Only show black notch overlay when Liquid Glass effect is DISABLED and on screens with hardware notch
+            // When Liquid Glass is enabled, this black shape conflicts with the glass appearance
+            let currentScreen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
+            let hasHardwareNotch = (currentScreen?.safeAreaInsets.top ?? 0) > 0
+            
+            if vm.notchState == .open && hasHardwareNotch {
+                if !settings.liquidGlassEffect {
+                    Rectangle()
+                        .fill(.black)
+                        .frame(width: vm.closedNotchSize.width)
+                        .mask {
+                            NotchShape()
+                        }
+                        .allowsHitTesting(false)
+                } else {
+                    // Invisible spacer to maintain layout when Liquid Glass is enabled
+                    // Only on screens WITH hardware notch where we need to leave space for it
+                    Color.clear
+                        .frame(width: vm.closedNotchSize.width, height: 1)
+                        .allowsHitTesting(false)
+                }
             }
 
             HStack(spacing: 4) {
                 if vm.notchState == .open {
-                    if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
+                    if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && settings.showOpenNotchHUD {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
+                            .padding(.trailing, 8)
                     } else {
-                        if Defaults[.showMirror] {
+                        if settings.showMirror {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: "web.camera")
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
+                                ZStack {
+                                    Color.black.opacity(0.001)
+                                    Image(systemName: "web.camera")
+                                        .foregroundColor(.white)
+                                        .imageScale(.medium)
+                                        .frame(width: 30, height: 30)
+                                        .background(Capsule().fill(.black))
+                                }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.settingsIconInNotch] {
+                        if settings.settingsIconInNotch {
                             Button(action: {
-                                SettingsWindowController.shared.showWindow()
+                                showSettingsWindow()
                             }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: "gear")
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
+                                ZStack {
+                                    Color.black.opacity(0.001)
+                                    Image(systemName: "gear")
+                                        .foregroundColor(.white)
+                                        .imageScale(.medium)
+                                        .frame(width: 30, height: 30)
+                                        .background(Capsule().fill(.black))
+                                }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.showBatteryIndicator] {
+                        if settings.showBatteryIndicator, let batteryService = pluginManager?.services.battery {
                             BoringBatteryView(
                                 batteryWidth: 30,
-                                isCharging: batteryModel.isCharging,
-                                isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                isPluggedIn: batteryModel.isPluggedIn,
-                                levelBattery: batteryModel.levelBattery,
-                                maxCapacity: batteryModel.maxCapacity,
-                                timeToFullCharge: batteryModel.timeToFullCharge,
+                                isCharging: batteryService.isCharging,
+                                isInLowPowerMode: batteryService.isInLowPowerMode,
+                                isPluggedIn: batteryService.isPluggedIn,
+                                levelBattery: batteryService.levelBattery,
+                                maxCapacity: batteryService.maxCapacity,
+                                timeToFullCharge: batteryService.timeToFullCharge,
                                 isForNotification: false
                             )
                         }
                     }
                 }
             }
+            .padding(4)
             .font(.system(.headline, design: .rounded))
             .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.trailing, 8)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
             .zIndex(2)
         }
         .foregroundColor(.gray)
-        .environmentObject(vm)
+        .environment(vm)
     }
 
     func isHUDType(_ type: SneakContentType) -> Bool {
@@ -110,5 +132,5 @@ struct BoringHeader: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel())
+    BoringHeader().environment(BoringViewModel())
 }

@@ -12,14 +12,14 @@ struct BoringLargeButtons: View {
     var icon: Image
     var title: String
     var body: some View {
-        Button (
-            action:action,
+        Button(
+            action: action,
             label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)
                     VStack(spacing: 8) {
                         icon.resizable()
-                            .aspectRatio(contentMode: .fit).frame(width:20)
+                            .aspectRatio(contentMode: .fit).frame(width: 20)
                         Text(title).font(.body)
                     }
                 }
@@ -27,12 +27,13 @@ struct BoringLargeButtons: View {
     }
 }
 
-struct BoringExtrasMenu : View {
-    @ObservedObject var vm: BoringViewModel
-    
+struct BoringExtrasMenu: View {
+    var vm: BoringViewModel
+    @Environment(\.showSettingsWindow) var showSettingsWindow
+
     var body: some View {
-        VStack{
-            HStack(spacing: 20)  {
+        VStack {
+            HStack(spacing: 20) {
                 hide
                 settings
                 close
@@ -54,13 +55,13 @@ struct BoringExtrasMenu : View {
     
     var settings: some View {
         Button(action: {
-            SettingsWindowController.shared.showWindow()
+            showSettingsWindow()
         }) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)
                 VStack(spacing: 8) {
                     Image(systemName: "gear").resizable()
-                        .aspectRatio(contentMode: .fit).frame(width:20)
+                        .aspectRatio(contentMode: .fit).frame(width: 20)
                     Text("Settings").font(.body)
                 }
             }
@@ -72,7 +73,7 @@ struct BoringExtrasMenu : View {
         BoringLargeButtons(
             action: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    //vm.openMusic()
+                    // vm.openMusic()
                 }
             },
             icon: Image(systemName: "arrow.down.forward.and.arrow.up.backward"),
@@ -94,7 +95,6 @@ struct BoringExtrasMenu : View {
         )
     }
 }
-
 
 #Preview {
     BoringExtrasMenu(vm: .init())

@@ -6,23 +6,21 @@
 //
 
 import SwiftUI
-import Defaults
-
 
 struct MusicControllerSelectionView: View {
     let onContinue: () -> Void
 
-    @Default(.mediaController) var mediaController
+    @Environment(\.bindableSettings) var settings
     
     private var availableMediaControllers: [MediaControllerType] {
-        if MusicManager.shared.isNowPlayingDeprecated {
+        if MusicManager.isNowPlayingDeprecatedStatic {
             return MediaControllerType.allCases.filter { $0 != .nowPlaying }
         } else {
             return MediaControllerType.allCases
         }
     }
     
-    @State private var selectedMediaController: MediaControllerType = Defaults[.mediaController]
+    @State private var selectedMediaController: MediaControllerType = .nowPlaying
     
     var body: some View {
         VStack(spacing: 20) {
@@ -51,13 +49,13 @@ struct MusicControllerSelectionView: View {
                 }
                 .padding()
             }
-            //Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
+            // Disable scroll if there are 4 or fewer to avoid unnecessary scroll behavior
             .scrollDisabled(availableMediaControllers.count <= 4)
 
 //            Spacer()
 
             Button("Continue", action: {
-                self.mediaController = self.selectedMediaController
+                settings.mediaController = self.selectedMediaController
                 NotificationCenter.default.post(
                     name: Notification.Name.mediaControllerChanged,
                     object: nil
@@ -73,6 +71,9 @@ struct MusicControllerSelectionView: View {
             VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 .ignoresSafeArea()
         )
+        .onAppear {
+            self.selectedMediaController = settings.mediaController
+        }
     }
 }
 
@@ -80,11 +81,13 @@ struct ControllerOptionView: View {
     let controller: MediaControllerType
     let isSelected: Bool
 
+    @Environment(\.bindableSettings) var settings
+
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                 .font(.title2)
-                .foregroundColor(isSelected ? .effectiveAccent : .secondary.opacity(0.5))
+                .foregroundColor(isSelected ? Color.effectiveAccent(from: settings) : .secondary.opacity(0.5))
                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -108,16 +111,15 @@ struct ControllerOptionView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isSelected ? Color.effectiveAccent.opacity(0.15) : Color.clear)
+                .fill(isSelected ? Color.effectiveAccent(from: settings).opacity(0.15) : Color.clear)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isSelected ? Color.effectiveAccent : Color.secondary.opacity(0.3), lineWidth: 1.5)
+                .stroke(isSelected ? Color.effectiveAccent(from: settings) : Color.secondary.opacity(0.3), lineWidth: 1.5)
         )
         .contentShape(Rectangle())
     }
 }
-
 
 extension MediaControllerType {
     var description: String {

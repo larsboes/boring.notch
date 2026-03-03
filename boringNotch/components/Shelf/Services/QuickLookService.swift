@@ -11,15 +11,19 @@ import SwiftUI
 import QuickLookUI
 import AppKit
 
-@MainActor
-final class QuickLookService: ObservableObject {
-    @Published var urls: [URL] = []
-    @Published var selectedURL: URL?
+import Observation
 
-    @Published var isQuickLookOpen: Bool = false
+@MainActor
+@Observable
+final class QuickLookService {
+    static let shared = QuickLookService()
+    
+    var urls: [URL] = []
+    var selectedURL: URL?
+
+    var isQuickLookOpen: Bool = false
 
     private var previewPanel: QLPreviewPanel?
-    private var dataSource: QuickLookDataSource?
     private var accessingURLs: [URL] = []
     private var previewPanelObserver: Any?
 
@@ -34,9 +38,14 @@ final class QuickLookService: ObservableObject {
         }
         self.urls = accessingURLs
         self.isQuickLookOpen = true
-        if selectFirst {
-            self.selectedURL = accessingURLs.first
+        
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(50))
+            if selectFirst {
+                self.selectedURL = accessingURLs.first
+            }
         }
+        
         // Observe the shared Quick Look preview panel closing so we can relinquish security scope
         let panel = QLPreviewPanel.shared()
         // Remove any existing observer for previous panel
@@ -74,13 +83,9 @@ final class QuickLookService: ObservableObject {
         }
     }
     
-    func showQuickLook(urls: [URL]) {
-        show(urls: urls, selectFirst: true, slideshow: false)
-    }
-
     func updateSelection(urls: [URL]) {
         guard isQuickLookOpen else { return }
-    show(urls: urls, selectFirst: true)
+        show(urls: urls, selectFirst: true)
     }
 }
 
@@ -101,9 +106,10 @@ extension QuickLookService {
 }
 
 struct QuickLookPresenter: ViewModifier {
-    @ObservedObject var service: QuickLookService
+    var service: QuickLookService
 
     func body(content: Content) -> some View {
+        @Bindable var service = service
         content
             .quickLookPreview($service.selectedURL, in: service.urls)
     }
@@ -112,23 +118,5 @@ struct QuickLookPresenter: ViewModifier {
 extension View {
     func quickLookPresenter(using service: QuickLookService) -> some View {
         self.modifier(QuickLookPresenter(service: service))
-    }
-}
-
-
-final class QuickLookDataSource: NSObject, QLPreviewPanelDataSource, QLPreviewPanelDelegate {
-    private let urls: [URL]
-
-    init(urls: [URL]) {
-        self.urls = urls
-        super.init()
-    }
-
-    nonisolated func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {
-        return urls.count
-    }
-    nonisolated func previewPanel(_ panel: QLPreviewPanel!, previewItemAt index: Int) -> QLPreviewItem! {
-        guard index >= 0 && index < urls.count else { return nil }
-        return urls[index] as QLPreviewItem
     }
 }

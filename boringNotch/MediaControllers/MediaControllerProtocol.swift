@@ -9,7 +9,9 @@ import Foundation
 import AppKit
 import Combine
 
-protocol MediaControllerProtocol: ObservableObject {
+/// All concrete implementations must be `@Observable @MainActor`.
+@MainActor
+protocol MediaControllerProtocol: AnyObject {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> { get }
     var supportsVolumeControl: Bool { get }
     var supportsFavorite: Bool { get }

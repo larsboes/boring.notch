@@ -9,17 +9,31 @@ import SwiftUI
 import AppKit
 
 struct ShelfView: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @StateObject var tvm = ShelfStateViewModel.shared
-    @StateObject var selection = ShelfSelectionModel.shared
-    @StateObject private var quickLookService = QuickLookService()
+    @Environment(BoringViewModel.self) var vm
+    @Environment(\.pluginManager) var pluginManager
+    
+    private var selection: ShelfSelectionModel {
+        pluginManager?.services.shelf.selection ?? ShelfSelectionModel()
+    }
+    
+    private var quickLookService: QuickLookService {
+        pluginManager!.services.quickLook
+    }
+    private var quickShareService: QuickShareService {
+        pluginManager!.services.quickShare
+    }
+    private var shelfService: ShelfServiceProtocol {
+        pluginManager!.services.shelf
+    }
     private let spacing: CGFloat = 8
 
     var body: some View {
+        @Bindable var vm = vm
+        
         HStack(spacing: 12) {
             FileShareView()
                 .aspectRatio(1, contentMode: .fit)
-                .environmentObject(vm)
+                .environment(vm)
             panel
                 .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
@@ -35,14 +49,14 @@ struct ShelfView: View {
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard !selection.isDragging else { return false }
         vm.dropEvent = true
-        ShelfStateViewModel.shared.load(providers)
+        shelfService.load(providers)
         return true
     }
     
     private func updateQuickLookSelection() {
         guard quickLookService.isQuickLookOpen && !selection.selectedIDs.isEmpty else { return }
         
-        let selectedItems = selection.selectedItems(in: tvm.items)
+        let selectedItems = selection.selectedItems(in: shelfService.items)
         let urls: [URL] = selectedItems.compactMap { item in
             if let fileURL = item.fileURL {
                 return fileURL
@@ -78,8 +92,9 @@ struct ShelfView: View {
     }
 
     var content: some View {
-        Group {
-            if tvm.isEmpty {
+        @Bindable var vm = vm
+        return Group {
+            if shelfService.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "tray.and.arrow.down")
                         .symbolVariant(.fill)
@@ -94,10 +109,10 @@ struct ShelfView: View {
                 }
             } else {
                 ScrollView(.horizontal) {
-                    HStack(spacing: spacing) {
-                        ForEach(tvm.items) { item in
-                            ShelfItemView(item: item)
-                                .environmentObject(quickLookService)
+                    LazyHStack(spacing: spacing) {
+                        ForEach(shelfService.items) { item in
+                            ShelfItemView(item: item, shelfService: shelfService, quickLookService: quickLookService, quickShareService: quickShareService)
+                                .environment(vm)
                         }
                     }
                 }
@@ -109,7 +124,7 @@ struct ShelfView: View {
             }
         }
         .onAppear {
-            ShelfStateViewModel.shared.cleanupInvalidItems()
+            shelfService.cleanupInvalidItems()
         }
     }
 }

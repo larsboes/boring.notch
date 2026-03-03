@@ -9,18 +9,27 @@ import Foundation
 import Combine
 import SwiftUI
 
-class SpotifyController: MediaControllerProtocol {
+@Observable
+@MainActor
+final class SpotifyController: MediaControllerProtocol {
     func setFavorite(_ favorite: Bool) async {
-        //Placeholder
+        // Placeholder
     }
-    
+
     // MARK: - Properties
-    @Published private var playbackState: PlaybackState = PlaybackState(
+    private var playbackState: PlaybackState = PlaybackState(
         bundleIdentifier: "com.spotify.client"
+    ) {
+        didSet { _playbackStateSubject.send(playbackState) }
+    }
+
+    @ObservationIgnored
+    private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
+        PlaybackState(bundleIdentifier: "com.spotify.client")
     )
-    
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
-        $playbackState.eraseToAnyPublisher()
+        _playbackStateSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {
@@ -29,15 +38,17 @@ class SpotifyController: MediaControllerProtocol {
 
     var supportsFavorite: Bool { false }
 
-    private var notificationTask: Task<Void, Never>?
+    nonisolated(unsafe) private var notificationTask: Task<Void, Never>?
     
     // Constant for time between command and update
     private let commandUpdateDelay: Duration = .milliseconds(25)
 
     private var lastArtworkURL: String?
-    private var artworkFetchTask: Task<Void, Never>?
-    
-    init() {
+    nonisolated(unsafe) private var artworkFetchTask: Task<Void, Never>?
+    private let imageService: ImageServiceProtocol
+
+    init(imageService: ImageServiceProtocol = ImageService()) {
+        self.imageService = imageService
         setupPlaybackStateChangeObserver()
         Task {
             if isActive() {
@@ -47,11 +58,11 @@ class SpotifyController: MediaControllerProtocol {
     }
     
     private func setupPlaybackStateChangeObserver() {
-        notificationTask = Task { @Sendable [weak self] in
+        notificationTask = Task { [weak self] in
             let notifications = DistributedNotificationCenter.default().notifications(
                 named: NSNotification.Name("com.spotify.client.PlaybackStateChanged")
             )
-            
+
             for await _ in notifications {
                 await self?.updatePlaybackInfo()
             }
@@ -141,7 +152,7 @@ class SpotifyController: MediaControllerProtocol {
 
             artworkFetchTask = Task {
                 do {
-                    let data = try await ImageService.shared.fetchImageData(from: url)
+                    let data = try await imageService.fetchImageData(from: url)
 
                     await MainActor.run { [weak self] in
                         guard let self = self else { return }
