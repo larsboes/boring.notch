@@ -14,7 +14,7 @@ struct NotchMoodView: View {
     
     // Fallback if pluginManager is nil (shouldn't happen in production)
     var faceService: any FaceServiceProtocol {
-        pluginManager?.services.face ?? FaceService()
+        pluginManager?.services.face ?? FaceService(settings: settings)
     }
     
     @State private var blink = false

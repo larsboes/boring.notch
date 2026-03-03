@@ -54,7 +54,7 @@ struct ExpandedItem {
     private(set) var expandingViewDispatch: DispatchWorkItem?
     var hudEnableTask: Task<Void, Never>?
 
-    let settings: any CoordinatorSettings
+    var settings: any CoordinatorSettings
 
     var selectedScreenUUID: String = NSScreen.main?.displayUUID ?? ""
 
@@ -109,15 +109,15 @@ struct ExpandedItem {
         if settings.preferredScreenUUID == nil, let legacyName = legacyName {
             if let screen = NSScreen.screens.first(where: { $0.localizedName == legacyName }),
                let uuid = screen.displayUUID {
-                settings.preferredScreenUUID = uuid
+                self.settings.preferredScreenUUID = uuid
                 NSLog("Migrated display preference from name '\(legacyName)' to UUID '\(uuid)'")
             } else {
-                settings.preferredScreenUUID = NSScreen.main?.displayUUID
+                self.settings.preferredScreenUUID = NSScreen.main?.displayUUID
                 NSLog("Could not find display named '\(legacyName)', falling back to main screen")
             }
             UserDefaults.standard.removeObject(forKey: "preferred_screen_name")
-        } else if settings.preferredScreenUUID == nil {
-            settings.preferredScreenUUID = NSScreen.main?.displayUUID
+        } else if self.settings.preferredScreenUUID == nil {
+            self.settings.preferredScreenUUID = NSScreen.main?.displayUUID
         }
 
         selectedScreenUUID = settings.preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""

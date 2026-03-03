@@ -8,7 +8,7 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
     var authorizationStatus: UNAuthorizationStatus = .notDetermined
 
     private let center = UNUserNotificationCenter.current()
-    private let settings: any NotificationSettings
+    private var settings: any NotificationSettings
     // Cached for nonisolated delegate callback
     nonisolated(unsafe) private var cachedDeliveryStyle: NotificationDeliveryStyle = .banner
     private var retentionObservation: Task<Void, Never>?

@@ -31,7 +31,7 @@ class QuickShareService {
     private let temporaryFileStorage: any TemporaryFileStorageServiceProtocol
     private let sharingStateManager: any SharingServiceProtocol
 
-    init(temporaryFileStorage: any TemporaryFileStorageServiceProtocol, sharingStateManager: any SharingServiceProtocol = SharingStateManager()) {
+    init(temporaryFileStorage: any TemporaryFileStorageServiceProtocol, sharingStateManager: any SharingServiceProtocol) {
         self.temporaryFileStorage = temporaryFileStorage
         self.sharingStateManager = sharingStateManager
         Task {
@@ -132,7 +132,7 @@ class QuickShareService {
         let completion: (NSApplication.ModalResponse) -> Void = { [weak self] response in
             defer {
                 self?.isPickerOpen = false
-                sharingStateManager.endInteraction()
+                self?.sharingStateManager.endInteraction()
             }
 
             if response == .OK && !panel.urls.isEmpty {

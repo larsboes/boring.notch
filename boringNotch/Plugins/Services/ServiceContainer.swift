@@ -100,7 +100,7 @@ final class ServiceContainer {
         self.battery = BatteryService(eventBus: eventBus, settings: settings)
         self.calendar = CalendarService()
         self.weather = WeatherService()
-        self.face = FaceService()
+        self.face = FaceService(settings: settings)
         self.dragDrop = DragDropService()
 
         self.temporaryFileStorage = TemporaryFileStorageService()
@@ -152,8 +152,8 @@ final class ServiceContainer {
         quickShare: QuickShareService,
         bluetooth: (any BluetoothServiceProtocol)? = nil,
         bluetoothManager: BluetoothManager,
-        notesManager: NotesManager = NotesManager(),
-        clipboardManager: ClipboardManager = ClipboardManager()
+        notesManager: NotesManager,
+        clipboardManager: ClipboardManager
     ) {
         self.music = music
         self.sound = sound

@@ -114,7 +114,7 @@ struct PluginMusicControlsView: View {
                     range: 0...service.songDuration,
                     color: settings.sliderColor == SliderColorEnum.albumArt
                         ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.8)
-                        : settings.sliderColor == SliderColorEnum.accent ? .effectiveAccent : .white,
+                        : settings.sliderColor == SliderColorEnum.accent ? Color.effectiveAccent(from: settings) : .white,
                     dragging: $dragging,
                     lastDragged: $lastDragged,
                     onValueChange: { newValue in

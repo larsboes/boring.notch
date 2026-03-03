@@ -81,11 +81,13 @@ struct ControllerOptionView: View {
     let controller: MediaControllerType
     let isSelected: Bool
 
+    @Environment(\.bindableSettings) var settings
+
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                 .font(.title2)
-                .foregroundColor(isSelected ? .effectiveAccent : .secondary.opacity(0.5))
+                .foregroundColor(isSelected ? Color.effectiveAccent(from: settings) : .secondary.opacity(0.5))
                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
 
             VStack(alignment: .leading, spacing: 4) {

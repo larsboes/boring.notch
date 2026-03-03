@@ -38,13 +38,13 @@ final class SpotifyController: MediaControllerProtocol {
 
     var supportsFavorite: Bool { false }
 
-    private var notificationTask: Task<Void, Never>?
+    nonisolated(unsafe) private var notificationTask: Task<Void, Never>?
     
     // Constant for time between command and update
     private let commandUpdateDelay: Duration = .milliseconds(25)
 
     private var lastArtworkURL: String?
-    private var artworkFetchTask: Task<Void, Never>?
+    nonisolated(unsafe) private var artworkFetchTask: Task<Void, Never>?
     private let imageService: ImageServiceProtocol
 
     init(imageService: ImageServiceProtocol = ImageService()) {

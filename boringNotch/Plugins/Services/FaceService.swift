@@ -22,7 +22,7 @@ final class FaceService: FaceServiceProtocol {
     private var mouseMonitor: Any?
     private var idleTimer: Timer?
     private let idleThreshold: TimeInterval = 10.0
-    private let settings: any MediaSettings
+    private var settings: any MediaSettings
 
     // MARK: - Initialization
 

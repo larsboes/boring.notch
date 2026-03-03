@@ -95,7 +95,7 @@ final class WindowCoordinator {
                 .environment(viewModel)
                 .environment(coordinator)
                 .environment(stateMachine)
-                .environment(\.pluginManager, pluginManager)
+                .environment(\.pluginManager, pluginManager as PluginManager?)
                 .environment(\.showSettingsWindow, showSettingsWindow ?? {})
         )
 
@@ -162,3 +162,4 @@ final class WindowCoordinator {
         return primaryViewModel
     }
 }
+

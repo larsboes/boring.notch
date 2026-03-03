@@ -8,7 +8,13 @@
 import SwiftUI
 
 extension Color {
-    static func effectiveAccent(from settings: any DisplaySettings) -> Color {
+    /// Convenience accessor using the shared settings instance.
+    /// Prefer `effectiveAccent(from:)` with injected settings where available.
+    @MainActor static var effectiveAccent: Color {
+        effectiveAccent(from: DefaultsNotchSettings.shared)
+    }
+
+    @MainActor static func effectiveAccent(from settings: any DisplaySettings) -> Color {
         if settings.useCustomAccentColor,
            let colorData = settings.customAccentColorData,
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
@@ -18,7 +24,7 @@ extension Color {
     }
 
     /// Returns a darker version of the accent color suitable for backgrounds
-    static func effectiveAccentBackground(from settings: any DisplaySettings) -> Color {
+    @MainActor static func effectiveAccentBackground(from settings: any DisplaySettings) -> Color {
         if settings.useCustomAccentColor,
            let colorData = settings.customAccentColorData,
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
@@ -48,7 +54,7 @@ extension Color {
 }
 
 extension NSColor {
-    static func effectiveAccent(from settings: any DisplaySettings) -> NSColor {
+    @MainActor static func effectiveAccent(from settings: any DisplaySettings) -> NSColor {
         if settings.useCustomAccentColor,
            let colorData = settings.customAccentColorData,
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
@@ -58,7 +64,7 @@ extension NSColor {
     }
 
     /// Returns a darker version of the accent color as NSColor suitable for backgrounds
-    static func effectiveAccentBackground(from settings: any DisplaySettings) -> NSColor {
+    @MainActor static func effectiveAccentBackground(from settings: any DisplaySettings) -> NSColor {
         if settings.useCustomAccentColor,
            let colorData = settings.customAccentColorData,
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {

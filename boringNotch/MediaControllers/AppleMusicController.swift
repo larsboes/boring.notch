@@ -37,7 +37,7 @@ final class AppleMusicController: MediaControllerProtocol {
         return true
     }
 
-    private var notificationTask: Task<Void, Never>?
+    nonisolated(unsafe) private var notificationTask: Task<Void, Never>?
     
     // MARK: - Initialization
     init() {

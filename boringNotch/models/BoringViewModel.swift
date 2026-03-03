@@ -119,8 +119,8 @@ import SwiftUI
         musicService: any MusicServiceProtocol,
         soundService: any SoundServiceProtocol,
         dragDropService: any DragDropServiceProtocol,
-        sharingService: any SharingServiceProtocol = SharingStateManager(),
-        settings: NotchViewModelSettings = DefaultNotchViewModelSettings(),
+        sharingService: any SharingServiceProtocol,
+        settings: NotchViewModelSettings? = nil,
         displaySettings: any DisplaySettings = DefaultsNotchSettings.shared
     ) {
         self.coordinator = coordinator
@@ -130,14 +130,14 @@ import SwiftUI
         self.soundService = soundService
         self.dragDropService = dragDropService
         self.sharingService = sharingService
-        self.settings = settings
+        self.settings = settings ?? DefaultNotchViewModelSettings()
         self.displaySettings = displaySettings
         self.animation = animationLibrary.animation
 
         // Initialize extracted components
-        self.hoverController = NotchHoverController(settings: settings, displaySettings: displaySettings)
-        self.sizeCalculator = NotchSizeCalculator(settings: settings, displaySettings: displaySettings, musicService: musicService)
-        self.observerSetup = NotchObserverSetup(settings: settings, detector: detector)
+        self.hoverController = NotchHoverController(settings: self.settings, displaySettings: displaySettings)
+        self.sizeCalculator = NotchSizeCalculator(settings: self.settings, displaySettings: displaySettings, musicService: musicService)
+        self.observerSetup = NotchObserverSetup(settings: self.settings, detector: detector)
 
         // Shelf service will be injected via property setter
         self.shelfService = nil
@@ -175,7 +175,8 @@ import SwiftUI
             webcamService: WebcamManager(),
             musicService: musicService,
             soundService: SoundService(),
-            dragDropService: DragDropService()
+            dragDropService: DragDropService(),
+            sharingService: SharingStateManager()
         )
     }
 

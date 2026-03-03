@@ -35,7 +35,7 @@ final class DragDetectionCoordinator {
         windowCoordinator: WindowCoordinator,
         coordinator: BoringViewCoordinator,
         settings: NotchSettings,
-        makeDragDropService: @escaping () -> DragDropService = { DragDropService() }
+        makeDragDropService: @escaping @MainActor () -> DragDropService = { DragDropService() }
     ) {
         self.windowCoordinator = windowCoordinator
         self.coordinator = coordinator
