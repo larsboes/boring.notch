@@ -11,10 +11,10 @@
 
 ---
 
-## Current State (updated 2026-03-02)
+## Current State (updated 2026-03-03)
 
-**Active branch:** `refactor/singleton-elimination-tier3`
-**Stable branch:** `developer` → PR #1 opened from `developer-clean` branch
+**Active branch:** `main` (all refactor work merged)
+**Branches:** `main` = `developer` = `refactor/singleton-elimination-tier3` (all synced, pushed to origin)
 
 ### Phase 1 — Architecture Cleanup ✅ COMPLETE
 
@@ -182,7 +182,7 @@ Only system singletons remain (NSApp, URLSession, XPCHelperClient, SkyLightOpera
 
 **Goal:** Migrate all `ObservableObject`/`@Published` types to `@Observable`/`@MainActor`. Fix remaining Defaults coupling, event bus bypasses, and deprecated code.
 
-**Completed 2026-03-02.** All violations resolved. Pending macOS build verification.
+**Completed 2026-03-03.** All violations resolved. Build verified green.
 
 | Status | Task | Notes |
 |--------|------|-------|
@@ -193,6 +193,13 @@ Only system singletons remain (NSApp, URLSession, XPCHelperClient, SkyLightOpera
 | ✅ | Task 8h — Remove deprecated code | `LiquidGlassManager.swift` + `MetalBlurRenderer.swift` deleted (no live consumers). |
 
 **Post-Phase 1b audit:** Zero `ObservableObject`, zero `@Published`, zero `@ObservedObject` in entire codebase.
+
+**Build fixes (2026-03-03):** Resolved cascading Swift 6 strict concurrency errors after @Observable migration:
+- `@MainActor` added to `effectiveAccent(from:)` / `effectiveAccentBackground(from:)` (Color + NSColor) — `DisplaySettings` protocol is `@MainActor`
+- Added `Color.effectiveAccent` convenience static property (reads `DefaultsNotchSettings.shared`) for views without injected settings
+- `nonisolated(unsafe)` on `Task` properties accessed in `deinit` (NowPlayingController, SpotifyController, AppleMusicController)
+- Removed `@MainActor` default parameter values in nonisolated inits (ServiceContainer, QuickShareService, BoringViewModel, DragDetectionCoordinator)
+- `let` → `var` for settings properties that need mutation (FaceService, NotificationCenterManager)
 
 ---
 
@@ -536,7 +543,7 @@ High-level requirements:
 | Phase | Done When |
 |-------|-----------|
 | 1 | ✅ Zero `Defaults[` outside allowed files. Zero `@Default`. Zero non-allowed `.shared`. Zero files > 300 lines (except `DefaultsNotchSettings.swift`). **Completed 2026-03-02.** |
-| 1b | ✅ Zero `ObservableObject`/`@Published`. Zero direct coordinator HUD show-calls. Deprecated managers removed. **Completed 2026-03-02.** Pending macOS build verification. |
+| 1b | ✅ Zero `ObservableObject`/`@Published`. Zero direct coordinator HUD show-calls. Deprecated managers removed. Build verified green 2026-03-03. |
 | 2 | Hover is heartbeat-based. `NotchHoverController` has unit tests. 6 manual edge cases verified. |
 | 3 | `ExportablePlugin` protocol exists. Music, Calendar, Shelf export. Export UI in Settings. |
 | 4 | HabitTracker + Pomodoro shipped. Both export. Both have unit tests. |
