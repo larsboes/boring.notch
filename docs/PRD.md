@@ -37,8 +37,8 @@
 
 | Phase | Status | Summary |
 |-------|--------|---------|
-| 1, 1b, 2, 3, 4a, 8 | ✅ Shipped | Plugin arch, @Observable migration, heartbeat hover, data export, architecture debt cleanup, HabitTracker + Pomodoro, battery optimization |
-| 4 — Animation Polish | **Active** | Tasks 12-13, 16-18, 20 done. Task 14 (spring curves) needs device tuning. Task 19 (album art morph) next. Task 15 (gesture-driven) deferred. |
+| 1, 1b, 2, 3, 8 | ✅ Shipped | Plugin arch, @Observable migration, heartbeat hover, data export, HabitTracker + Pomodoro, battery optimization |
+| 4 — Animation + Arch Debt | **Active** | 15 items done (choreography, shadow, stagger, arch cleanup). Remaining: spring tuning, album art morph, gesture-driven open. |
 | 5 — Local API | **MVP shipped; hardening next** | Core REST + WebSocket live. Dynamic route registration + path params added. Plugin/music routes, auth, rate limiting remain. |
 | 6 — API-Powered Plugins | Planned | Teleprompter, DisplaySurface |
 | 6b — On-Device AI Assist (Optional) | Planned | Foundation Models-backed script assist for Teleprompter + Display |
@@ -47,11 +47,39 @@
 
 ---
 
-## Phase 4 — Animation Polish (Active)
+## Phase 4 — Animation Polish + Architecture Debt (Active)
 
-**Goal:** Make open/close transitions feel as polished as Apple's Dynamic Island.
+**Goal:** Dynamic Island-quality open/close transitions + clean architecture.
 
-**Done:** Task 12 (phase timing) ✅, Task 13 (staggered header fade) ✅
+<details>
+<summary>✅ Completed — 15 items across animation + arch debt (click to expand)</summary>
+
+**Animation Polish:**
+| Task | What |
+|------|------|
+| 12 | Phase timing tuned (400→350ms open, 350→300ms close) |
+| 13 | Staggered header fade with blur |
+| 16 | Stagger 0.03→0.06s, shadow `pow(2.5)` late-onset, border `sqrt` linger |
+| 17 | Content choreography — open (`ContentRevealModifier`, continuous `contentProgress` env key) |
+| 18 | Content choreography — close (reverse of 17, automatic via `contentProgress` 1→0) |
+| 20 | `withAnimation` completion replaces `Task.sleep` phase transitions |
+
+**Architecture Debt (4a):**
+| Task | What |
+|------|------|
+| 4a.1 | `DefaultsNotchSettings` split into 5 files (was 457 lines) |
+| 4a.2 | Duplicate stub files deleted |
+| 4a.3 | `NotchStateMachine` → `NotchAnimationStateProviding` protocol |
+| 4a.4 | Direct `Defaults[.]` routed through settings protocols |
+| 4a.5 | `@MainActor` added to `NotificationCenterManager` |
+| 4a.6 | `QuickLookService` injected via protocol |
+| 4a.7 | CLAUDE.md DDD table updated (`Plugins/Core/` → Application layer) |
+| 4a.8 | Deferred to Phase 9 (`ServiceContainer` protocol extraction) |
+| 4a.9 | `sneakPeek` → `SneakPeek` rename |
+
+**Verified:** Zero files >300 lines, zero Defaults leaks, build green, 24 tests passing.
+
+</details>
 
 ### Task 14: Spring curve refinement
 
@@ -63,11 +91,6 @@
 | `close` | response: 0.35, damping: 0.92 | Good — decisive and quick |
 | `interactive` | interactiveSpring(response: 0.30, damping: 0.86) | Tuned for less overshoot during scrubbing |
 | `staggered` | spring(response: 0.32, damping: 0.86) + 0.06s delay | Widened intervals for perceptible stagger |
-
-### Task 16 ✅ Stagger timing + shadow easing
-### Task 17 ✅ Content choreography — open (`ContentRevealModifier`, continuous `contentProgress` env key)
-### Task 18 ✅ Content choreography — close (reverse of 17, automatic via `contentProgress` 1→0)
-### Task 20 ✅ `withAnimation` completion replaces `Task.sleep` phase transitions
 
 ### Task 19: Matched album art transition
 
@@ -82,33 +105,6 @@ Album art thumbnail in closed state smoothly morphs into expanded player art via
 **Status:** Deferred — needs design
 
 Replace fire-and-forget animations with continuous gesture-driven expansion. Notch height/width maps 1:1 to gesture translation — interruptible and scrubbable. Substantial refactor of `BoringViewModel+OpenClose`. Defer until Tasks 16-20 shipped.
-
----
-
-## Phase 4a — Architecture Debt ✅ (Completed 2026-03-07)
-
-<details>
-<summary>All 9 audit items resolved — click to expand</summary>
-
-**Goal:** Fix regressions discovered in the 2026-03-07 architecture audit. Violations accumulated during Phase 2-4 feature work.
-
-**Migration health at time of audit:** 127 legacy files (`managers/`, `models/`, `components/`) vs 95 modern files (`Core/`, `Plugins/`, `MediaControllers/`). Legacy was 57% of the codebase.
-
-| Task | What | Resolution |
-|------|------|------------|
-| 4a.1 | `DefaultsNotchSettings.swift` 457 lines (>300 limit) | Split into 5 files by MARK section |
-| 4a.2 | Duplicate stub files in `Core/` | Stubs deleted, real files in `Plugins/` referenced |
-| 4a.3 | `NotchStateMachine` depended on concrete `BoringViewCoordinator` | Extracted `NotchAnimationStateProviding` protocol |
-| 4a.4 | 3 files bypassed `DefaultsNotchSettings` with direct `Defaults[.]` | Routed through settings protocols |
-| 4a.5 | `NotificationCenterManager` missing `@MainActor` | Added `@MainActor` |
-| 4a.6 | `QuickLookService.shared` unlisted singleton | Injected via `QuickLookServiceProtocol` in `ServiceContainer` |
-| 4a.7 | `Plugins/Core/` listed as Domain but imports SwiftUI | CLAUDE.md DDD table updated — moved to Application layer |
-| 4a.8 | `PluginContext.services` typed as concrete `ServiceContainer` | Deferred to Phase 9 (only needed for third-party plugin testing) |
-| 4a.9 | `struct sneakPeek` lowercase naming | Renamed to `SneakPeek` codebase-wide |
-
-**Verified:** Zero files >300 lines, zero duplicate files, zero Defaults leaks, build green, 24 tests passing.
-
-</details>
 
 ---
 
