@@ -33,6 +33,12 @@ protocol NotchServiceProvider {
     var quickShare: QuickShareService { get }
     var notifications: any NotificationServiceProtocol { get }
     
+    /// API Route Registrar (optional, only available when API server is running)
+    var apiRouteRegistrar: (any APIRouteRegistrar)? { get }
+    
+    /// AI text generation service (domain-level — use this, not AIManager directly)
+    var ai: any AITextGenerationService { get }
+    
     // Managers (consider protocols for these if needed later)
     var bluetoothManager: BluetoothManager { get }
     var notesManager: NotesManager { get }

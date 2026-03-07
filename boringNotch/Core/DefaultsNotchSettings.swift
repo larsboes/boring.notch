@@ -27,6 +27,11 @@ final class DefaultsNotchSettings: NotchSettings {
         get { Defaults[.showWhatsNew] }
         set { Defaults[.showWhatsNew] = newValue }
     }
+    
+    var isAIEnabled: Bool {
+        get { Defaults[.enableAI] }
+        set { Defaults[.enableAI] = newValue }
+    }
 
     // MARK: - One-Time Migrations
 

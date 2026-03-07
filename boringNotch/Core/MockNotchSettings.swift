@@ -15,6 +15,7 @@ final class MockNotchSettings: NotchSettings {
     // MARK: - General App Settings
     var firstLaunch: Bool = true
     var showWhatsNew: Bool = true
+    var isAIEnabled: Bool = true
 
     // MARK: - HUD Settings
     var currentMicStatus: Bool = true

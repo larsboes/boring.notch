@@ -297,6 +297,26 @@
 		FF5248DF6260710CA5B6C556 /* HabitClosedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0603643D654C74C555862767 /* HabitClosedView.swift */; };
 		FF86A1260B3CF40EEA4B3EB2 /* DefaultsNotchSettings+Plugins.swift in Sources */ = {isa = PBXBuildFile; fileRef = F669397153DED9DDA8BC3C7F /* DefaultsNotchSettings+Plugins.swift */; };
 		FFBFA7A0C2A7138FEDA8B6C3 /* PluginContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7231CBEA1B26EC990993D858 /* PluginContext.swift */; };
+		D2DA01C99A9A4CB5A899E09F /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F691E5C302714ED59B596A62 /* AppIntents.swift */; };
+		5B4D310317DC42D9B3611CF3 /* URLSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB2FC45D0854C659B680D6D /* URLSchemeHandler.swift */; };
+		FCF6949345A749EB944EDFBC /* AIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D673572B654148068BF6CFA8 /* AIManager.swift */; };
+		7B75FA5F1F124C669BC6ED11 /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2869E20A105C48A687A79531 /* AIProvider.swift */; };
+		1749C5E3960D4850B8D90EAC /* AITextGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D7E4799D65C4C46916CDECE /* AITextGenerationService.swift */; };
+		6AF9C4776E5C48FD89671817 /* NoAITextGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 897029767DD9495291263208 /* NoAITextGenerationService.swift */; };
+		1A76B1BAC4F14EFCADE7AE3C /* OllamaProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8C6831482194E108D82BA4A /* OllamaProvider.swift */; };
+		29BF83E61E28405682127614 /* ProviderBackedAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33014323C244FA1BC29AFF9 /* ProviderBackedAIService.swift */; };
+		8086691BF2EB4528A014821E /* DisplayContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F55499D3A444E4BA3E5138 /* DisplayContent.swift */; };
+		8670254E12D847A8910640C3 /* DisplaySurfacePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE4831C9F404BB096A5B19F /* DisplaySurfacePlugin.swift */; };
+		3562226DCCA14FFFBBAD64FE /* DisplaySurfaceState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB734CE9FD34BA6A7096521 /* DisplaySurfaceState.swift */; };
+		0420DD7E95E74475A3C9D795 /* DisplaySurfaceClosedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1816D9AB5342A8918BF82F /* DisplaySurfaceClosedView.swift */; };
+		D6A1952F9109462F8045A4EE /* DisplaySurfaceExpandedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C9355539F648C6A237F5C5 /* DisplaySurfaceExpandedView.swift */; };
+		61E3D965BB9740548E84AEDA /* TeleprompterPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18ECC011362459EB01D4735 /* TeleprompterPlugin.swift */; };
+		D3DF09956CC04F30B51F5501 /* TeleprompterScrollEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47BC6F5CAE464E9E985F7E24 /* TeleprompterScrollEngine.swift */; };
+		46E5ECA4A0484AC6925E02FC /* TeleprompterState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E89F93D419C42EE8D894352 /* TeleprompterState.swift */; };
+		D65C71C9747A41F1B1262CDC /* TeleprompterClosedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C73085443E4827B76CDF60 /* TeleprompterClosedView.swift */; };
+		FB41DEC634E3427B8D8B41EA /* TeleprompterExpandedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE1CD63669B40658BB453AA /* TeleprompterExpandedView.swift */; };
+		08ECE1EFB95E420E82298A1A /* TeleprompterSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01471F601343430CA9CB9152 /* TeleprompterSettingsView.swift */; };
+		45736EB72C6F4A7B96A390D7 /* APIRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B02F8D609742898CD3B0EE /* APIRouterTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -632,6 +652,26 @@
 		F90A69E202A04A6BBCF1E913 /* BoringViewCoordinator+Plugins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoringViewCoordinator+Plugins.swift"; sourceTree = "<group>"; };
 		F9750452CD89BB8FD364799F /* MusicSlotConfigurationView+DragDrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MusicSlotConfigurationView+DragDrop.swift"; sourceTree = "<group>"; };
 		FF6BE2334C4CDF3755A24760 /* DataPortabilityView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DataPortabilityView.swift; path = boringNotch/components/Settings/Views/DataPortabilityView.swift; sourceTree = "<group>"; };
+		F691E5C302714ED59B596A62 /* AppIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppIntents.swift; path = boringNotch/Core/AppIntents.swift; sourceTree = "<group>"; };
+		2EB2FC45D0854C659B680D6D /* URLSchemeHandler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = URLSchemeHandler.swift; path = boringNotch/Core/URLSchemeHandler.swift; sourceTree = "<group>"; };
+		D673572B654148068BF6CFA8 /* AIManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIManager.swift; path = boringNotch/Plugins/AI/AIManager.swift; sourceTree = "<group>"; };
+		2869E20A105C48A687A79531 /* AIProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIProvider.swift; path = boringNotch/Plugins/AI/AIProvider.swift; sourceTree = "<group>"; };
+		0D7E4799D65C4C46916CDECE /* AITextGenerationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AITextGenerationService.swift; path = boringNotch/Plugins/AI/AITextGenerationService.swift; sourceTree = "<group>"; };
+		897029767DD9495291263208 /* NoAITextGenerationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NoAITextGenerationService.swift; path = boringNotch/Plugins/AI/NoAITextGenerationService.swift; sourceTree = "<group>"; };
+		D8C6831482194E108D82BA4A /* OllamaProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OllamaProvider.swift; path = boringNotch/Plugins/AI/OllamaProvider.swift; sourceTree = "<group>"; };
+		A33014323C244FA1BC29AFF9 /* ProviderBackedAIService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProviderBackedAIService.swift; path = boringNotch/Plugins/AI/ProviderBackedAIService.swift; sourceTree = "<group>"; };
+		08F55499D3A444E4BA3E5138 /* DisplayContent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DisplayContent.swift; path = boringNotch/Plugins/BuiltIn/DisplaySurfacePlugin/DisplayContent.swift; sourceTree = "<group>"; };
+		AAE4831C9F404BB096A5B19F /* DisplaySurfacePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DisplaySurfacePlugin.swift; path = boringNotch/Plugins/BuiltIn/DisplaySurfacePlugin/DisplaySurfacePlugin.swift; sourceTree = "<group>"; };
+		0AB734CE9FD34BA6A7096521 /* DisplaySurfaceState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DisplaySurfaceState.swift; path = boringNotch/Plugins/BuiltIn/DisplaySurfacePlugin/DisplaySurfaceState.swift; sourceTree = "<group>"; };
+		1A1816D9AB5342A8918BF82F /* DisplaySurfaceClosedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DisplaySurfaceClosedView.swift; path = boringNotch/Plugins/BuiltIn/DisplaySurfacePlugin/Views/DisplaySurfaceClosedView.swift; sourceTree = "<group>"; };
+		A0C9355539F648C6A237F5C5 /* DisplaySurfaceExpandedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DisplaySurfaceExpandedView.swift; path = boringNotch/Plugins/BuiltIn/DisplaySurfacePlugin/Views/DisplaySurfaceExpandedView.swift; sourceTree = "<group>"; };
+		E18ECC011362459EB01D4735 /* TeleprompterPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TeleprompterPlugin.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/TeleprompterPlugin.swift; sourceTree = "<group>"; };
+		47BC6F5CAE464E9E985F7E24 /* TeleprompterScrollEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TeleprompterScrollEngine.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/TeleprompterScrollEngine.swift; sourceTree = "<group>"; };
+		4E89F93D419C42EE8D894352 /* TeleprompterState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TeleprompterState.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/TeleprompterState.swift; sourceTree = "<group>"; };
+		F8C73085443E4827B76CDF60 /* TeleprompterClosedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TeleprompterClosedView.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/Views/TeleprompterClosedView.swift; sourceTree = "<group>"; };
+		1AE1CD63669B40658BB453AA /* TeleprompterExpandedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TeleprompterExpandedView.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/Views/TeleprompterExpandedView.swift; sourceTree = "<group>"; };
+		01471F601343430CA9CB9152 /* TeleprompterSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TeleprompterSettingsView.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/Views/TeleprompterSettingsView.swift; sourceTree = "<group>"; };
+		80B02F8D609742898CD3B0EE /* APIRouterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = APIRouterTests.swift; path = boringNotchTests/APIRouterTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -1757,6 +1797,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2DA01C99A9A4CB5A899E09F /* AppIntents.swift in Sources */,
+				5B4D310317DC42D9B3611CF3 /* URLSchemeHandler.swift in Sources */,
+				FCF6949345A749EB944EDFBC /* AIManager.swift in Sources */,
+				7B75FA5F1F124C669BC6ED11 /* AIProvider.swift in Sources */,
+				1749C5E3960D4850B8D90EAC /* AITextGenerationService.swift in Sources */,
+				6AF9C4776E5C48FD89671817 /* NoAITextGenerationService.swift in Sources */,
+				1A76B1BAC4F14EFCADE7AE3C /* OllamaProvider.swift in Sources */,
+				29BF83E61E28405682127614 /* ProviderBackedAIService.swift in Sources */,
+				8086691BF2EB4528A014821E /* DisplayContent.swift in Sources */,
+				8670254E12D847A8910640C3 /* DisplaySurfacePlugin.swift in Sources */,
+				3562226DCCA14FFFBBAD64FE /* DisplaySurfaceState.swift in Sources */,
+				0420DD7E95E74475A3C9D795 /* DisplaySurfaceClosedView.swift in Sources */,
+				D6A1952F9109462F8045A4EE /* DisplaySurfaceExpandedView.swift in Sources */,
+				61E3D965BB9740548E84AEDA /* TeleprompterPlugin.swift in Sources */,
+				D3DF09956CC04F30B51F5501 /* TeleprompterScrollEngine.swift in Sources */,
+				46E5ECA4A0484AC6925E02FC /* TeleprompterState.swift in Sources */,
+				D65C71C9747A41F1B1262CDC /* TeleprompterClosedView.swift in Sources */,
+				FB41DEC634E3427B8D8B41EA /* TeleprompterExpandedView.swift in Sources */,
+				08ECE1EFB95E420E82298A1A /* TeleprompterSettingsView.swift in Sources */,
 				CORE7611A205450229DA1164 /* DragDetectionCoordinator.swift in Sources */,
 				COREA9786F124ECC053D5728 /* KeyboardShortcutCoordinator.swift in Sources */,
 				COREF3006D72890ED4E637F9 /* NotchContentRouter.swift in Sources */,
@@ -2030,6 +2089,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45736EB72C6F4A7B96A390D7 /* APIRouterTests.swift in Sources */,
 				481109FFAE8F7A980C360A0E /* NotchStateMachineTests.swift in Sources */,
 				969B08A0CD751A676280F2CE /* NotchHoverControllerTests.swift in Sources */,
 			);

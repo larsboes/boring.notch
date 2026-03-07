@@ -4,13 +4,15 @@ import Combine
 @MainActor
 final class LocalAPIServerController {
     private let eventBus: PluginEventBus
+    private let pluginManager: PluginManager
     private let viewModelProvider: () -> BoringViewModel
 
     private var server: LocalAPIServer?
     private var cancellables = Set<AnyCancellable>()
 
-    init(eventBus: PluginEventBus, viewModelProvider: @escaping () -> BoringViewModel) {
+    init(eventBus: PluginEventBus, pluginManager: PluginManager, viewModelProvider: @escaping () -> BoringViewModel) {
         self.eventBus = eventBus
+        self.pluginManager = pluginManager
         self.viewModelProvider = viewModelProvider
     }
 
@@ -19,6 +21,14 @@ final class LocalAPIServerController {
 
         let router = APIRouter()
         registerDefaultRoutes(on: router)
+        PluginAPIRoutes.register(on: router, pluginManager: pluginManager)
+        PluginAPIRoutes.registerMusic(on: router, musicService: pluginManager.services.music)
+
+        // Expose router to plugins
+        // Cast check is needed because services is NotchServiceProvider
+        if let container = pluginManager.services as? ServiceContainer {
+            container.apiRouteRegistrar = router
+        }
 
         let server = LocalAPIServer(router: router)
         do {
@@ -123,13 +133,34 @@ final class LocalAPIServerController {
     }
 
     private func mapEvent(_ event: any PluginEvent) -> APIEventPayload {
-        APIEventPayload(
+        var data: [String: String] = [
+            "sourcePluginId": event.sourcePluginId,
+            "timestamp": ISO8601DateFormatter().string(from: event.timestamp)
+        ]
+
+        // Add event-specific data
+        if let musicEvent = event as? MusicTrackChangedEvent {
+            if let track = musicEvent.newTrack {
+                data["title"] = track.title
+                data["artist"] = track.artist
+                data["album"] = track.album
+            }
+        } else if let musicPlaybackEvent = event as? MusicPlaybackChangedEvent {
+            data["isPlaying"] = String(musicPlaybackEvent.isPlaying)
+            if let track = musicPlaybackEvent.track {
+                data["title"] = track.title
+                data["artist"] = track.artist
+            }
+        } else if let notchEvent = event as? NotchStateChangedEvent {
+            data["phase"] = mapNotchPhase(notchEvent.state)
+        } else if let batteryEvent = event as? BatteryStateChangedEvent {
+            data["level"] = String(batteryEvent.level)
+            data["isCharging"] = String(batteryEvent.isCharging)
+        }
+
+        return APIEventPayload(
             type: mapEventType(event.type),
-            data: [
-                "sourcePluginId": event.sourcePluginId,
-                "eventType": event.type.rawValue,
-                "timestamp": ISO8601DateFormatter().string(from: event.timestamp)
-            ]
+            data: data
         )
     }
 
@@ -139,12 +170,26 @@ final class LocalAPIServerController {
             return "notch.opened"
         case .notchClosed:
             return "notch.closed"
-        case .musicTrackChanged:
+        case .notchExpanded:
+            return "notch.expanded"
+        case .musicTrackChanged, .musicPlaybackStarted, .musicPlaybackPaused:
             return "music.changed"
         case .pluginActivated, .pluginDeactivated:
             return "plugin.stateChanged"
+        case .batteryLevelChanged, .batteryChargingStateChanged:
+            return "system.batteryChanged"
         default:
             return "plugin.event"
+        }
+    }
+
+    private func mapNotchPhase(_ state: NotchDisplayState) -> String {
+        switch state {
+        case .closed: return "closed"
+        case .open: return "open"
+        case .helloAnimation: return "hello"
+        case .sneakPeek: return "sneakPeek"
+        case .expanding: return "expanding"
         }
     }
 }

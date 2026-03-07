@@ -8,6 +8,8 @@ final class LocalAPIServer {
 
     private var listener: NWListener?
     private var webSocketClients: [UUID: WebSocketClient] = [:]
+    private let rateLimiter = APIRateLimiter()
+    private let auth = APIAuthMiddleware()
 
     init(router: APIRouter, port: UInt16 = 19384) {
         self.router = router
@@ -17,8 +19,9 @@ final class LocalAPIServer {
     func start() throws {
         guard listener == nil else { return }
 
-        let params = NWParameters.tcp
         let nwPort = NWEndpoint.Port(rawValue: port) ?? 19384
+        let params = NWParameters.tcp
+        params.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: nwPort)
         let listener = try NWListener(using: params, on: nwPort)
 
         listener.newConnectionHandler = { [weak self] connection in
@@ -71,6 +74,29 @@ final class LocalAPIServer {
 
             if self.shouldUpgradeToWebSocket(request: request) {
                 self.upgradeToWebSocket(connection: connection, request: request)
+                return
+            }
+
+            // Rate limiting for write endpoints
+            if request.method == .post {
+                let clientIP = connection.endpoint.debugDescription.components(separatedBy: ":").first ?? "unknown"
+                if !self.rateLimiter.isAllowed(client: clientIP) {
+                    let tooMany = APIHTTPResponse.json(status: 429, APIResponseEnvelope<APIErrorData>.failure("Rate limit exceeded"))
+                    connection.send(content: tooMany.serialized(), completion: .contentProcessed { _ in
+                        connection.cancel()
+                    })
+                    return
+                }
+            }
+
+            // Authentication — enforce on write endpoints.
+            // Loopback-only binding means GET is safe without auth.
+            // POST requires valid bearer token when auth is configured.
+            if request.method == .post && !self.auth.authenticate(request) {
+                let unauthorized = APIHTTPResponse.json(status: 401, APIResponseEnvelope<APIErrorData>.failure("Unauthorized"))
+                connection.send(content: unauthorized.serialized(), completion: .contentProcessed { _ in
+                    connection.cancel()
+                })
                 return
             }
 

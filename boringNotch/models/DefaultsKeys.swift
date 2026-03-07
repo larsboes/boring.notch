@@ -162,4 +162,7 @@ extension Defaults.Keys {
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
+
+    // MARK: AI
+    static let enableAI = Key<Bool>("enableAI", default: true)
 }

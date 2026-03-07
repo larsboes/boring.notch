@@ -165,6 +165,25 @@ import SwiftUI
         setupDetectorObserver()
         setupBackgroundImageObserver()
         setupNotchHeightObserver()
+        setupIntentObservers()
+    }
+
+    private func setupIntentObservers() {
+        NotificationCenter.default.addObserver(
+            forName: .openNotchIntent,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.open()
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .closeNotchIntent,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.close(force: true)
+        }
     }
 
     /// Convenience initializer for previews only

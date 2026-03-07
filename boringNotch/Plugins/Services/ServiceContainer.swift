@@ -59,6 +59,12 @@ final class ServiceContainer: NotchServiceProvider {
     /// Notifications service (wraps NotificationCenterManager)
     public let notifications: any NotificationServiceProtocol
 
+    /// API Route Registrar
+    public var apiRouteRegistrar: (any APIRouteRegistrar)?
+
+    /// AI Service (domain-level text generation)
+    public let ai: any AITextGenerationService
+
     /// Bluetooth service (wraps BluetoothManager) - optional until implemented
     var bluetooth: (any BluetoothServiceProtocol)?
 
@@ -124,6 +130,12 @@ final class ServiceContainer: NotchServiceProvider {
         self.bluetoothManager = BluetoothManager(settings: settings)
         self.notesManager = NotesManager()
         self.clipboardManager = ClipboardManager()
+
+        let aiSettings = settings
+        let aiManager = AIManager(isEnabled: {
+            aiSettings.isAIEnabled
+        })
+        self.ai = aiManager.textGeneration
     }
 
     /// Full initializer for testing or custom configurations
@@ -150,6 +162,7 @@ final class ServiceContainer: NotchServiceProvider {
         shelfFileHandler: any ShelfFileHandlerProtocol,
         quickLook: any QuickLookServiceProtocol,
         quickShare: QuickShareService,
+        ai: any AITextGenerationService,
         bluetooth: (any BluetoothServiceProtocol)? = nil,
         bluetoothManager: BluetoothManager,
         notesManager: NotesManager,
@@ -177,6 +190,7 @@ final class ServiceContainer: NotchServiceProvider {
         self.shelfFileHandler = shelfFileHandler
         self.quickLook = quickLook
         self.quickShare = quickShare
+        self.ai = ai
         self.bluetooth = bluetooth
         self.bluetoothManager = bluetoothManager
         self.notesManager = notesManager

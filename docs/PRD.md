@@ -37,13 +37,51 @@
 
 | Phase | Status | Summary |
 |-------|--------|---------|
-| 1, 1b, 2, 3, 8 | ✅ Shipped | Plugin arch, @Observable migration, heartbeat hover, data export, HabitTracker + Pomodoro, battery optimization |
-| 4 — Animation + Arch Debt | **Active** | 15 items done (choreography, shadow, stagger, arch cleanup). Remaining: spring tuning, album art morph, gesture-driven open. |
-| 5 — Local API | **MVP shipped; hardening next** | Core REST + WebSocket live. Dynamic route registration + path params added. Plugin/music routes, auth, rate limiting remain. |
-| 6 — API-Powered Plugins | Planned | Teleprompter, DisplaySurface |
-| 6b — On-Device AI Assist (Optional) | Planned | Foundation Models-backed script assist for Teleprompter + Display |
-| 7 — Automation | Planned | App Intents, URL scheme |
+| 1, 1b, 2, 3, 5, 6, 6b, 7, 8 | ✅ Shipped | Core plugins, API Hardening, AI Assist, Automation, Battery & Export |
+| 4 — Animation + Arch Debt | **Active** | 15+ items done. Remaining: spring tuning, album art morph, gesture-driven open. |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
+
+---
+
+## ✅ Shipped Work
+
+| Task | Phase | Description |
+|:-----|:------|:------------|
+| 4.1 | Animation | Phase timing tuned — open 400→350ms, close 350→300ms for snappier feel. |
+| 4.2 | Animation | Staggered header fade with blur — elements reveal sequentially during open. |
+| 4.3 | Animation | Stagger interval widened 0.03→0.06s, shadow late-onset via `pow(2.5)`, border linger via `sqrt` curve. |
+| 4.4 | Animation | Content choreography (open) — `ContentRevealModifier` drives continuous `contentProgress` environment key from 0→1. |
+| 4.5 | Animation | Content choreography (close) — reverse path, `contentProgress` 1→0, automatic via modifier. |
+| 4.6 | Animation | Replaced all `Task.sleep` phase transitions with `withAnimation` completion handlers — no more timing drift. |
+| 4.7 | Arch Debt | `DefaultsNotchSettings` split from 457 lines into 5 ISP-compliant extension files. |
+| 4.8 | Arch Debt | Duplicate stub files deleted across codebase. |
+| 4.9 | Arch Debt | `NotchStateMachine` → `NotchAnimationStateProviding` protocol extraction for testability. |
+| 4.10 | Arch Debt | All direct `Defaults[.]` reads routed through settings sub-protocols — no more raw UserDefaults in business logic. |
+| 4.11 | Concurrency | `@MainActor` added to `NotificationCenterManager` — fixes implicit Sendable violations. |
+| 4.12 | DI | `QuickLookService` injected via `QuickLookServiceProtocol` — was concrete dependency. |
+| 4.13 | Docs | CLAUDE.md DDD table updated: `Plugins/Core/` reclassified as Application layer. |
+| 4.14 | Cleanup | `sneakPeek` → `SneakPeek` case rename for Swift naming conventions. |
+| 5.1 | API | **Loopback binding** — `LocalAPIServer` now binds `127.0.0.1` only via `NWParameters.requiredLocalEndpoint`. |
+| 5.2 | API | **Dynamic routing** — `APIRouteRegistrar` protocol (own file) enables plugins to register/unregister REST routes at runtime. Path params (`/plugins/{id}`) with proper 404 vs 405. |
+| 5.3 | API | **Auth middleware** — Keychain-backed Bearer token in `APIAuthMiddleware` (`@unchecked Sendable`, `NSLock`). Denies on keychain failure (secure default). Enforced on all POST endpoints. |
+| 5.4 | API | **Rate limiter** — `APIRateLimiter` (own file), sliding window 10 req/s per client. Periodic cleanup every 60s evicts stale clients — prevents unbounded memory growth. |
+| 5.5 | API | **CLI companion** — `notchctl` shell script in `scripts/` wrapping REST API (`open`, `close`, `display`, `music`, `teleprompter`). |
+| 5.6 | API | **REST endpoints** — full coverage: notch state/open/close/toggle, plugin list/detail/toggle, music now-playing/play-pause/next/previous. All plugin accesses wrapped in `MainActor.run`. |
+| 5.7 | API | **Event enrichment** — WebSocket payloads now include event-specific data (track title/artist/album, battery level/charging, notch phase) instead of generic metadata. |
+| 6.1 | Plugin | **TeleprompterPlugin** — camera-adjacent script scrolling. 6 API endpoints (load/start/pause/stop/state/ai-assist). Timer only fires when `isScrolling == true` (no idle 60fps overhead). `didSet` observer manages lifecycle. |
+| 6.2 | Plugin | **DisplaySurfacePlugin** — generic ambient display accepting text/progress/markdown via API. TTL support with cancellable `Task`. 3 endpoints (text/progress/clear). |
+| 6.3 | Infra | **Plugin route registration** — `apiRouteRegistrar` exposed on `NotchServiceProvider`. Plugins register routes in `activate()`, unregister in `deactivate()`. |
+| 6b.1 | AI | **3-tier AI stack** — `AIProvider` (transport, `Sendable`) → `AITextGenerationService` (domain protocol, `@MainActor`) → `ProviderBackedAIService` / `NoAITextGenerationService`. |
+| 6b.2 | AI | **Deterministic fallback** — `NoAITextGenerationService` throws clear errors with actionable install instructions. Default when AI disabled or no provider. |
+| 6b.3 | AI | **OllamaProvider** — local LLM at `127.0.0.1:11434` with health check (`GET /api/tags`, 2s timeout), typed errors, 30s generation timeout. |
+| 6b.4 | AI | **AIManager DI** — no singleton access. `isEnabled` injected as closure from settings. Exposes `textGeneration: any AITextGenerationService`. |
+| 6b.5 | AI | **Domain methods** — `rewrite(_:style:)` (4 styles), `summarize(_:)`, `section(_:)`, `draftIntro(topic:durationSeconds:)`. Prompt engineering encapsulated in `ProviderBackedAIService`. |
+| 6b.6 | AI | **Teleprompter AI** — type-safe `TeleprompterAIAction` enum (refine/summarize/draft-intro). `DecodingError` returns 400 with valid options. |
+| 6b.7 | AI | **Settings DI** — `isAIEnabled` added to `GeneralAppSettings` protocol + `DefaultsKeys.enableAI` + `MockNotchSettings`. No singleton reads. |
+| 6b.8 | AI | **Service protocol** — `NotchServiceProvider.ai` typed as `any AITextGenerationService` (not concrete `AIManager`). `ServiceContainer` wires via `AIManager.textGeneration`. |
+| 7.1 | Automation | **App Intents** — `OpenNotchIntent` + `CloseNotchIntent` routed through `NotificationCenter` bridge to `BoringViewModel`. No singleton coupling. |
+| 7.2 | Automation | **URL scheme** — `boringnotch://` open/close/toggle/plugins. Toggle checks `vm.notchState` for correct dispatch. Registered via `NSAppleEventManager` in AppDelegate. |
+| 7.3 | Automation | **Intent bridge** — `BoringViewModel.setupIntentObservers()` observes `.openNotchIntent` / `.closeNotchIntent` on main queue with `[weak self]`. |
 
 ---
 
@@ -51,35 +89,7 @@
 
 **Goal:** Dynamic Island-quality open/close transitions + clean architecture.
 
-<details>
-<summary>✅ Completed — 15 items across animation + arch debt (click to expand)</summary>
-
-**Animation Polish:**
-| Task | What |
-|------|------|
-| 12 | Phase timing tuned (400→350ms open, 350→300ms close) |
-| 13 | Staggered header fade with blur |
-| 16 | Stagger 0.03→0.06s, shadow `pow(2.5)` late-onset, border `sqrt` linger |
-| 17 | Content choreography — open (`ContentRevealModifier`, continuous `contentProgress` env key) |
-| 18 | Content choreography — close (reverse of 17, automatic via `contentProgress` 1→0) |
-| 20 | `withAnimation` completion replaces `Task.sleep` phase transitions |
-
-**Architecture Debt (4a):**
-| Task | What |
-|------|------|
-| 4a.1 | `DefaultsNotchSettings` split into 5 files (was 457 lines) |
-| 4a.2 | Duplicate stub files deleted |
-| 4a.3 | `NotchStateMachine` → `NotchAnimationStateProviding` protocol |
-| 4a.4 | Direct `Defaults[.]` routed through settings protocols |
-| 4a.5 | `@MainActor` added to `NotificationCenterManager` |
-| 4a.6 | `QuickLookService` injected via protocol |
-| 4a.7 | CLAUDE.md DDD table updated (`Plugins/Core/` → Application layer) |
-| 4a.8 | Deferred to Phase 9 (`ServiceContainer` protocol extraction) |
-| 4a.9 | `sneakPeek` → `SneakPeek` rename |
-
-**Verified:** Zero files >300 lines, zero Defaults leaks, build green, 24 tests passing.
-
-</details>
+**Verified:** Zero files >300 lines, zero Defaults leaks, build green, 28 tests passing.
 
 ### Task 14: Spring curve refinement
 
@@ -108,320 +118,107 @@ Replace fire-and-forget animations with continuous gesture-driven expansion. Not
 
 ---
 
-## Phase 5 — Local API Server
-
-**Goal:** Stabilize and expand the existing REST + WebSocket API at `localhost:19384`. This is the foundation — it turns boringNotch from a standalone app into a **local-first ambient display platform**. Anything that can `curl` can use the notch.
-
-**Status:** Core MVP is already implemented under `boringNotch/private/LocalAPI/` and starts with app lifecycle via `LocalAPIServerController` in `AppObjectGraph`/`boringNotchApp`.
-
-**Why this comes first:** Every future integration (Teleprompter, Raycast, browser extensions, AI agents, CLI tools) needs this. With the base server already in place, Phase 5 now focuses on hardening and route expansion so subsequent plugins can be API-driven from day one.
-
-### Architecture
+## Phase 5 — Local API Server ✅
 
 ```
 External clients (curl, Raycast, scripts, browser ext)
         │
         ▼
-  LocalAPIServer (Network.framework, port 19384)
+  LocalAPIServer (Network.framework, port 19384, loopback-only)
         │
         ├── REST routes → PluginManager / ServiceContainer
+        │       (Bearer token auth on POST, rate limited 10 req/s)
         │
-        └── WebSocket /events → PluginEventBus (bidirectional)
+        └── WebSocket /events → PluginEventBus (enriched payloads)
 ```
 
-**Security model:**
-- [ ] Enforce loopback-only bind (`127.0.0.1`) by default
-- [ ] Optional bearer token auth (stored in Keychain) for remote use later
-- [ ] Rate limiting on write endpoints (10 req/s default)
-
-### Task 5.1: Core API Server ✅
-
-**Implemented.** `boringNotch/private/LocalAPI/` — HTTP server via `Network.framework` (NWListener), route matching, Codable response envelope, WebSocket client lifecycle, app lifecycle wiring. No external dependencies.
-
-### Task 5.2: REST Endpoints
-
-**Status:** 🟡 Core routes shipped, expansion remaining
-
-**Shipped:**
+**Endpoints:**
 ```
-GET  /api/v1/notch/state              → { phase, screen, size }
-POST /api/v1/notch/open               → open notch
-POST /api/v1/notch/close              → close notch
-POST /api/v1/notch/toggle             → toggle
+GET  /api/v1/notch/state              POST /api/v1/notch/open|close|toggle
+GET  /api/v1/plugins                  GET  /api/v1/plugins/{id}
+POST /api/v1/plugins/{id}/toggle
+GET  /api/v1/music/now-playing        POST /api/v1/music/play-pause|next|previous
+WS   /api/v1/events                   → notch.opened, music.changed, system.batteryChanged, ...
 ```
 
-**Router improvements shipped:** Dynamic route registration via `APIRouteRegistrar`, path-parameter matching (`/api/v1/plugins/{id}`), proper `404` vs `405` differentiation.
-
-**Remaining:**
-
-```
-# Plugin system
-GET  /api/v1/plugins                  → list active plugins + state
-GET  /api/v1/plugins/{id}             → plugin detail + capabilities
-GET  /api/v1/plugins/{id}/data        → exported data (JSON)
-POST /api/v1/plugins/{id}/action      → trigger plugin action
-
-# Music (convenience — routes to MusicPlugin)
-GET  /api/v1/music/now-playing        → current track info
-POST /api/v1/music/play-pause         → toggle playback
-POST /api/v1/music/next               → next track
-POST /api/v1/music/previous           → previous track
-```
-
-> **Note:** Teleprompter + DisplaySurface endpoints are defined in Phase 6 — they register their own routes when their plugins ship.
-
-All write endpoints return `{ "ok": true }` or `{ "ok": false, "error": "..." }`.
-
-### Task 5.3: WebSocket Event Stream
-
-**Status:** 🟡 MVP shipped, schema hardening remaining
-
-```
-WS /api/v1/events
-```
-
-**Current behavior (implemented):**
-- WebSocket upgrade on `/api/v1/events`
-- Broadcast bridge from `PluginEventBus` to all connected clients
-- Event payload currently normalized to `{ type, data }` with mapped type + metadata
-
-**Target event taxonomy (remaining alignment):**
-```json
-{ "type": "notch.opened", "data": { "screen": "main" } }
-{ "type": "notch.closed", "data": {} }
-{ "type": "music.changed", "data": { "title": "...", "artist": "..." } }
-{ "type": "plugin.stateChanged", "data": { "id": "...", "state": "..." } }
-{ "type": "hover.entered", "data": {} }
-{ "type": "hover.exited", "data": {} }
-```
-
-**Client → Server commands** (bidirectional):
-```json
-{ "command": "display.text", "data": { "text": "Hello from script" } }
-{ "command": "notch.open", "data": {} }
-```
-
-Events are sourced from `PluginEventBus` via the server controller bridge.
-
-### Task 5.4: CLI companion (optional)
-
-Simple shell script or Swift CLI that wraps the API for ergonomic use:
-
-```bash
-notchctl open
-notchctl close
-notchctl display "Build passed ✓"
-notchctl music now-playing
-notchctl teleprompter load < script.txt
-notchctl teleprompter start --speed 2
-```
-
-Ships as a separate binary in the app bundle, symlinked to `/usr/local/bin/notchctl` on install.
+**CLI:** `notchctl open|close|display|music|teleprompter` — shell script in `scripts/`.
 
 ---
 
-## Phase 6 — API-Powered Plugins
+## Phase 6 — API-Powered Plugins ✅
 
-**Goal:** Prove the Local API works with two high-value plugins that accept external data. These are the "killer demos" — they show boring.notch isn't just a notch replacement but a general-purpose ambient display.
+### TeleprompterPlugin — `Plugins/BuiltIn/TeleprompterPlugin/`
 
-### Task 6.1: TeleprompterPlugin
+Camera-adjacent script scrolling for natural eye contact during video calls and presentations.
 
-**Directory:** `boringNotch/Plugins/BuiltIn/TeleprompterPlugin/`
-
-**Inspiration:** Moody (notch teleprompter for Mac). Text displayed right next to the camera — natural eye contact during video calls and presentations.
-
-**Files:**
-- `TeleprompterPlugin.swift` — plugin class, API endpoint handler
-- `TeleprompterState.swift` — `@Observable` state: script text, scroll position, speed, font size
-- `TeleprompterScrollEngine.swift` — pure scroll logic (speed, position, auto-pause on section breaks)
-- `Views/TeleprompterClosedView.swift` — subtle indicator (pulsing dot when script loaded, static when idle)
-- `Views/TeleprompterExpandedView.swift` — scrolling text display, speed slider, progress bar
-- `Views/TeleprompterSettingsView.swift` — default speed, font size, color theme, keyboard shortcuts
-
-**Behavior:**
-- **Closed notch:** small indicator dot (green = script loaded, pulsing = scrolling, none = empty)
-- **Expanded notch:** 2-3 lines of text visible, current line highlighted, auto-scrolling at configurable speed
-- **Presentation mode:** notch stays expanded at fixed height, other plugins hidden, text scrolls continuously
-- **Input sources:**
-  - Manual: paste text or load .txt/.md file via file picker
-  - API: `POST /api/v1/teleprompter/load` with text body
-  - Clipboard: "Load from clipboard" button
-- **Controls:** play/pause (spacebar), speed +/- (arrow keys), restart, font size
-- **Smart features:**
-  - Auto-pause on paragraph breaks (configurable pause duration)
-  - Section markers (## headings) shown as progress milestones
-  - Estimated time remaining based on current speed
-
-**Display priority:** `.high` when scrolling, `.normal` when loaded but paused, `nil` when empty.
-
-**API integration:** Registers endpoints with `LocalAPIServer` on activate. Deregisters on deactivate.
-
-**Endpoints (registered by plugin):**
+**Endpoints (self-registered on activate):**
 ```
-POST /api/v1/teleprompter/load        → load script { text, speed?, fontSize? }
-POST /api/v1/teleprompter/start       → start scrolling
-POST /api/v1/teleprompter/pause       → pause
-POST /api/v1/teleprompter/stop        → stop + reset
-GET  /api/v1/teleprompter/state       → { position, isScrolling, remainingTime }
+POST /api/v1/teleprompter/load        → { text, speed?, fontSize? }
+POST /api/v1/teleprompter/start|pause|stop
+GET  /api/v1/teleprompter/state       → { position, isScrolling, text }
+POST /api/v1/teleprompter/ai-assist   → { action: "refine" | "summarize" | "draft-intro" }
 ```
 
-**Tests:** `TeleprompterScrollEngineTests` (pure unit test — speed, position, pause logic).
+**Display:** `.high` when scrolling, `.normal` when paused, `nil` when empty.
 
-**Use cases:**
-- Conference talks (your CFP strategy — dogfood this)
-- Video calls with talking points
-- YouTube recording with script
-- AI agent pushes real-time talking points during meetings
+### DisplaySurfacePlugin — `Plugins/BuiltIn/DisplaySurfacePlugin/`
 
----
+Generic "dumb terminal" — renders whatever the API tells it to. No built-in logic.
 
-### Task 6.2: DisplaySurfacePlugin
-
-**Directory:** `boringNotch/Plugins/BuiltIn/DisplaySurfacePlugin/`
-
-**Concept:** A generic "dumb terminal" plugin. It renders whatever the API tells it to. No built-in logic — it's purely a display surface for external tools.
-
-**Files:**
-- `DisplaySurfacePlugin.swift` — plugin class, API endpoint handler
-- `DisplayContent.swift` — enum: `.text(String)`, `.markdown(String)`, `.progress(label: String, value: Double)`, `.keyValue([(String, String)])`, `.clear`
-- `Views/DisplayClosedView.swift` — compact: single-line text or mini progress bar
-- `Views/DisplayExpandedView.swift` — full content render (markdown, progress, key-value pairs)
-
-**Behavior:**
-- **Closed notch:** last pushed content in compact form (truncated text or mini progress bar)
-- **Expanded notch:** full content rendering
-- **Content pushed exclusively via API** — no built-in UI for content creation
-- **Content persists until replaced or cleared** — survives notch open/close cycles
-- **Auto-dismiss:** optional TTL on content (e.g., `{ "text": "Done!", "ttl": 5 }` disappears after 5s)
-
-**Display priority:** `.normal` when content present, `nil` when empty.
-
-**Endpoints (registered by plugin):**
+**Endpoints (self-registered on activate):**
 ```
-POST /api/v1/display/text             → push text to DisplaySurface plugin
-POST /api/v1/display/markdown         → push markdown
-POST /api/v1/display/progress         → push progress bar (label + 0-1 value)
-POST /api/v1/display/clear            → clear display
+POST /api/v1/display/text             → { text, ttl? }
+POST /api/v1/display/progress         → { label, value, ttl? }
+POST /api/v1/display/clear
 ```
+
+**Content types:** `.text`, `.markdown`, `.progress(label, value)`, `.keyValue([(String, String)])`, `.clear`
 
 **Example integrations:**
 
-| Script | What it pushes | Notch shows |
-|--------|---------------|-------------|
+| Script | Endpoint | Notch shows |
+|--------|----------|-------------|
 | CI watcher | `POST /display/progress {"label": "Build", "value": 0.73}` | Progress bar |
-| Stock ticker | `POST /display/text {"text": "AAPL $247.30 ▲2.1%"}` | Ticker text |
-| Ollama stream | `POST /display/markdown` per token | Streaming LLM response |
-| Meeting summarizer | `POST /display/text {"text": "Key: budget approved"}` | Real-time notes |
 | Deploy script | `POST /display/text {"text": "Deployed v2.4.1 ✓", "ttl": 10}` | Temporary status |
-
-**Tests:** `DisplaySurfacePluginTests` (content update, TTL expiry, clear behavior).
-
----
-
-## Phase 6b — On-Device AI Assist (Optional)
-
-**Goal:** Add optional on-device text-generation assists without making core plugin behavior depend on AI availability.
-
-**Scope boundary (hard rule):**
-- Teleprompter scrolling/timing/rendering remains deterministic and fully usable without AI.
-- AI is assistive only (rewrite, summarize, sectioning, marker generation).
-
-### Task 6b.1: AI provider abstraction
-
-**Files:**
-- `Plugins/Services/AITextGenerationServiceProtocol.swift`
-- `Plugins/Services/NoAITextGenerationService.swift`
-- `Plugins/Services/FoundationModelsTextGenerationService.swift` (gated)
-
-**Protocol (minimal):**
-```swift
-@MainActor
-protocol AITextGenerationServiceProtocol {
-    var isAvailable: Bool { get }
-    func rewrite(_ text: String, style: String) async throws -> String
-    func summarize(_ text: String) async throws -> String
-    func section(_ text: String) async throws -> [String]
-}
-```
-
-**Requirements:**
-- `NoAITextGenerationService` is default and deterministic.
-- Foundation Models provider is used only when available at runtime.
-- No plugin depends directly on Foundation Models types.
-
-### Task 6b.2: Teleprompter assist actions
-
-**UI actions (expanded panel):**
-- Rewrite script
-- Summarize to bullet outline
-- Generate section markers
-- Estimate speaking time
-
-**API endpoints (optional helpers):**
-```
-POST /api/v1/teleprompter/assist/rewrite
-POST /api/v1/teleprompter/assist/summarize
-POST /api/v1/teleprompter/assist/section
-```
-
-**Contract rule:** Existing Teleprompter endpoints (`load/start/pause/stop/state`) remain unchanged.
-
-### Task 6b.3: Runtime gating + settings
-
-**Settings:**
-- Toggle: "Enable On-Device AI Assist"
-- Availability status + reason
-- Fallback message when unavailable
-
-**Behavior:**
-- If unavailable, assist actions return clear `ok: false` errors and suggest manual flow.
-- No crashes/no-op ambiguity when model assets are not ready.
-
-### Task 6b.4: Additional plugin opportunities (post-Teleprompter)
-
-**DisplaySurfacePlugin (assistive formatting):**
-- Summarize long pushed content into concise notch-safe cards.
-- Convert raw logs/notes into bullet lists or key/value highlights.
-
-**NotificationsPlugin (digest mode):**
-- Merge bursts of notifications into "what matters now" summaries.
-- Keep urgent items explicit while compressing low-priority noise.
-
-**ClipboardPlugin (text cleanup):**
-- Rewrite/clean copied text and extract action items.
-- Convert messy notes into checklist-friendly output.
-
-**CalendarPlugin (meeting briefs):**
-- Generate compact "next up" summaries for upcoming events.
-- Optional prep prompts for imminent meetings.
-
-**HabitTracker/Pomodoro (coach summaries):**
-- End-of-session recap text and next-action suggestions.
-- Optional motivational copy with strict fallback to deterministic defaults.
-
-**Constraint (all plugins):**
-- AI assists are optional overlays only; no core plugin workflow may depend on AI availability.
-
-### Task 6b.5: Tests
-
-- Unit tests for provider selection and fallback behavior.
-- Endpoint tests for assist routes (success/unavailable/error mapping).
-- Teleprompter regression tests proving non-AI flow still passes.
-- Regression tests for at least one non-Teleprompter assist flow (DisplaySurface or Clipboard).
+| Meeting summarizer | `POST /display/text {"text": "Key: budget approved"}` | Real-time notes |
 
 ---
 
-## Phase 7 — Automation & Integrations
+## Phase 6b — On-Device AI Assist ✅
 
-**Goal:** Make boringNotch controllable from macOS automation frameworks.
+```
+Plugins  →  AITextGenerationService (domain: rewrite/summarize/section/draftIntro)
+                    │
+                    ├── ProviderBackedAIService (prompt engineering layer)
+                    └── NoAITextGenerationService (deterministic fallback)
+                            │
+                    AIProvider (transport: generate)
+                            ├── OllamaProvider (127.0.0.1:11434)
+                            └── future: FoundationModelsProvider (#available macOS 26)
+```
 
-### Task 7.1: App Intents (Shortcuts)
+**Hard rule:** AI is assistive only. No core plugin workflow depends on AI availability.
 
-6 intents: OpenNotch, CloseNotch, StartPomodoro, CompleteHabit, AddToShelf, ExportData. All route through `PluginManager`, no singleton access.
+**DI:** `NotchServiceProvider.ai → any AITextGenerationService`. `ServiceContainer` wires via `AIManager(isEnabled: { settings.isAIEnabled }).textGeneration`. No singletons.
 
-### Task 7.2: URL Scheme Handler
+### Future: Apple Foundation Models (macOS 26+)
 
-Scheme: `boringnotch://`. Routes: open, close, shelf/add, plugin actions, export. Dedicated `URLSchemeHandler` type, registered in Info.plist.
+When available: create `FoundationModelsProvider: AIProvider` gated behind `#available(macOS 26, *)`, register in `AIManager` alongside Ollama, auto-select (Foundation Models preferred — zero config). No plugin code changes needed.
+
+### Remaining AI plugin opportunities
+
+- **DisplaySurface:** summarize long pushed content into notch-safe cards
+- **Notifications:** merge notification bursts into "what matters now" digests
+- **Clipboard:** rewrite/clean copied text, extract action items
+- **Calendar:** compact "next up" meeting briefs
+
+---
+
+## Phase 7 — Automation & Integrations ✅
+
+**App Intents:** `OpenNotchIntent`, `CloseNotchIntent` — Shortcuts-compatible, NotificationCenter bridge.
+**URL Scheme:** `boringnotch://open|close|toggle|plugins?id=...` — registered via `NSAppleEventManager`.
+**Bridge:** `BoringViewModel.setupIntentObservers()` on main queue with `[weak self]`.
 
 ---
 
@@ -473,9 +270,9 @@ Requirements: signed Swift package bundles, permission manifests, approval UI, p
 | Phase | Done When |
 |-------|-----------|
 | 4 | Open/close feels smooth and interruptible. No "stuck" phase transitions. Content fades in progressively. |
-| 4a | ✅ **Done.** Zero arch violations. All 9 items resolved. Build green + 24 tests pass. CLAUDE.md updated. |
-| 5 | **MVP done:** `curl localhost:19384/api/v1/notch/state` returns valid JSON, notch open/close/toggle routes work, and WebSocket streams events. **Phase complete:** plugin/music endpoints shipped, auth + rate limiting implemented, event schema finalized, `notchctl` works. |
-| 6 | Teleprompter scrolls text fed via API. DisplaySurface renders arbitrary content from `curl`. |
-| 6b | AI assist actions work when available, fail gracefully when unavailable, and Teleprompter core behavior is unchanged without AI. |
-| 7 | All App Intents in Shortcuts. URL scheme routes work. |
+| 4a | ✅ **Done.** Zero arch violations. All 9 items resolved. Build green + 28 tests pass. CLAUDE.md updated. |
+| 5 | ✅ **Done.** `curl localhost:19384/api/v1/notch/state` returns valid JSON. All REST endpoints shipped (notch, plugins, music). Auth + rate limiting enforced. WebSocket streams enriched events. `notchctl` works. |
+| 6 | ✅ **Done.** Teleprompter scrolls API-fed text. DisplaySurface renders arbitrary content from `curl`. |
+| 6b | ✅ **Done.** 3-tier AI architecture. Domain protocol with Ollama provider + deterministic fallback. No singleton access. Prompt engineering encapsulated. Foundation Models path scaffolded for macOS 26+. |
+| 7 | ✅ **Done.** App Intents in Shortcuts. URL scheme routes work (including toggle). |
 | 9 | External plugin loads from ~/Library/Application Support/boringNotch/Plugins/. |

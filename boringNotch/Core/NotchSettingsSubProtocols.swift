@@ -174,6 +174,7 @@ protocol NotificationSettings {
 protocol GeneralAppSettings {
     var firstLaunch: Bool { get set }
     var showWhatsNew: Bool { get set }
+    var isAIEnabled: Bool { get set }
 }
 
 // MARK: - Coordinator Settings
