@@ -40,6 +40,8 @@
 | 1, 1b, 2, 3, 5, 6, 6b, 7 | ✅ Shipped | Core plugins, API Hardening, AI Assist, Automation, Battery & Export |
 | 4 — Animation + Arch Debt | **Active** | 15+ items done. Remaining: spring tuning, album art morph, gesture-driven open. |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
+| 10 — Teleprompter Pro | Planned | Voice-driven scrolling, countdown, enhanced editor, display polish, keyboard shortcuts |
+| 11 — Foundation Models | Planned | On-device AI via Apple FoundationModels (macOS 26+), streaming, structured generation |
 
 **Latest architecture hardening commits:**
 - `d277bd4` — snapshot before cleanup
@@ -93,7 +95,7 @@
 | 6.3 | Infra | **Plugin route registration** — `apiRouteRegistrar` exposed on `NotchServiceProvider`. Plugins register routes in `activate()`, unregister in `deactivate()`. |
 | 6b.1 | AI | **3-tier AI stack** — `AIProvider` (transport, `Sendable`) → `AITextGenerationService` (domain protocol, `@MainActor`) → `ProviderBackedAIService` / `NoAITextGenerationService`. |
 | 6b.2 | AI | **Deterministic fallback** — `NoAITextGenerationService` throws clear errors with actionable install instructions. Default when AI disabled or no provider. |
-| 6b.3 | AI | **OllamaProvider** — local LLM at `127.0.0.1:11434` with health check (`GET /api/tags`, 2s timeout), typed errors, 30s generation timeout. |
+| 6b.3 | AI | **OllamaProvider** — local LLM at `127.0.0.1:11434` with health check (`GET /api/tags`, 2s timeout), typed errors, 30s generation timeout. *(Phase 11: demoted to opt-in Advanced provider)* |
 | 6b.4 | AI | **AIManager DI** — no singleton access. `isEnabled` injected as closure from settings. Exposes `textGeneration: any AITextGenerationService`. |
 | 6b.5 | AI | **Domain methods** — `rewrite(_:style:)` (4 styles), `summarize(_:)`, `section(_:)`, `draftIntro(topic:durationSeconds:)`. Prompt engineering encapsulated in `ProviderBackedAIService`. |
 | 6b.6 | AI | **Teleprompter AI** — type-safe `TeleprompterAIAction` enum (refine/summarize/draft-intro). `DecodingError` returns 400 with valid options. |
@@ -227,17 +229,21 @@ Plugins  →  AITextGenerationService (domain: rewrite/summarize/section/draftIn
                     └── NoAITextGenerationService (deterministic fallback)
                             │
                     AIProvider (transport: generate)
-                            ├── OllamaProvider (127.0.0.1:11434)
-                            └── future: FoundationModelsProvider (#available macOS 26)
+                            ├── FoundationModelsProvider (#available macOS 26) — PRIMARY
+                            └── OllamaProvider (opt-in, Advanced settings only)
 ```
 
 **Hard rule:** AI is assistive only. No core plugin workflow depends on AI availability.
 
 **DI:** `NotchServiceProvider.ai → any AITextGenerationService`. `ServiceContainer` wires via `AIManager(isEnabled: { settings.isAIEnabled }).textGeneration`. No singletons.
 
-### Future: Apple Foundation Models (macOS 26+)
+### AI Provider Strategy
 
-When available: create `FoundationModelsProvider: AIProvider` gated behind `#available(macOS 26, *)`, register in `AIManager` alongside Ollama, auto-select (Foundation Models preferred — zero config). No plugin code changes needed.
+- **Primary:** Apple Foundation Models (macOS 26+). On-device, zero config, zero install, fully private. Covers the teleprompter sweet spot (summarization, rewriting, extraction).
+- **Optional/Advanced:** Ollama for power users who want larger/specialized models. Hidden behind "Advanced AI Settings" toggle. Not registered unless explicitly enabled.
+- **Fallback:** `NoAITextGenerationService` — clean degradation. On macOS <26 or unsupported hardware, AI features simply don't appear in the UI. No "install Ollama" messaging.
+
+**Migration:** `OllamaProvider` to be removed from default `AIManager.init()` registration. Foundation Models becomes the sole default provider. See Phase 11 for implementation details.
 
 ### Remaining AI plugin opportunities
 
@@ -263,6 +269,412 @@ When available: create `FoundationModelsProvider: AIProvider` gated behind `#ava
 **Separate design document when Phase 7 is complete.**
 
 Requirements: signed Swift package bundles, permission manifests, approval UI, plugin browser in Settings, `~/Library/Application Support/boringNotch/Plugins/` discovery.
+
+---
+
+## Phase 10 — Teleprompter Pro (Moody-Class Upgrade)
+
+**Goal:** Transform the basic teleprompter into a professional-grade, voice-aware prompter with Apple Foundation Models integration. Competitive reference: [Moody](https://moody.mjarosz.com/) — the notch teleprompter benchmark.
+
+**Design Principle:** The notch is the most camera-adjacent display surface on any MacBook. A teleprompter here is *the* killer feature — but only if it's polished enough that creators actually use it daily.
+
+### Current State Assessment
+
+The existing teleprompter (Phase 6) is functional but bare-bones:
+- Timer-driven scroll at fixed px/s
+- Basic `TextEditor` for script input
+- Play/pause/stop + speed slider (10–80 px/s)
+- Paste from clipboard
+- AI assist (refine/summarize/draft-intro) via Ollama only
+- Closed view shows one line of text beside the notch
+
+**What's missing for professional use:** voice-driven scrolling, visual feedback, countdown, keyboard controls, calibration, rich editing, and on-device AI that works without installing Ollama.
+
+### 10.1 — Voice-Driven Scrolling ("Flow Mode")
+
+**Status:** Planned
+
+Use `AVAudioEngine` + `SFSpeechRecognizer` to match scroll speed to speaking pace. When the speaker pauses, scrolling pauses. When they speed up, scrolling accelerates.
+
+**Implementation:**
+- `VoiceScrollEngine` — new file in `TeleprompterPlugin/`
+- Taps system microphone via `AVAudioEngine.inputNode`
+- Uses `SFSpeechRecognizer` for real-time speech-to-text
+- Matches recognized words against script text to determine position
+- Falls back to audio energy level (RMS) when speech recognition unavailable
+- Adjustable microphone sensitivity slider in settings
+- Permission request: microphone access (graceful degradation if denied)
+
+**Algorithm:**
+```
+1. Continuous speech recognition → word stream
+2. Fuzzy-match recognized words against script text (Levenshtein / sliding window)
+3. When match found → snap scroll position to matched word's Y offset
+4. When no speech detected for >1s → pause scrolling
+5. Fallback: if speech recognition off, use audio RMS level to modulate speed
+```
+
+**Key constraint:** Flow Mode is *optional*. Manual scroll (current timer-based) remains the default. User toggles between modes.
+
+### 10.2 — Voice Visual Feedback
+
+**Status:** Planned
+
+Visual beam/glow emanating from the notch that responds to microphone input level. Helps speakers monitor their volume without looking away from camera.
+
+**Implementation:**
+- `VoiceBeamView` — SwiftUI view overlaying the notch area
+- Reads audio level from `VoiceScrollEngine`'s tap (shared `AVAudioEngine`)
+- Renders as a radial gradient / arc that scales with RMS amplitude
+- Color: subtle blue-purple gradient (matches notch aesthetic)
+- Configurable: on/off, opacity, color
+
+### 10.3 — Countdown Timer
+
+**Status:** Planned
+
+3-2-1 countdown before scrolling begins. Gives the speaker time to settle, check camera framing, take a breath.
+
+**Implementation:**
+- `CountdownOverlayView` displayed in closed notch when "Start" is pressed
+- Large, cinematic numbers (SF Rounded, heavy weight) with scale+fade animation
+- Configurable duration: 3s (default), 5s, or off
+- After countdown completes → scrolling begins automatically
+- Cancel by clicking notch during countdown
+
+### 10.4 — Built-In Script Editor (Enhanced)
+
+**Status:** Planned
+
+Replace the minimal `TextEditor` with a proper script editing experience.
+
+**Features:**
+- Larger editing area in expanded panel (full available height)
+- Markdown-aware rendering: `## Section` headers render as visual dividers
+- Word count + estimated reading time display (based on current scroll speed)
+- Section navigation: click section headers to jump
+- Undo/redo support
+- Import from file (`.txt`, `.md`, `.rtf`) via drag-and-drop or file picker
+- Auto-save script to `PluginSettings` (persists across app restarts)
+- Multiple scripts: save/load named scripts
+
+### 10.5 — Scroll Speed Calibration
+
+**Status:** Planned
+
+Guided calibration flow where the user reads a sample text at their natural pace. The system measures their reading speed and sets the default accordingly.
+
+**Implementation:**
+- Calibration wizard accessible from settings
+- Shows sample paragraph in the notch area
+- User reads aloud (or reads silently and taps when done)
+- Calculates words-per-minute → maps to px/s scroll speed
+- Stores calibrated speed as default
+- Preview: real-time scroll speed preview at top of calibration screen (like Moody)
+
+### 10.6 — Hover-to-Pause
+
+**Status:** Planned
+
+Moving the cursor over the teleprompter text instantly pauses scrolling. Moving cursor away resumes. Zero-friction control for quick script checks.
+
+**Implementation:**
+- `.onHover` modifier on `TeleprompterClosedView`
+- Sets `state.isScrolling = false` on hover enter, `true` on exit
+- Only active when teleprompter was already scrolling (don't start scrolling on hover exit if it wasn't running)
+- Visual indicator: subtle pause icon appears on hover
+
+### 10.7 — Keyboard Shortcuts
+
+**Status:** Planned
+
+Professional prompters need hands-free or keyboard-only control.
+
+| Shortcut | Action |
+|----------|--------|
+| `Space` (when teleprompter active) | Play/Pause toggle |
+| `↑` / `↓` | Manual scroll (fine-grained) |
+| `⌘↑` / `⌘↓` | Increase/decrease speed |
+| `⌘⇧T` | Open teleprompter panel |
+| `Escape` | Stop and reset |
+| `⌘R` | Restart from beginning |
+
+**Implementation:** Register via `KeyboardShortcuts` framework (already a dependency). Only active when teleprompter has loaded text.
+
+### 10.8 — Display Customization
+
+**Status:** Planned
+
+- Font size slider (already exists, expand range: 10–40pt)
+- Text color picker (white, yellow, green — common prompter colors)
+- Background opacity (0–100% behind text for readability)
+- Mirror mode (horizontally flip text — for physical teleprompter setups with beam splitters)
+- Line highlight: current line gets full opacity, surrounding lines fade (karaoke-style)
+- Margin/padding controls for text positioning
+
+### 10.9 — Improved Closed-Notch Display
+
+**Status:** Planned
+
+The current closed view shows one line of truncated text on one side. This needs to be a proper reading surface.
+
+**Improvements:**
+- Text renders *centered under the camera* (the whole point of notch-prompting)
+- Show 2–3 lines: current line bold/bright, next lines progressively dimmer
+- Smooth per-pixel scroll (not line-snapping)
+- Progress indicator: subtle bar showing position in script (0–100%)
+- Current section title shown if script uses `##` headers
+- Elapsed time / remaining time (small, non-distracting)
+
+### 10.10 — Screen Sharing Safety
+
+**Status:** Planned
+
+The teleprompter text should be invisible during screen sharing — the speaker sees it, but their audience doesn't.
+
+**Implementation:**
+- Use `NSWindow.sharingType = .none` on the teleprompter overlay window
+- This excludes the window from screen capture, screenshots, and screen sharing
+- Toggle in settings: "Hide from screen sharing" (default: on)
+- Alternative: detect active screen sharing via `CGDisplayStream` and auto-hide
+
+---
+
+## Phase 11 — Apple Foundation Models Integration
+
+**Goal:** First-class on-device AI via Apple's `FoundationModels` framework (macOS 26+). Zero config, zero external dependencies, fully private.
+
+**Why this matters:** The current AI stack requires Ollama (manual install, ~4GB download, must be running). Foundation Models is built into macOS 26 — it just works. This makes AI features accessible to 100% of users on supported hardware, not just developers who know what Ollama is.
+
+### Architecture
+
+The existing 3-tier AI stack (`AIProvider` → `AITextGenerationService` → `ProviderBackedAIService`) was designed for this. `FoundationModelsProvider` becomes the sole default provider.
+
+```
+AIManager
+├── FoundationModelsProvider  ← PRIMARY (macOS 26+, zero config, on-device)
+├── OllamaProvider            ← OPT-IN (Advanced settings toggle, power users only)
+└── NoAITextGenerationService ← FALLBACK (macOS <26 or unsupported hardware)
+
+Default: Foundation Models (if macOS 26+) > NoAI
+Advanced: User explicitly enables Ollama → Ollama (if running) > Foundation Models > NoAI
+```
+
+### 11.1 — FoundationModelsProvider
+
+**Status:** Planned
+
+```swift
+// Gated behind #available(macOS 26, *)
+@available(macOS 26, *)
+struct FoundationModelsProvider: AIProvider {
+    let id = "foundation-models"
+    let name = "Apple Intelligence"
+
+    var isAvailable: Bool {
+        get async {
+            SystemLanguageModel.default.availability == .available
+        }
+    }
+
+    func generate(prompt: String, config: AIGenerationConfig) async throws -> String {
+        let session = LanguageModelSession()
+        let response = try await session.respond(to: prompt)
+        return response.content
+    }
+}
+```
+
+**Key decisions:**
+- New `LanguageModelSession` per call (stateless provider, session management is caller's job)
+- Map `AIGenerationConfig.temperature` etc. where possible (Foundation Models may have limited knobs)
+- Availability check via `SystemLanguageModel.default.availability`
+- Errors: map `LanguageModelSession` errors to `AIError` cases
+
+### 11.2 — Streaming Support
+
+**Status:** Planned
+
+The current `AIProvider.generate()` returns a complete `String`. Add streaming variant for responsive UX.
+
+```swift
+protocol AIProvider: Sendable {
+    // ... existing ...
+    func generateStream(prompt: String, config: AIGenerationConfig) -> AsyncThrowingStream<String, Error>
+}
+```
+
+**Foundation Models streaming:**
+```swift
+func generateStream(prompt: String, config: AIGenerationConfig) -> AsyncThrowingStream<String, Error> {
+    AsyncThrowingStream { continuation in
+        Task {
+            let stream = session.streamResponse(to: prompt)
+            for try await partial in stream {
+                continuation.yield(partial.content ?? "")
+            }
+            continuation.finish()
+        }
+    }
+}
+```
+
+**Impact on teleprompter:** AI-assisted rewriting shows text appearing progressively instead of a loading spinner → results dialog.
+
+### 11.3 — Structured Generation for Teleprompter
+
+**Status:** Planned
+
+Use `@Generable` for type-safe AI outputs instead of parsing raw text.
+
+```swift
+@available(macOS 26, *)
+@Generable
+struct TeleprompterScript {
+    @Guide(description: "The rewritten script text, natural spoken language")
+    var text: String
+
+    @Guide(description: "Estimated reading time in seconds")
+    var estimatedDurationSeconds: Int
+
+    @Guide(description: "Section markers with timestamps", .maximumCount(10))
+    var sections: [ScriptSection]
+}
+
+@available(macOS 26, *)
+@Generable
+struct ScriptSection {
+    var title: String
+    var startWord: Int
+}
+```
+
+**Benefits:**
+- Guaranteed valid output structure (no parsing failures)
+- Section markers auto-generated → navigation in editor for free
+- Duration estimate → progress bar accuracy
+
+### 11.4 — Expanded AI Actions
+
+**Status:** Planned
+
+Beyond the current refine/summarize/draft-intro, add:
+
+| Action | Description | Use Case |
+|--------|-------------|----------|
+| `expandBullets` | Expand bullet points into full spoken paragraphs | Turning notes into a script |
+| `simplify` | Reduce reading level, shorter sentences | Accessibility, non-native speakers |
+| `addPauses` | Insert `[PAUSE]` markers at natural break points | Pacing guidance |
+| `translateStyle` | Convert between formal/casual/technical | Audience adaptation |
+| `timeToTarget` | Rewrite to hit a target duration (e.g., "make this a 2-minute script") | Time-constrained presentations |
+
+**Implementation:** New cases in `TeleprompterAIAction` enum + corresponding prompts in `ProviderBackedAIService`. Foundation Models handles these well since they're summarization/extraction tasks (its sweet spot per Apple's guidance — not world knowledge).
+
+### 11.5 — Smart Instructions for Foundation Models
+
+**Status:** Planned
+
+Use `LanguageModelSession(instructions:)` for teleprompter-specific system prompts:
+
+```swift
+let session = LanguageModelSession(
+    instructions: """
+    You are a teleprompter script assistant. Your outputs will be read aloud \
+    on camera. Write in natural spoken language — short sentences, clear \
+    transitions, no jargon unless the speaker's context requires it. \
+    Never include stage directions or formatting instructions.
+    """
+)
+```
+
+### 11.6 — Provider Registration Overhaul
+
+**Status:** Planned
+
+Replace current Ollama-default `AIManager.init()` with Foundation Models-first strategy:
+
+```swift
+init(isEnabled: @escaping () -> Bool = { true }, ollamaEnabled: @escaping () -> Bool = { false }) {
+    self.isEnabledProvider = isEnabled
+    self.ollamaEnabledProvider = ollamaEnabled
+
+    // Primary: Foundation Models (macOS 26+, zero config)
+    if #available(macOS 26, *) {
+        registerProvider(FoundationModelsProvider())
+        activeProviderId = "foundation-models"
+    }
+
+    // Ollama ONLY if user explicitly opts in via Advanced settings
+    // Not registered by default — no "install Ollama" messaging anywhere
+}
+
+/// Called when user enables Ollama in Advanced AI Settings
+func enableOllama(model: String = "llama3", host: String = "http://127.0.0.1:11434") {
+    registerProvider(OllamaProvider(model: model, host: host))
+    // Ollama takes priority when explicitly enabled (user wants bigger models)
+    activeProviderId = "ollama"
+}
+
+func disableOllama() {
+    providers.removeValue(forKey: "ollama")
+    // Fall back to Foundation Models or NoAI
+    if #available(macOS 26, *) {
+        activeProviderId = "foundation-models"
+    } else {
+        activeProviderId = nil
+    }
+}
+```
+
+**Feature gating:** On macOS <26 without Ollama enabled, AI action buttons simply don't render. No error states, no "upgrade macOS" messaging — the feature just isn't there. Clean absence > broken presence.
+
+**Availability resilience:** Foundation Models may report `.available` at init but fail later (model downloading, etc.). The `generate()` call catches errors and surfaces them per-request — no automatic fallback to Ollama unless user explicitly configured it.
+
+### 11.7 — AI Settings UI
+
+**Status:** Planned
+
+**Main AI Settings (visible to all users on macOS 26+):**
+- AI enable/disable toggle
+- AI availability indicator (green dot = Foundation Models ready)
+- "Test AI" button — sends a sample prompt and shows response
+
+**Advanced AI Settings (collapsed/hidden section):**
+- "Use custom AI provider (Ollama)" toggle — off by default
+- When enabled:
+  - Ollama model name (default: `llama3`)
+  - Ollama host (default: `127.0.0.1:11434`)
+  - Connection status indicator
+  - "Ollama takes priority over Apple Intelligence when enabled" note
+- Link to Ollama docs for installation
+
+**On macOS <26:** AI settings section shows "AI features require macOS 26 or later" with the Advanced section still available for Ollama opt-in.
+
+---
+
+## Phase 10/11 Implementation Order
+
+Prioritized by user impact and dependency chain:
+
+| Priority | Task | Depends On | Impact |
+|----------|------|------------|--------|
+| **P0** | 10.3 Countdown timer | — | Quick win, high polish |
+| **P0** | 10.7 Keyboard shortcuts | — | Essential for hands-free use |
+| **P0** | 10.9 Improved closed display | — | Core reading experience |
+| **P1** | 10.6 Hover-to-pause | — | Zero-friction control |
+| **P1** | 10.4 Enhanced editor | — | Content creation flow |
+| **P1** | 10.8 Display customization | — | Personal preference |
+| **P1** | 10.10 Screen sharing safety | — | Professional use case |
+| **P1** | 11.1 FoundationModelsProvider | — | Zero-config AI for all users |
+| **P1** | 11.6 Auto-select provider | 11.1 | Seamless provider switching |
+| **P2** | 10.1 Voice-driven scrolling | AVAudioEngine, SFSpeechRecognizer | Flagship differentiator |
+| **P2** | 10.2 Voice visual feedback | 10.1 (shared audio engine) | Polish on top of voice |
+| **P2** | 10.5 Scroll speed calibration | — | Nice-to-have |
+| **P2** | 11.2 Streaming support | 11.1 | Better AI UX |
+| **P2** | 11.3 Structured generation | 11.1 | Better AI output quality |
+| **P3** | 11.4 Expanded AI actions | 11.1 | More AI capabilities |
+| **P3** | 11.5 Smart instructions | 11.1 | Better AI context |
+| **P3** | 11.7 AI settings UI | 11.1 | Power user config |
 
 ---
 
@@ -307,6 +719,8 @@ Requirements: signed Swift package bundles, permission manifests, approval UI, p
 | 4a | ✅ **Done.** Zero arch violations. All 9 items resolved. Build green + 28 tests pass. CLAUDE.md updated. |
 | 5 | ✅ **Done.** `curl localhost:19384/api/v1/notch/state` returns valid JSON. All REST endpoints shipped (notch, plugins, music). Auth + rate limiting enforced. WebSocket streams enriched events. `notchctl` works. |
 | 6 | ✅ **Done.** Teleprompter scrolls API-fed text. DisplaySurface renders arbitrary content from `curl`. |
-| 6b | ✅ **Done.** 3-tier AI architecture. Domain protocol with Ollama provider + deterministic fallback. No singleton access. Prompt engineering encapsulated. Foundation Models path scaffolded for macOS 26+. |
+| 6b | ✅ **Done.** 3-tier AI architecture. Domain protocol with deterministic fallback. No singleton access. Prompt engineering encapsulated. *(Phase 11: Ollama demoted to opt-in, Foundation Models becomes primary.)* |
 | 7 | ✅ **Done.** App Intents in Shortcuts. URL scheme routes work (including toggle). |
 | 9 | External plugin loads from ~/Library/Application Support/boringNotch/Plugins/. |
+| 10 | Teleprompter has voice-driven scrolling, countdown timer, keyboard shortcuts, improved closed display with 2–3 lines centered under camera, hover-to-pause, screen sharing safety. Creator-daily-driver quality. |
+| 11 | `FoundationModelsProvider` is sole default provider on macOS 26+. AI features work with zero external dependencies. Ollama available as opt-in Advanced option only. Streaming AI responses in teleprompter UI. Structured generation via `@Generable`. On macOS <26: AI features cleanly absent (no broken states). |
