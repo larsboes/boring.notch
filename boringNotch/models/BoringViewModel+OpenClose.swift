@@ -16,11 +16,7 @@ extension BoringViewModel {
         withAnimation(StandardAnimations.open) {
             self.notchSize = openNotchSize
             self.phase = .opening
-        }
-
-        // Complete after animation settles
-        Task { @MainActor in
-            try? await Task.sleep(for: StandardAnimations.openDuration)
+        } completion: {
             guard self.phase == .opening else { return }
             self.phase = .open
             self.hoverController.setNotchOpen(true)
@@ -49,11 +45,7 @@ extension BoringViewModel {
             self.notchSize = getClosedNotchSize(settings: self.displaySettings, screenUUID: self.screenUUID)
             self.closedNotchSize = self.notchSize
             self.phase = .closing
-        }
-
-        // Complete after animation settles
-        Task { @MainActor in
-            try? await Task.sleep(for: StandardAnimations.closeDuration)
+        } completion: {
             guard self.phase == .closing else { return }
             self.phase = .closed
             self.syncWindowState()
