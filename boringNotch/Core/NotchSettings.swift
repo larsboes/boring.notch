@@ -38,16 +38,11 @@ extension EnvironmentValues {
 
 /// Bindable environment key for settings views that need two-way binding
 private struct BindableNotchSettingsKey: EnvironmentKey {
-    // Intentional crash default: bindableSettings must always be explicitly injected
-    // via .environment(\.bindableSettings, settings) in the view hierarchy.
+    // Fall back to .shared — SwiftUI may resolve the default during NSHostingView init
+    // before .environment(\.bindableSettings, ...) is applied in the modifier chain.
+    // A fatalError here crashes the app at launch.
     @MainActor static var defaultValue: DefaultsNotchSettings {
-        #if DEBUG
-        // In debug, crash early to catch missing injection
-        fatalError("bindableSettings not injected — add .environment(\\.bindableSettings, settings) to the view hierarchy")
-        #else
-        // In release, fall back to shared instance as safety net
-        return DefaultsNotchSettings.shared
-        #endif
+        DefaultsNotchSettings.shared
     }
 }
 
