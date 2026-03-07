@@ -12,6 +12,7 @@ import Foundation
 /// Protocol for hover zone detection — allows test injection without screen dependencies.
 @MainActor
 protocol HoverZoneChecking: AnyObject {
+    var isNotchOpen: Bool { get set }
     func updateHoverZone(screenUUID: String?)
     func isMouseInHoverZone() -> Bool
 }
@@ -21,8 +22,14 @@ protocol HoverZoneChecking: AnyObject {
 /// because the zone doesn't change with the animated view bounds.
 @MainActor
 final class HoverZoneManager: HoverZoneChecking {
-    /// The fixed hover zone in screen coordinates
-    private(set) var hoverZone: CGRect = .zero
+    /// The fixed hover zone in screen coordinates (closed)
+    private(set) var closedHoverZone: CGRect = .zero
+
+    /// The expanded hover zone in screen coordinates (open)
+    private(set) var openHoverZone: CGRect = .zero
+
+    /// Whether the notch is currently open (uses expanded zone)
+    var isNotchOpen: Bool = false
 
     /// Padding around the notch to extend the hover area
     private let hoverPadding: CGFloat = 20
@@ -46,38 +53,38 @@ final class HoverZoneManager: HoverZoneChecking {
         recalculateZone()
     }
 
-    /// Checks if the mouse is currently within the hover zone.
-    /// Uses actual mouse position in screen coordinates.
+    /// Checks if the mouse is currently within the active hover zone.
+    /// Uses the expanded zone when the notch is open.
     func isMouseInHoverZone() -> Bool {
         let mousePos = NSEvent.mouseLocation
-        return hoverZone.contains(mousePos)
+        let activeZone = isNotchOpen ? openHoverZone : closedHoverZone
+        return activeZone.contains(mousePos)
     }
 
-    /// Forces recalculation of the hover zone.
-    /// Call when notch dimensions might have changed (settings, screen change).
+    /// Forces recalculation of both hover zones (closed and open).
     func recalculateZone() {
         guard let screenFrame = getScreenFrame(currentScreenUUID) else {
-            hoverZone = .zero
+            closedHoverZone = .zero
+            openHoverZone = .zero
             return
         }
 
-        // Get the closed notch size (the "visible" notch when collapsed)
+        // Closed zone
         let closedSize = getClosedNotchSize(settings: displaySettings, screenUUID: currentScreenUUID)
+        closedHoverZone = zoneRect(screenFrame: screenFrame, size: closedSize)
 
-        // Calculate notch position at top-center of screen
-        // Note: macOS screen coordinates have origin at bottom-left
-        let notchWidth = closedSize.width
-        let notchHeight = closedSize.height
+        // Open zone
+        openHoverZone = zoneRect(screenFrame: screenFrame, size: openNotchSize)
+    }
 
-        let x = screenFrame.midX - (notchWidth / 2) - hoverPadding
-        let y = screenFrame.maxY - notchHeight - hoverPadding
-
-        // Create hover zone with padding on all sides
-        hoverZone = CGRect(
+    private func zoneRect(screenFrame: CGRect, size: CGSize) -> CGRect {
+        let x = screenFrame.midX - (size.width / 2) - hoverPadding
+        let y = screenFrame.maxY - size.height - hoverPadding
+        return CGRect(
             x: x,
             y: y,
-            width: notchWidth + (2 * hoverPadding),
-            height: notchHeight + (2 * hoverPadding)
+            width: size.width + (2 * hoverPadding),
+            height: size.height + (2 * hoverPadding)
         )
     }
 }

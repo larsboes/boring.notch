@@ -6,6 +6,7 @@ import XCTest
 @MainActor
 final class MockHoverZoneChecker: HoverZoneChecking {
     var mouseInZone: Bool = false
+    var isNotchOpen: Bool = false
     func updateHoverZone(screenUUID: String?) {}
     func isMouseInHoverZone() -> Bool { mouseInZone }
 }

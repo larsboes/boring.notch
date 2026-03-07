@@ -93,11 +93,15 @@ final class ShelfPlugin: NotchPlugin, ExportablePlugin {
     }
 
     private func exportJSON(items: [ShelfItem]) throws -> Data {
-        let exportItems = items.map { ShelfExportItem(from: $0) }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        encoder.dateEncodingStrategy = .iso8601
-        return try encoder.encode(exportItems)
+        let entries: [[String: Any]] = items.map { item in
+            [
+                "id": item.id.uuidString,
+                "name": item.displayName,
+                "type": item.kindLabel,
+                "isTemporary": item.isTemporary
+            ]
+        }
+        return try JSONSerialization.data(withJSONObject: entries, options: [.prettyPrinted, .sortedKeys])
     }
 
     private func exportCSV(items: [ShelfItem]) -> Data {
@@ -107,23 +111,6 @@ final class ShelfPlugin: NotchPlugin, ExportablePlugin {
             csv += "\(item.id),\(name),\(item.kindLabel),\(item.isTemporary)\n"
         }
         return Data(csv.utf8)
-    }
-}
-
-// MARK: - Export Helpers
-
-@MainActor
-private struct ShelfExportItem: Codable {
-    let id: String
-    let name: String
-    let type: String
-    let isTemporary: Bool
-
-    init(from item: ShelfItem) {
-        self.id = item.id.uuidString
-        self.name = item.displayName
-        self.type = item.kindLabel
-        self.isTemporary = item.isTemporary
     }
 }
 

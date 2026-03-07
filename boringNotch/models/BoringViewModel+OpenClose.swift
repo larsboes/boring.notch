@@ -9,74 +9,61 @@ import SwiftUI
 
 extension BoringViewModel {
     func open() {
-        // Guard against opening when not closed
         guard phase == .closed else { return }
 
-        // Cancel any pending close
         hoverController.cancelPendingClose()
 
-        // Transition to opening phase
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+        withAnimation(StandardAnimations.open) {
             self.notchSize = openNotchSize
             self.phase = .opening
         }
 
-        // Complete the opening after animation
+        // Complete after animation settles
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(350))
-            if self.phase == .opening {
-                self.phase = .open
-                self.syncWindowState()
-                self.startHoverHeartbeat()
-            }
+            try? await Task.sleep(for: StandardAnimations.openDuration)
+            guard self.phase == .opening else { return }
+            self.phase = .open
+            self.hoverController.setNotchOpen(true)
+            self.syncWindowState()
+            self.startHoverHeartbeat()
         }
 
-        // Force music information update when notch is opened
         musicService.forceUpdate()
     }
 
     func close(force: Bool = false) {
-        // Do not close while a share picker or sharing service is active
         if sharingService.preventNotchClose { return }
-
-        // Safety Check: If mouse is inside and not forced, REFUSE to close.
         if !force && isHoveringNotch && phase == .open { return }
-
-        // Guard against closing when not open
         guard phase == .open || force else { return }
 
-        // Cancel any pending open
         hoverController.cancelPendingOpen()
-
-        // Stop heartbeat before closing
+        hoverController.setNotchOpen(false)
         stopHoverHeartbeat()
 
-        // Transition to closing phase
-        withAnimation(.spring(response: 0.30, dampingFraction: 0.9)) {
+        // Reset transient state before animation starts
+        self.isBatteryPopoverActive = false
+        self.coordinator.sneakPeek.show = false
+        self.edgeAutoOpenActive = false
+
+        withAnimation(StandardAnimations.close) {
             self.notchSize = getClosedNotchSize(settings: self.displaySettings, screenUUID: self.screenUUID)
             self.closedNotchSize = self.notchSize
             self.phase = .closing
         }
 
-        // Complete the closing after animation
+        // Complete after animation settles
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(300))
-            if self.phase == .closing {
-                self.phase = .closed
-                self.syncWindowState()
+            try? await Task.sleep(for: StandardAnimations.closeDuration)
+            guard self.phase == .closing else { return }
+            self.phase = .closed
+            self.syncWindowState()
 
-                // Check if mouse is still in hover zone and should reopen
-                if self.hoverController.isMouseInHoverZone() {
-                    self.handleHoverSignal(.entered)
-                }
+            if self.hoverController.isMouseInHoverZone() {
+                self.handleHoverSignal(.entered)
             }
         }
 
-        self.isBatteryPopoverActive = false
-        self.coordinator.sneakPeek.show = false
-        self.edgeAutoOpenActive = false
-
-        // Set the current view to shelf if it contains files and the user enables openShelfByDefault
+        // Restore default view
         let isShelfEmpty = shelfService?.isEmpty ?? true
         if !isShelfEmpty && settings.openShelfByDefault {
             coordinator.currentView = .shelf
@@ -87,7 +74,7 @@ extension BoringViewModel {
 
     func closeHello() {
         Task { @MainActor in
-            withAnimation(animationLibrary.animation) {
+            withAnimation(StandardAnimations.close) {
                 coordinator.helloAnimationRunning = false
                 close()
             }

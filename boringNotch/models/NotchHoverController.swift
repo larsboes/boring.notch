@@ -86,6 +86,10 @@ enum HoverState: Equatable {
         hoverZoneManager.isMouseInHoverZone()
     }
 
+    func setNotchOpen(_ open: Bool) {
+        hoverZoneManager.isNotchOpen = open
+    }
+
     // MARK: - Heartbeat Control
 
     func startHeartbeat() {

@@ -22,18 +22,22 @@ enum StandardAnimations {
     /// Spring animation for opening the notch
     /// Subtle bounce for a polished feel
     static let open = Animation.spring(
-        response: 0.38,        // Faster than before
-        dampingFraction: 0.78, // Lower damping for subtle bounce
-        blendDuration: 0.1     // Smooth blend at start
+        response: 0.38,
+        dampingFraction: 0.78,
+        blendDuration: 0.1
     )
+    /// Estimated settle duration for the open animation
+    static let openDuration: Duration = .milliseconds(400)
 
     /// Spring animation for closing the notch
     /// Quick and decisive with slight softness
     static let close = Animation.spring(
-        response: 0.35,        // Faster close
-        dampingFraction: 0.92, // High damping but not fully critical
+        response: 0.35,
+        dampingFraction: 0.92,
         blendDuration: 0.08
     )
+    /// Estimated settle duration for the close animation
+    static let closeDuration: Duration = .milliseconds(350)
 
     /// Bouncy spring for playful animations
     @available(macOS 14.0, *)

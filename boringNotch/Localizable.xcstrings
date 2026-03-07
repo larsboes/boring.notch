@@ -3835,6 +3835,9 @@
         }
       }
     },
+    "Bulk Export" : {
+
+    },
     "Calendar" : {
       "localizations" : {
         "ar" : {
@@ -6763,6 +6766,9 @@
         }
       }
     },
+    "Data & Privacy" : {
+
+    },
     "Default" : {
       "localizations" : {
         "ar" : {
@@ -8881,6 +8887,15 @@
         }
       }
     },
+    "Export" : {
+
+    },
+    "Export All as JSON" : {
+
+    },
+    "Export your data from any plugin in standard formats." : {
+
+    },
     "Extend hover area" : {
       "localizations" : {
         "ar" : {
@@ -9284,6 +9299,9 @@
           }
         }
       }
+    },
+    "Format" : {
+
     },
     "Full screen behavior" : {
       "localizations" : {
@@ -14560,6 +14578,9 @@
           }
         }
       }
+    },
+    "No plugins with exportable data." : {
+
     },
     "No weather data" : {
 
