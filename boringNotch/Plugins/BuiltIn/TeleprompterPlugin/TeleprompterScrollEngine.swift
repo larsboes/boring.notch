@@ -26,10 +26,34 @@ struct TeleprompterScrollEngine: Sendable {
         return state.scrollPosition + (config.speed * elapsed)
     }
     
-    /// Parse text into sections using "##" as markers.
-    func parseSections(from text: String) -> [String] {
-        let lines = text.components(separatedBy: .newlines)
-        return lines.filter { $0.hasPrefix("##") }
-            .map { $0.replacingOccurrences(of: "##", with: "").trimmingCharacters(in: .whitespaces) }
+    // MARK: - Section Parsing
+
+    struct Section: Sendable {
+        let title: String
+        let lineIndex: Int
+    }
+
+    /// Parse text into sections using "##" as markers, tracking line positions.
+    func parseSections(from text: String) -> [Section] {
+        text.components(separatedBy: .newlines)
+            .enumerated()
+            .compactMap { index, line in
+                guard line.hasPrefix("##") else { return nil }
+                return Section(
+                    title: line.replacingOccurrences(of: "##", with: "").trimmingCharacters(in: .whitespaces),
+                    lineIndex: index
+                )
+            }
+    }
+
+    /// Find the current section based on scroll position and estimated line height.
+    func currentSection(
+        sections: [Section],
+        scrollPosition: Double,
+        lineHeight: Double
+    ) -> Section? {
+        guard lineHeight > 0 else { return nil }
+        let currentLine = Int(scrollPosition / lineHeight)
+        return sections.last { $0.lineIndex <= currentLine }
     }
 }

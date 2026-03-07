@@ -105,6 +105,7 @@ final class TeleprompterPlugin: NotchPlugin {
     
     func deactivate() async {
         self.state = .inactive
+        self.teleState.reset()
         shortcutHandler?.unregister()
         shortcutHandler = nil
         context?.services.apiRouteRegistrar?.unregister(path: "/api/v1/teleprompter/load")

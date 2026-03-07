@@ -79,7 +79,7 @@ final class SpotifyController: MediaControllerProtocol {
     func play() async { await executeCommand("play") }
     func pause() async { await executeCommand("pause") }
     func togglePlay() async { await executeCommand("playpause") }
-    func nextTrack() async { await executeCommand("next track") }
+    func nextTrack() async { await executeAndRefresh("next track") }
     func previousTrack() async {
         await executeAndRefresh("previous track")
     }

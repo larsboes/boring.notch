@@ -62,14 +62,44 @@ struct PluginMusicControlsView: View {
 
     @ViewBuilder
     private func lyricsView(width: CGFloat) -> some View {
-        TimelineView(.animation(minimumInterval: 0.5)) { timeline in
-            let currentElapsed: Double = {
-                guard service.playbackState.isPlaying else { return service.elapsedTime }
-                let delta = timeline.date.timeIntervalSince(service.timestampDate)
-                let progressed = service.elapsedTime + (delta * service.playbackRate)
-                return min(max(progressed, 0), service.songDuration)
-            }()
+        if vm.notchState == .open && service.playbackRate > 0 {
+            TimelineView(.animation(minimumInterval: 0.5)) { timeline in
+                let currentElapsed: Double = {
+                    guard service.playbackState.isPlaying else { return service.elapsedTime }
+                    let delta = timeline.date.timeIntervalSince(service.timestampDate)
+                    let progressed = service.elapsedTime + (delta * service.playbackRate)
+                    return min(max(progressed, 0), service.songDuration)
+                }()
 
+                let line: String = {
+                    if service.isFetchingLyrics { return "Loading lyrics..." }
+                    if !service.syncedLyrics.isEmpty {
+                        if let match = service.syncedLyrics.last(where: { $0.time <= currentElapsed }) {
+                            return match.text
+                        }
+                    }
+                    let trimmed = service.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+                    return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                }()
+
+                let isPersian = line.unicodeScalars.contains { scalar in
+                    let v = scalar.value
+                    return v >= 0x0600 && v <= 0x06FF
+                }
+
+                MarqueeText(
+                    line,
+                    font: .subheadline,
+                    color: service.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                    frameWidth: width
+                )
+                .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
+                .lineLimit(1)
+                .opacity(service.playbackState.isPlaying ? 1 : 0)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        } else {
+            let currentElapsed = service.elapsedTime
             let line: String = {
                 if service.isFetchingLyrics { return "Loading lyrics..." }
                 if !service.syncedLyrics.isEmpty {
@@ -99,8 +129,50 @@ struct PluginMusicControlsView: View {
         }
     }
 
+    @ViewBuilder
     private var musicSliderWithTimes: some View {
-        TimelineView(.animation(minimumInterval: service.playbackRate > 0 ? 0.5 : nil)) { timeline in
+        if vm.notchState == .open && service.playbackRate > 0 {
+            TimelineView(.animation(minimumInterval: 0.5)) { timeline in
+                HStack(spacing: 8) {
+                    Text(timeString(from: sliderValue))
+                        .font(.caption2)
+                        .foregroundColor(
+                            settings.playerColorTinting
+                            ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
+                        )
+                        .monospacedDigit()
+                        .frame(width: 36, alignment: .trailing)
+
+                    CustomSlider(
+                        value: $sliderValue,
+                        range: 0...service.songDuration,
+                        color: settings.sliderColor == SliderColorEnum.albumArt
+                            ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.8)
+                            : settings.sliderColor == SliderColorEnum.accent ? Color.effectiveAccent(from: settings) : .white,
+                        dragging: $dragging,
+                        lastDragged: $lastDragged,
+                        onValueChange: { newValue in
+                            let progress = service.songDuration > 0 ? newValue / service.songDuration : 0
+                            Task { await service.seek(to: progress) }
+                        }
+                    )
+                    .frame(height: 8)
+
+                    Text(timeString(from: service.songDuration))
+                        .font(.caption2)
+                        .foregroundColor(
+                            settings.playerColorTinting
+                            ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
+                        )
+                        .monospacedDigit()
+                        .frame(width: 36, alignment: .leading)
+                }
+                .onChange(of: timeline.date) {
+                    guard !dragging, service.timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
+                    sliderValue = service.estimatedPlaybackPosition(at: timeline.date)
+                }
+            }
+        } else {
             HStack(spacing: 8) {
                 Text(timeString(from: sliderValue))
                     .font(.caption2)
@@ -135,13 +207,8 @@ struct PluginMusicControlsView: View {
                     .monospacedDigit()
                     .frame(width: 36, alignment: .leading)
             }
-            .onChange(of: timeline.date) {
-                guard !dragging, service.timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
-                sliderValue = service.estimatedPlaybackPosition(at: timeline.date)
-            }
         }
     }
-
     private var playbackControls: some View {
         HStack(spacing: 6) {
             AppIcon(for: service.bundleIdentifier ?? "com.apple.Music")

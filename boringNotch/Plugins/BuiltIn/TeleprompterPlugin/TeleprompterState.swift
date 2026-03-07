@@ -4,7 +4,10 @@ import Observation
 @MainActor
 @Observable
 final class TeleprompterState {
-    var text: String = ""
+    var text: String = "" {
+        didSet { parsedSections = engine.parseSections(from: text) }
+    }
+    private(set) var parsedSections: [TeleprompterScrollEngine.Section] = []
     var config = TeleprompterScrollEngine.Config(
         speed: 30,
         fontSize: 16,
@@ -51,6 +54,40 @@ final class TeleprompterState {
 
     private var maxScroll: Double {
         contentHeight > 0 ? (contentHeight - Self.endBuffer) : .infinity
+    }
+
+    // MARK: - Presentation Metadata
+
+    var progress: Double {
+        guard maxScroll > 0, maxScroll != .infinity else { return 0 }
+        return min(1.0, scrollPosition / maxScroll)
+    }
+
+    /// Estimated line height for section position mapping.
+    private var estimatedLineHeight: Double {
+        config.fontSize + 8 // fontSize + lineSpacing
+    }
+
+    var currentSectionTitle: String? {
+        engine.currentSection(
+            sections: parsedSections,
+            scrollPosition: scrollPosition,
+            lineHeight: estimatedLineHeight
+        )?.title
+    }
+
+    var elapsedTimeString: String {
+        guard config.speed > 0 else { return "0:00" }
+        return formatTime(Int(scrollPosition / config.speed))
+    }
+
+    var remainingTimeString: String {
+        guard config.speed > 0, maxScroll > 0, maxScroll != .infinity else { return "0:00" }
+        return formatTime(Int(max(0, maxScroll - scrollPosition) / config.speed))
+    }
+
+    private func formatTime(_ totalSeconds: Int) -> String {
+        String(format: "%d:%02d", totalSeconds / 60, totalSeconds % 60)
     }
 
     // MARK: - Init

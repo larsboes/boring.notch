@@ -76,7 +76,7 @@ struct TeleprompterClosedView: View {
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: contentWidth - 32)
                             .padding(.top, 8)
-                            .padding(.bottom, readingAreaHeight) // Allow scrolling past the end
+                            .padding(.bottom, readingAreaHeight)
                             .background(
                                 GeometryReader { geo in
                                     Color.clear.preference(key: TeleprompterContentHeightKey.self, value: geo.size.height)
@@ -86,14 +86,24 @@ struct TeleprompterClosedView: View {
                     }
                     .scrollDisabled(true)
                     .scrollIndicators(.never)
-                    // Hover-to-pause mechanic
+                    // Karaoke fade — top lines bright, fading down
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .white, location: 0),
+                                .init(color: .white, location: 0.35),
+                                .init(color: .white.opacity(0.5), location: 0.65),
+                                .init(color: .clear, location: 0.9)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
                     .onHover { hovering in
                         state.isHovering = hovering
                     }
                     .onPreferenceChange(TeleprompterContentHeightKey.self) { height in
-                        // Record actual rendered height so state knows when to stop scrolling
                         if abs(state.contentHeight - Double(height)) > 1.0 {
-                            // Run async to avoid modifying state during view update
                             Task { @MainActor in
                                 state.contentHeight = Double(height)
                             }
@@ -103,6 +113,11 @@ struct TeleprompterClosedView: View {
             }
             .frame(width: contentWidth, height: readingAreaHeight)
             .clipped()
+            .overlay(alignment: .bottom) {
+                if !state.text.isEmpty {
+                    readingChrome
+                }
+            }
         }
         .frame(width: contentWidth, height: displayClosedNotchHeight)
         .overlay {
@@ -110,6 +125,63 @@ struct TeleprompterClosedView: View {
                 CountdownOverlayView(state: state.countdownState)
             }
         }
+        .onDisappear {
+            state.timerManager.micMonitor.stopMonitoring()
+        }
+        .onChange(of: vm.notchState) {
+            if vm.notchState != .closed {
+                state.timerManager.micMonitor.stopMonitoring()
+            }
+        }
+    }
+
+    // MARK: - Reading Chrome
+
+    /// Progress bar, section title, and elapsed/remaining time overlay.
+    private var readingChrome: some View {
+        VStack(spacing: 0) {
+            // Section title (top-right of reading zone)
+            HStack {
+                Spacer()
+                if let section = state.currentSectionTitle {
+                    Text(section)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.35))
+                        .lineLimit(1)
+                        .padding(.trailing, 8)
+                        .padding(.top, 4)
+                }
+            }
+
+            Spacer()
+
+            // Elapsed / remaining time
+            if state.isScrolling || state.scrollPosition > 0 {
+                HStack {
+                    Text(state.elapsedTimeString)
+                    Spacer()
+                    Text(state.remainingTimeString)
+                }
+                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.25))
+                .padding(.horizontal, 8)
+                .padding(.bottom, 4)
+            }
+
+            // Progress bar
+            GeometryReader { geo in
+                Rectangle()
+                    .fill(.white.opacity(0.15))
+                    .frame(height: 2)
+                    .overlay(alignment: .leading) {
+                        Rectangle()
+                            .fill(.white.opacity(0.5))
+                            .frame(width: geo.size.width * state.progress)
+                    }
+            }
+            .frame(height: 2)
+        }
+        .allowsHitTesting(false)
     }
 }
 

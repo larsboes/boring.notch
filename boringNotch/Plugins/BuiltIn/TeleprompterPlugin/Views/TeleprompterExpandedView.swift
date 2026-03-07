@@ -33,6 +33,14 @@ struct TeleprompterExpandedView: View {
             // Notch opened — stop scrolling so user can edit
             state.isScrolling = false
         }
+        .onDisappear {
+            state.timerManager.micMonitor.stopMonitoring()
+        }
+        .onChange(of: vm.notchState) {
+            if vm.notchState == .closed {
+                state.timerManager.micMonitor.stopMonitoring()
+            }
+        }
     }
 
     // MARK: - Editor Column
