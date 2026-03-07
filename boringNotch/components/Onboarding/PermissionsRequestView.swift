@@ -14,6 +14,7 @@ struct PermissionRequestView: View {
     let privacyNote: String?
     let onAllow: () -> Void
     let onSkip: () -> Void
+    @Environment(\.settings) var settings
 
     var body: some View {
         VStack(spacing: 28) {
@@ -21,7 +22,7 @@ struct PermissionRequestView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 70, height: 56)
-                .foregroundColor(.effectiveAccent)
+                .foregroundColor(.effectiveAccent(from: settings))
                 .padding(.top, 32)
 
             Text(title)

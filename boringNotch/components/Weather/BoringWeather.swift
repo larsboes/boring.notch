@@ -10,6 +10,7 @@ import SwiftUI
 struct WeatherView: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.pluginManager) var pluginManager
+    @Environment(\.settings) var settings
     
     var body: some View {
         VStack(spacing: 8) {
@@ -68,7 +69,7 @@ struct WeatherView: View {
                 }
                 .buttonStyle(.plain)
                 .font(.caption)
-                .foregroundColor(.effectiveAccent)
+                .foregroundColor(.effectiveAccent(from: settings))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

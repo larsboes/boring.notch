@@ -5,6 +5,7 @@
 //  Central DI root — constructs all services, coordinators, and wires dependencies.
 //
 
+import Combine
 import Foundation
 import SwiftUI
 
@@ -28,6 +29,26 @@ final class AppObjectGraph {
         // One-time legacy URL cache migration
         if settings.consumeLegacyCacheCleanupFlag() {
             URLCache.shared.removeAllCachedResponses()
+        }
+
+        // Subscribe to HUD value change events from the Presentation layer
+        setupHUDEventHandler()
+    }
+
+    private var hudEventCancellable: AnyCancellable?
+
+    private func setupHUDEventHandler() {
+        hudEventCancellable = eventBus.subscribe(to: HUDValueChangeEvent.self) { [weak self] event in
+            guard let self = self else { return }
+            let services = self.pluginManager.services
+            switch event.hudType {
+            case .volume:
+                services.volume.setAbsolute(Float32(event.newValue))
+            case .brightness:
+                services.brightness.setAbsolute(value: Float32(event.newValue))
+            default:
+                break
+            }
         }
     }
 
@@ -65,6 +86,7 @@ final class AppObjectGraph {
             soundService: pluginManager.services.sound,
             dragDropService: pluginManager.services.dragDrop,
             sharingService: pluginManager.services.sharing,
+            settings: DefaultNotchViewModelSettings(source: settings),
             displaySettings: settings
         )
     }()

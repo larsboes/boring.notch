@@ -9,6 +9,7 @@ import KeyboardShortcuts
 import SwiftUI
 
 struct Shortcuts: View {
+    @Environment(\.settings) var settings
     var body: some View {
         Form {
             Section {
@@ -27,7 +28,7 @@ struct Shortcuts: View {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Shortcuts")
     }
 }

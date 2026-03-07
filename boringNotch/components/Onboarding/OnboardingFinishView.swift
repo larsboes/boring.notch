@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingFinishView: View {
     let onFinish: () -> Void
     let onOpenSettings: () -> Void
+    @Environment(\.settings) var settings
 
     var body: some View {
         VStack(spacing: 20) {
@@ -17,7 +18,7 @@ struct OnboardingFinishView: View {
 
             Image(systemName: "sparkles")
                 .font(.system(size: 60))
-                .foregroundColor(.effectiveAccent)
+                .foregroundColor(.effectiveAccent(from: settings))
                 .padding()
 
             Text("You're All Set!")

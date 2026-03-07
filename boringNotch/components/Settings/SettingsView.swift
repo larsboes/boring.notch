@@ -14,6 +14,7 @@ struct SettingsView: View {
     @State private var selectedTab = "General"
     @State private var accentColorUpdateTrigger = UUID()
     @Environment(\.pluginManager) var pluginManager
+    @Environment(\.settings) var settings
 
     let updaterController: SPUStandardUpdaterController?
 
@@ -74,7 +75,7 @@ struct SettingsView: View {
                 }
             }
             .listStyle(SidebarListStyle())
-            .tint(.effectiveAccent)
+            .tint(.effectiveAccent(from: settings))
             .toolbar(removing: .sidebarToggle)
             .navigationSplitViewColumnWidth(200)
         } detail: {
@@ -148,7 +149,7 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 700)
         .background(Color(NSColor.windowBackgroundColor))
-        .tint(.effectiveAccent)
+        .tint(.effectiveAccent(from: settings))
         .id(accentColorUpdateTrigger)
         .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
             accentColorUpdateTrigger = UUID()
