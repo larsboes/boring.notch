@@ -84,6 +84,10 @@ import Defaults
         get { Defaults[.showPomodoro] }
         set { Defaults[.showPomodoro] = newValue }
     }
+    var showTeleprompter: Bool {
+        get { Defaults[.showTeleprompter] }
+        set { Defaults[.showTeleprompter] = newValue }
+    }
     var openWeatherMapApiKey: String {
         get { Defaults[.openWeatherMapApiKey] }
         set { Defaults[.openWeatherMapApiKey] = newValue }

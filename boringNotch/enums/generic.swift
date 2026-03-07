@@ -32,6 +32,7 @@ public enum NotchViews: Sendable {
     case notes
     case habitTracker
     case pomodoro
+    case teleprompter
 }
 
 enum SettingsEnum {
