@@ -27,6 +27,7 @@ extension BoringViewModel {
             if self.phase == .opening {
                 self.phase = .open
                 self.syncWindowState()
+                self.startHoverHeartbeat()
             }
         }
 
@@ -46,6 +47,9 @@ extension BoringViewModel {
 
         // Cancel any pending open
         hoverController.cancelPendingOpen()
+
+        // Stop heartbeat before closing
+        stopHoverHeartbeat()
 
         // Transition to closing phase
         withAnimation(.spring(response: 0.30, dampingFraction: 0.9)) {

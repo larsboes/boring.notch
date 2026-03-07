@@ -2,7 +2,7 @@
 //  BoringViewModel+Hover.swift
 //  boringNotch
 //
-//  Extracted hover zone management and legacy compatibility from BoringViewModel.
+//  Hover zone management and heartbeat integration for BoringViewModel.
 //
 
 import Foundation
@@ -11,60 +11,65 @@ import AppKit
 extension BoringViewModel {
     // MARK: - Hover Zone Management
 
-    /// Set the window reference for hover validation
     func setHoverWindow(_ window: NSWindow?) {
         self.window = window
     }
 
-    /// Updates the hover zone geometry. Call when screen changes, not during animation.
     func updateHoverZone() {
         hoverController.updateHoverZone(screenUUID: screenUUID)
     }
 
-    /// Single entry point for hover signals from TrackingAreaView.
-    func handleHoverSignal(_ signal: HoverSignal) {
-        hoverController.handleHoverSignal(
-            signal,
-            currentPhase: phase,
-            sneakPeekActive: coordinator.sneakPeek.show
-        ) { [weak self] in
-            self?.open()
+    // MARK: - Heartbeat Lifecycle
+
+    func configureHoverCallbacks() {
+        hoverController.isShelfActive = { [weak self] in
+            self?.coordinator.currentView == .shelf
         }
-
-        // Handle exited signal for scheduling close
-        if case .exited = signal {
-            scheduleClose()
+        hoverController.onShouldOpen = { [weak self] in
+            guard let self else { return }
+            guard self.settings.openNotchOnHover else { return }
+            guard !self.coordinator.sneakPeek.show else { return }
+            self.open()
         }
-    }
-
-    // MARK: - Legacy Compatibility
-
-    /// Called by TrackingAreaView when mouse enters (legacy API)
-    func mouseEntered() {
-        handleHoverSignal(.entered)
-    }
-
-    /// Called by TrackingAreaView when mouse exits (legacy API)
-    func mouseExited() {
-        handleHoverSignal(.exited)
-    }
-
-    /// Schedule a close after the appropriate delay
-    func scheduleClose() {
-        hoverController.scheduleClose(
-            currentPhase: phase,
-            currentView: coordinator.currentView
-        ) { [weak self] in
+        hoverController.onShouldClose = { [weak self] in
             self?.close(force: true)
         }
     }
 
-    /// Setup hover controller (kept for API compatibility)
-    func setupHoverController() {
-        // No-op: hover logic is now in hoverController
+    func startHoverHeartbeat() {
+        hoverController.startHeartbeat()
     }
 
-    /// Legacy compatibility - cancel pending close
+    func stopHoverHeartbeat() {
+        hoverController.stopHeartbeat()
+    }
+
+    // MARK: - Hover Signal (TrackingArea hint)
+
+    func handleHoverSignal(_ signal: HoverSignal) {
+        hoverController.handleHoverHint(signal)
+    }
+
+    // MARK: - Legacy Compatibility
+
+    func mouseEntered() {
+        handleHoverSignal(.entered)
+    }
+
+    func mouseExited() {
+        handleHoverSignal(.exited)
+    }
+
+    func scheduleClose() {
+        // Heartbeat handles close scheduling via tick().
+        // Trigger an immediate tick in case heartbeat isn't running yet.
+        hoverController.tick()
+    }
+
+    func setupHoverController() {
+        // No-op: hover logic is in hoverController heartbeat
+    }
+
     func cancelPendingClose() {
         hoverController.cancelPendingClose()
     }

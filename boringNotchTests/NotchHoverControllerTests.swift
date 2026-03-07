@@ -11,7 +11,7 @@ final class MockHoverZoneChecker: HoverZoneChecking {
 }
 
 struct MockNotchViewModelSettings: NotchViewModelSettings {
-    var shelfHoverDelay: Double = 1.0
+    var shelfHoverDelay: Double = 4.0
     var backgroundImageURL: URL? = nil
     var hideNotchOption: HideNotchOption = .never
     var showNotHumanFace: Bool = false
@@ -25,58 +25,219 @@ struct MockNotchViewModelSettings: NotchViewModelSettings {
 @MainActor
 final class NotchHoverControllerTests: XCTestCase {
 
-    func testDebounce_mouseQuickPassthrough_doesNotOpen() async throws {
-        let hoverChecker = MockHoverZoneChecker()
-        let controller = NotchHoverController(
+    private var hoverChecker: MockHoverZoneChecker!
+    private var controller: NotchHoverController!
+
+    override func setUp() {
+        super.setUp()
+        hoverChecker = MockHoverZoneChecker()
+        controller = NotchHoverController(
             settings: MockNotchViewModelSettings(),
             hoverZoneManager: hoverChecker
         )
+    }
+
+    // MARK: - State Machine: outside → entering → inside
+
+    func testQuickPassthrough_doesNotOpen() {
         var openCalled = false
+        controller.onShouldOpen = { openCalled = true }
+
+        let t0 = Date()
+
+        // Mouse enters
         hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        XCTAssertEqual(controller.state, .entering(since: t0))
 
-        controller.handleHoverSignal(.entered, currentPhase: .closed, sneakPeekActive: false, onOpen: { openCalled = true })
-        try await Task.sleep(for: .milliseconds(30))
-
-        // Exit before the 50ms open delay fires
+        // Mouse leaves at 30ms — before 50ms enter delay
         hoverChecker.mouseInZone = false
-        controller.handleHoverSignal(.exited, currentPhase: .closed, sneakPeekActive: false, onOpen: {})
-        try await Task.sleep(for: .milliseconds(60)) // Past open delay
+        controller.tick(now: t0.addingTimeInterval(0.030))
+        XCTAssertEqual(controller.state, .outside)
 
-        XCTAssertFalse(openCalled, "Open should not fire for quick passthrough")
+        // Tick again past the enter delay — should NOT open
+        controller.tick(now: t0.addingTimeInterval(0.060))
+        XCTAssertFalse(openCalled)
     }
 
-    func testDebounce_mouseStaysInside_opens() async throws {
-        let hoverChecker = MockHoverZoneChecker()
-        let controller = NotchHoverController(
-            settings: MockNotchViewModelSettings(),
-            hoverZoneManager: hoverChecker
-        )
+    func testDwell50ms_opens() {
         var openCalled = false
+        controller.onShouldOpen = { openCalled = true }
+
+        let t0 = Date()
+
         hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        XCTAssertEqual(controller.state, .entering(since: t0))
 
-        controller.handleHoverSignal(.entered, currentPhase: .closed, sneakPeekActive: false, onOpen: { openCalled = true })
-        try await Task.sleep(for: .milliseconds(100)) // Past 50ms open delay
-
-        XCTAssertTrue(openCalled, "Open should fire after hover delay")
+        // Tick at 50ms — should transition to inside and fire open
+        controller.tick(now: t0.addingTimeInterval(0.050))
+        XCTAssertEqual(controller.state, .inside)
+        XCTAssertTrue(openCalled)
     }
 
-    func testCancelClose_mouseReturns() async throws {
-        let hoverChecker = MockHoverZoneChecker()
-        let controller = NotchHoverController(
-            settings: MockNotchViewModelSettings(),
-            hoverZoneManager: hoverChecker
-        )
+    // MARK: - State Machine: inside → exiting → outside
+
+    func testExitAndClose() {
         var closeCalled = false
+        controller.onShouldClose = { closeCalled = true }
 
-        // Schedule a close
-        controller.scheduleClose(currentPhase: .open, currentView: .home, onClose: { closeCalled = true })
+        let t0 = Date()
 
-        // Mouse re-enters before the 700ms close delay expires
+        // Get to .inside state
         hoverChecker.mouseInZone = true
-        controller.handleHoverSignal(.entered, currentPhase: .open, sneakPeekActive: false, onOpen: {})
+        controller.tick(now: t0)
+        controller.tick(now: t0.addingTimeInterval(0.050))
+        XCTAssertEqual(controller.state, .inside)
 
-        try await Task.sleep(for: .milliseconds(800)) // Past close delay
+        // Mouse leaves
+        hoverChecker.mouseInZone = false
+        let exitTime = t0.addingTimeInterval(0.100)
+        controller.tick(now: exitTime)
+        XCTAssertEqual(controller.state, .exiting(since: exitTime))
 
-        XCTAssertFalse(closeCalled, "Close should be cancelled by re-entry")
+        // Not yet past 500ms exit delay
+        controller.tick(now: exitTime.addingTimeInterval(0.400))
+        XCTAssertFalse(closeCalled)
+
+        // Past 500ms — should close
+        controller.tick(now: exitTime.addingTimeInterval(0.500))
+        XCTAssertEqual(controller.state, .outside)
+        XCTAssertTrue(closeCalled)
+    }
+
+    // MARK: - Cancel close: re-enter during exit delay
+
+    func testReenterDuringExitDelay_cancelsClose() {
+        var closeCalled = false
+        controller.onShouldClose = { closeCalled = true }
+
+        let t0 = Date()
+
+        // Get to .inside
+        hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        controller.tick(now: t0.addingTimeInterval(0.050))
+
+        // Mouse leaves
+        hoverChecker.mouseInZone = false
+        controller.tick(now: t0.addingTimeInterval(0.100))
+        XCTAssertEqual(controller.state, .exiting(since: t0.addingTimeInterval(0.100)))
+
+        // Mouse returns at 300ms — within 500ms exit delay
+        hoverChecker.mouseInZone = true
+        controller.tick(now: t0.addingTimeInterval(0.300))
+        XCTAssertEqual(controller.state, .inside)
+
+        // Tick well past original exit time — should NOT close
+        controller.tick(now: t0.addingTimeInterval(1.0))
+        XCTAssertFalse(closeCalled)
+    }
+
+    // MARK: - Shelf mode: 4s exit delay
+
+    func testShelfMode_usesLongerExitDelay() {
+        var closeCalled = false
+        controller.onShouldClose = { closeCalled = true }
+        controller.isShelfActive = { true }
+
+        let t0 = Date()
+
+        // Get to .inside
+        hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        controller.tick(now: t0.addingTimeInterval(0.050))
+
+        // Mouse leaves
+        hoverChecker.mouseInZone = false
+        let exitTime = t0.addingTimeInterval(0.100)
+        controller.tick(now: exitTime)
+
+        // At 2s — should NOT close yet (shelf delay is 4s)
+        controller.tick(now: exitTime.addingTimeInterval(2.0))
+        XCTAssertFalse(closeCalled)
+
+        // Mouse returns at 3s — within 4s shelf delay
+        hoverChecker.mouseInZone = true
+        controller.tick(now: exitTime.addingTimeInterval(3.0))
+        XCTAssertEqual(controller.state, .inside)
+        XCTAssertFalse(closeCalled)
+    }
+
+    // MARK: - Prevent close
+
+    func testPreventClose_staysInside() {
+        controller.shouldPreventClose = { true }
+
+        let t0 = Date()
+
+        // Get to .inside
+        hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        controller.tick(now: t0.addingTimeInterval(0.050))
+        XCTAssertEqual(controller.state, .inside)
+
+        // Mouse leaves — but close is prevented
+        hoverChecker.mouseInZone = false
+        controller.tick(now: t0.addingTimeInterval(0.100))
+        XCTAssertEqual(controller.state, .inside)
+    }
+
+    func testBatteryPopoverActive_staysInside() {
+        controller.isBatteryPopoverActive = true
+
+        let t0 = Date()
+
+        // Get to .inside
+        hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        controller.tick(now: t0.addingTimeInterval(0.050))
+
+        // Mouse leaves — battery popover blocks exit
+        hoverChecker.mouseInZone = false
+        controller.tick(now: t0.addingTimeInterval(0.100))
+        XCTAssertEqual(controller.state, .inside)
+    }
+
+    // MARK: - cancelPendingClose / cancelPendingOpen
+
+    func testCancelPendingClose_transitionsToInside() {
+        let t0 = Date()
+
+        // Get to .exiting
+        hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        controller.tick(now: t0.addingTimeInterval(0.050))
+        hoverChecker.mouseInZone = false
+        controller.tick(now: t0.addingTimeInterval(0.100))
+        XCTAssertEqual(controller.state, .exiting(since: t0.addingTimeInterval(0.100)))
+
+        controller.cancelPendingClose()
+        XCTAssertEqual(controller.state, .inside)
+    }
+
+    func testCancelPendingOpen_transitionsToOutside() {
+        let t0 = Date()
+
+        hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        XCTAssertEqual(controller.state, .entering(since: t0))
+
+        controller.cancelPendingOpen()
+        XCTAssertEqual(controller.state, .outside)
+    }
+
+    // MARK: - stopHeartbeat resets state
+
+    func testStopHeartbeat_resetsToOutside() {
+        let t0 = Date()
+
+        hoverChecker.mouseInZone = true
+        controller.tick(now: t0)
+        controller.tick(now: t0.addingTimeInterval(0.050))
+        XCTAssertEqual(controller.state, .inside)
+
+        controller.stopHeartbeat()
+        XCTAssertEqual(controller.state, .outside)
     }
 }
