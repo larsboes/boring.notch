@@ -140,7 +140,6 @@
 		221E2BF61BFFA731348AA879 /* ShelfImageConversionDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB4B38961CF880DB0D77E75 /* ShelfImageConversionDialog.swift */; };
 		2366C78544EFA3F2F86534D0 /* MusicPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A2434E0A7AFD3298FA102E /* MusicPlugin.swift */; };
 		2CA2A25368299F10E7B536DF /* YouTubeMusicController+PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFCD351BD11B3AB4E1048A8 /* YouTubeMusicController+PlaybackState.swift */; };
-		2CC08A1B4FE387717D5B5DBC /* NotchPhaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB095702076998EBFA1B6845 /* NotchPhaseController.swift */; };
 		312FE24D4629E8B2C243E9DD /* NotchVolumeControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11C468AF4F351C6BC408CD9 /* NotchVolumeControl.swift */; };
 		327DF2F76B387F76C31A0A0D /* ShelfService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA640EF0042EB0B31405E86D /* ShelfService.swift */; };
 		3A958AB02A879E0D96009DDE /* CustomSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829177F6B342E6E24252B640 /* CustomSlider.swift */; };
@@ -591,7 +590,6 @@
 		F72C8F2DF69DAFB2AAED51A0 /* PluginCapabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginCapabilities.swift; path = boringNotch/Plugins/Core/PluginCapabilities.swift; sourceTree = "<group>"; };
 		F90A69E202A04A6BBCF1E913 /* BoringViewCoordinator+Plugins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoringViewCoordinator+Plugins.swift"; sourceTree = "<group>"; };
 		F9750452CD89BB8FD364799F /* MusicSlotConfigurationView+DragDrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MusicSlotConfigurationView+DragDrop.swift"; sourceTree = "<group>"; };
-		FB095702076998EBFA1B6845 /* NotchPhaseController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchPhaseController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -1036,7 +1034,6 @@
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 				2F996B97FF11027495BA459A /* NotchViewModelSettings.swift */,
 				3D01104225AEAADF0C129C4A /* NotchHoverController.swift */,
-				FB095702076998EBFA1B6845 /* NotchPhaseController.swift */,
 				D1E2F3A4B5C60798E1F2A3B4 /* NotchCameraController.swift */,
 				F665A091F3653C3DB1AE4FAB /* NotchSizeCalculator.swift */,
 				5DD480B80D77449E7000763A /* NotchObserverSetup.swift */,
@@ -1886,7 +1883,6 @@
 				AE430B42314D0892E2FA67CB /* HoverZoneManager.swift in Sources */,
 				9B33A0C4A3F2E9B78273BA9C /* NotchViewModelSettings.swift in Sources */,
 				20AD9CCE8934B96D524C73FD /* NotchHoverController.swift in Sources */,
-				2CC08A1B4FE387717D5B5DBC /* NotchPhaseController.swift in Sources */,
 				A1B2C3D4E5F60718293A4B5C /* NotchCameraController.swift in Sources */,
 				BE274B771CF8B1186D2D5F14 /* NotchSizeCalculator.swift in Sources */,
 				86BA567C9A931249EA00F25B /* NotchObserverSetup.swift in Sources */,
