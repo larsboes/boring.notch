@@ -63,13 +63,13 @@ SwiftUI Views → PluginManager → NotchPlugin instances → Service Protocols 
 | `managers/` | Legacy | Managers wrapping into services |
 
 ## Key Files
-- `docs/PRD.md` — active implementation plan (Phase 1–7) + migration status
+- `docs/PRD.md` — active implementation plan + migration status
 - `docs/ARCHITECTURE.md` — architecture reference
 - `docs/PLUGIN_DEVELOPMENT.md` — plugin development guide
 - `boringNotch/AppObjectGraph.swift` — DI root; constructs all services and coordinators
 - `boringNotch/Plugins/Core/PluginManager.swift` — central plugin orchestrator
 - `boringNotch/Plugins/Services/ServiceContainer.swift` — DI container
-- `boringNotch/BoringViewCoordinator.swift` — coordinator being phased out (see PRD Task 8)
+- `boringNotch/BoringViewCoordinator.swift` — view coordinator (legacy, being phased out)
 - `boringNotch/Core/NotchStateMachine.swift` — pure, tested, stable state machine
 
 ## Files to Not Touch
