@@ -19,7 +19,7 @@ struct ContentRevealModifier: ViewModifier {
     let useBlur: Bool
 
     /// Per-element stagger offset (each index delays the start by this amount of progress)
-    private let staggerStep: CGFloat = 0.08
+    private let staggerStep: CGFloat = 0.06
 
     /// This element's effective progress, accounting for stagger
     private var elementProgress: CGFloat {
@@ -36,9 +36,9 @@ struct ContentRevealModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let opacity = smoothstep(elementProgress)
-        let scale = 0.92 + 0.08 * smoothstep(elementProgress)
-        let yOffset = (1.0 - smoothstep(elementProgress)) * -4.0
-        let blurRadius = useBlur ? (1.0 - elementProgress) * 12.0 : 0
+        let scale = 0.94 + 0.06 * smoothstep(elementProgress)
+        let yOffset = (1.0 - smoothstep(elementProgress)) * -3.0
+        let blurRadius = useBlur ? (1.0 - elementProgress) * 8.0 : 0
 
         content
             .opacity(opacity)

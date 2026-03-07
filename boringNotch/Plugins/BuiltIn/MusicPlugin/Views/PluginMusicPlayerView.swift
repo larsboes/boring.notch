@@ -43,7 +43,10 @@ struct PluginAlbumArtView: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            if settings.lightingEffect {
+            // Suppress lighting glow during transition — the blur/rotate decoration
+            // creates ghost artifacts while the shell is still morphing.
+            // Only appears once the notch has settled into its final state.
+            if settings.lightingEffect && !vm.phase.isTransitioning {
                 albumArtBackground
             }
             albumArtButton
@@ -98,7 +101,10 @@ struct PluginAlbumArtView: View {
                     )
                 )
                 .clipped()
-                .ifLet(albumArtNamespace) { view, ns in
+                // Only apply matchedGeometryEffect when NOT transitioning.
+                // During transitions, the container spring and matchedGeometry fight,
+                // causing stretch/jump artifacts on the album art.
+                .ifLet(vm.phase.isTransitioning ? nil : albumArtNamespace) { view, ns in
                     view.matchedGeometryEffect(id: "albumArt", in: ns)
                 }
         }

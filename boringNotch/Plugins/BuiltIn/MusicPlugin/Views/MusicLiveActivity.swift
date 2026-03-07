@@ -55,7 +55,10 @@ struct MusicLiveActivity: View {
                             )
                         )
                         .clipped()
-                        .ifLet(albumArtNamespace) { view, ns in
+                        // Only apply matchedGeometryEffect when NOT transitioning.
+                        // During transitions, the container spring and matchedGeometry fight,
+                        // causing stretch/jump artifacts on the album art.
+                        .ifLet(vm.phase.isTransitioning ? nil : albumArtNamespace) { view, ns in
                             view.matchedGeometryEffect(id: "albumArt", in: ns)
                         }
                 }

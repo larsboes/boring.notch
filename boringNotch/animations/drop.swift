@@ -12,32 +12,32 @@ import SwiftUI
 /// Centralized animation definitions for consistent UI behavior across the app.
 enum StandardAnimations {
     /// Interactive spring for responsive UI (used for notch interactions)
-    /// Tuned for snappier feedback during gestures and hover
+    /// Tight response with near-critical damping — confident tracking, no wobble
     static let interactive = Animation.interactiveSpring(
-        response: 0.30,        // Faster response for immediate feedback
-        dampingFraction: 0.86, // Higher damping for less overshoot during scrubbing
+        response: 0.20,        // Snappy response for immediate feel
+        dampingFraction: 0.94, // Near-critical damping — clean stop, zero overshoot
         blendDuration: 0
     )
 
     /// Spring animation for opening the notch
-    /// Subtle bounce for a polished feel
+    /// Apple Dynamic Island feel — swift expansion with minimal overshoot
     static let open = Animation.spring(
-        response: 0.38,
-        dampingFraction: 0.82,
-        blendDuration: 0.1
+        response: 0.32,
+        dampingFraction: 0.92,
+        blendDuration: 0.04
     )
     /// Estimated settle duration for the open animation
-    static let openDuration: Duration = .milliseconds(350)
+    static let openDuration: Duration = .milliseconds(300)
 
     /// Spring animation for closing the notch
-    /// Quick and decisive with slight softness
+    /// Quick and decisive — near-critically damped for confident retraction
     static let close = Animation.spring(
-        response: 0.35,
-        dampingFraction: 0.92,
-        blendDuration: 0.08
+        response: 0.26,
+        dampingFraction: 0.97,
+        blendDuration: 0.02
     )
     /// Estimated settle duration for the close animation
-    static let closeDuration: Duration = .milliseconds(300)
+    static let closeDuration: Duration = .milliseconds(230)
 
     /// Bouncy spring for playful animations
     @available(macOS 14.0, *)
@@ -66,8 +66,8 @@ enum StandardAnimations {
     /// - Parameter index: The index of the element in the sequence (0 = first)
     /// - Returns: Animation with appropriate delay for perceptible stagger
     static func staggered(index: Int) -> Animation {
-        Animation.spring(response: 0.32, dampingFraction: 0.86)
-            .delay(Double(index) * 0.06)
+        Animation.spring(response: 0.30, dampingFraction: 0.88)
+            .delay(Double(index) * 0.05)
     }
 }
 

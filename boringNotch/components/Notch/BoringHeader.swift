@@ -22,7 +22,7 @@ struct BoringHeader: View {
                 if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
                     TabSelectionView()
                         .padding(.leading, 8)
-                } else if vm.notchState == .open {
+                } else if vm.phase == .open {
                     EmptyView()
                 }
             }
@@ -35,7 +35,7 @@ struct BoringHeader: View {
             let currentScreen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
             let hasHardwareNotch = (currentScreen?.safeAreaInsets.top ?? 0) > 0
             
-            if vm.notchState == .open && hasHardwareNotch {
+            if vm.phase == .open && hasHardwareNotch {
                 if !settings.liquidGlassEffect {
                     Rectangle()
                         .fill(.black)
@@ -54,7 +54,10 @@ struct BoringHeader: View {
             }
 
             HStack(spacing: 4) {
-                if vm.notchState == .open {
+                // Gate controls on phase == .open (not notchState == .open).
+                // phase == .open fires AFTER the animation completes,
+                // preventing accidental taps and visual flicker during transition.
+                if vm.phase == .open {
                     if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && settings.showOpenNotchHUD {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
                             .transition(.scale(scale: 0.8).combined(with: .opacity))

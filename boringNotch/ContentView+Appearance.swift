@@ -37,13 +37,14 @@ extension ContentView {
         return t * t * (3 - 2 * t)
     }
 
-    /// Content-specific progress — runs slightly ahead of shell animation on close.
-    /// Content exits faster than the notch shell shrinks (content ~80% gone when shell is at 50%).
+    /// Content-specific progress — shell-first timeline.
+    /// Shell expands first → content fades in after shell is visibly expanding → controls last.
+    /// Apple Dynamic Island pattern: shape morphs alone, then content reveals.
     var contentProgress: CGFloat {
         let p = animationProgress
-        // On open: content slightly lags shell (starts at 25% shell progress)
-        // On close: content leads shell (pow < 1 accelerates the early phase)
-        return smoothstep(0.2, 0.95, p)
+        // Content starts at 30% of shell expansion and reaches full at 90%.
+        // The 30% delay creates a visible "shell leads" effect.
+        return smoothstep(0.30, 0.90, p)
     }
 
     var cornerRadiusScaleFactor: CGFloat? {
