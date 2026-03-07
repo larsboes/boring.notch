@@ -39,7 +39,7 @@
 | 1, 1b, 2, 3, 8 | ✅ Shipped | Plugin arch, @Observable migration, heartbeat hover, data export, HabitTracker + Pomodoro |
 | 4 — Animation Polish | **Active** | Duration tuning + staggered fade done. Spring refinement + gesture-driven open remaining. |
 | 4a — Architecture Debt | **Next** | 9 regressions from audit: 300L breach, duplicate files, DI gaps, stray Defaults, naming |
-| 5 — Local API | Planned | REST + WebSocket — the foundation for all external integrations |
+| 5 — Local API | **MVP shipped; hardening active** | Core REST notch control + WebSocket events are live. Plugin/music routes, auth, and rate limiting remain. |
 | 6 — API-Powered Plugins | Planned | Teleprompter, DisplaySurface |
 | 7 — Automation | Planned | App Intents, URL scheme |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
@@ -186,9 +186,11 @@ Currently dispatches internally with `Task { @MainActor in }` — code smell. Th
 
 ## Phase 5 — Local API Server
 
-**Goal:** REST + WebSocket API at `localhost:19384`. This is the foundation — it turns boringNotch from a standalone app into a **local-first ambient display platform**. Anything that can `curl` can use the notch.
+**Goal:** Stabilize and expand the existing REST + WebSocket API at `localhost:19384`. This is the foundation — it turns boringNotch from a standalone app into a **local-first ambient display platform**. Anything that can `curl` can use the notch.
 
-**Why this comes first:** Every future integration (Teleprompter, Raycast, browser extensions, AI agents, CLI tools) needs this. Building it early means every subsequent plugin can be API-driven from day one.
+**Status:** Core MVP is already implemented under `boringNotch/private/LocalAPI/` and starts with app lifecycle via `LocalAPIServerController` in `AppObjectGraph`/`boringNotchApp`.
+
+**Why this comes first:** Every future integration (Teleprompter, Raycast, browser extensions, AI agents, CLI tools) needs this. With the base server already in place, Phase 5 now focuses on hardening and route expansion so subsequent plugins can be API-driven from day one.
 
 ### Architecture
 
@@ -196,7 +198,7 @@ Currently dispatches internally with `Task { @MainActor in }` — code smell. Th
 External clients (curl, Raycast, scripts, browser ext)
         │
         ▼
-  LocalAPIServer (Network.framework, bound to 127.0.0.1:19384)
+  LocalAPIServer (Network.framework, port 19384)
         │
         ├── REST routes → PluginManager / ServiceContainer
         │
@@ -204,24 +206,31 @@ External clients (curl, Raycast, scripts, browser ext)
 ```
 
 **Security model:**
-- Bind `127.0.0.1` only — no network exposure by default
-- Optional bearer token auth (stored in Keychain) for remote use later
-- Rate limiting on write endpoints (10 req/s default)
+- [ ] Enforce loopback-only bind (`127.0.0.1`) by default
+- [ ] Optional bearer token auth (stored in Keychain) for remote use later
+- [ ] Rate limiting on write endpoints (10 req/s default)
 
 ### Task 16: Core API Server
 
-**Directory:** `boringNotch/LocalAPI/`
+**Status:** ✅ Implemented
 
-**Files:**
+**Directory:** `boringNotch/private/LocalAPI/`
+
+**Implemented files:**
 - `LocalAPIServer.swift` — HTTP server using `Network.framework` (NWListener). No external dependencies.
 - `APIRouter.swift` — route matching + dispatch
 - `APIResponse.swift` — Codable response envelope (`{ "ok": true, "data": ... }`)
+- `HTTPRequestParser.swift` — request parsing
+- `WebSocketClient.swift` — WebSocket client lifecycle
+- `LocalAPIServerController.swift` — app lifecycle wiring + event bus bridge
 
-**Lifecycle:** Starts with app, stops on quit. Managed by `AppObjectGraph`, injected as a service.
+**Lifecycle:** Starts with app, stops on quit. Managed by `AppObjectGraph` and invoked from app lifecycle hooks.
 
 ### Task 17: REST Endpoints
 
-**Core endpoints (MVP):**
+**Status:** 🟡 Partially implemented
+
+**Implemented now (MVP):**
 
 ```
 # Notch control
@@ -229,7 +238,11 @@ GET  /api/v1/notch/state              → { phase, screen, size }
 POST /api/v1/notch/open               → open notch
 POST /api/v1/notch/close              → close notch
 POST /api/v1/notch/toggle             → toggle
+```
 
+**Planned expansion (remaining in Phase 5):**
+
+```
 # Plugin system
 GET  /api/v1/plugins                  → list active plugins + state
 GET  /api/v1/plugins/{id}             → plugin detail + capabilities
@@ -249,11 +262,18 @@ All write endpoints return `{ "ok": true }` or `{ "ok": false, "error": "..." }`
 
 ### Task 18: WebSocket Event Stream
 
+**Status:** 🟡 MVP implemented, schema hardening remaining
+
 ```
 WS /api/v1/events
 ```
 
-**Server → Client events:**
+**Current behavior (implemented):**
+- WebSocket upgrade on `/api/v1/events`
+- Broadcast bridge from `PluginEventBus` to all connected clients
+- Event payload currently normalized to `{ type, data }` with mapped type + metadata
+
+**Target event taxonomy (remaining alignment):**
 ```json
 { "type": "notch.opened", "data": { "screen": "main" } }
 { "type": "notch.closed", "data": {} }
@@ -269,7 +289,7 @@ WS /api/v1/events
 { "command": "notch.open", "data": {} }
 ```
 
-Events sourced from `PluginEventBus` — the WebSocket bridge subscribes to all events and forwards. This means any `PluginEventBus` event is automatically available to external clients.
+Events are sourced from `PluginEventBus` via the server controller bridge.
 
 ### Task 19: CLI companion (optional)
 
@@ -449,7 +469,7 @@ Requirements: signed Swift package bundles, permission manifests, approval UI, p
 |-------|-----------|
 | 4 | Open/close feels smooth and interruptible. No "stuck" phase transitions. Content fades in progressively. |
 | 4a | Zero arch violations. All 9 items resolved. Build green + tests pass. CLAUDE.md updated to match reality. |
-| 5 | `curl localhost:19384/api/v1/notch/state` returns valid JSON. WebSocket streams events. `notchctl` works. |
+| 5 | **MVP done:** `curl localhost:19384/api/v1/notch/state` returns valid JSON, notch open/close/toggle routes work, and WebSocket streams events. **Phase complete:** plugin/music endpoints shipped, auth + rate limiting implemented, event schema finalized, `notchctl` works. |
 | 6 | Teleprompter scrolls text fed via API. DisplaySurface renders arbitrary content from `curl`. |
 | 7 | All App Intents in Shortcuts. URL scheme routes work. |
 | 9 | External plugin loads from ~/Library/Application Support/boringNotch/Plugins/. |
