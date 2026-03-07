@@ -38,7 +38,7 @@
 | Phase | Status | Summary |
 |-------|--------|---------|
 | 1, 1b, 2, 3, 4a, 8 | ✅ Shipped | Plugin arch, @Observable migration, heartbeat hover, data export, architecture debt cleanup, HabitTracker + Pomodoro, battery optimization |
-| 4 — Animation Polish | **Active** | Tasks 12-13 done. Task 14 (spring curves) needs device tuning. New: Tasks 16-20 (choreography, shadow, album art morph, sleep→completion). Task 15 (gesture-driven) deferred. |
+| 4 — Animation Polish | **Active** | Tasks 12-13, 16-18, 20 done. Task 14 (spring curves) needs device tuning. Task 19 (album art morph) next. Task 15 (gesture-driven) deferred. |
 | 5 — Local API | **MVP shipped; hardening next** | Core REST + WebSocket live. Dynamic route registration + path params added. Plugin/music routes, auth, rate limiting remain. |
 | 6 — API-Powered Plugins | Planned | Teleprompter, DisplaySurface |
 | 6b — On-Device AI Assist (Optional) | Planned | Foundation Models-backed script assist for Teleprompter + Display |
@@ -64,46 +64,24 @@
 | `interactive` | interactiveSpring(response: 0.30, damping: 0.86) | Tuned for less overshoot during scrubbing |
 | `staggered` | spring(response: 0.28, damping: 0.88) + 0.03s delay | Tightened intervals |
 
-### Task 16: Stagger timing + shadow easing (Quick wins)
+### Task 16: Stagger timing + shadow easing ✅
 
-**Status:** Not started
+**Shipped.**
+- Stagger: `0.03s` → `0.06s` delay, softer spring (`response: 0.32, damping: 0.86`)
+- Shadow: late-onset `pow(animationProgress, 2.5)` curve, no shadow until 40% expanded
+- Border: `sqrt` easing for lingering luminance on close
 
-**Stagger:** Bump `staggered(index:)` delay from `0.03s` → `0.06s` for perceptible sequencing. Consider softer spring (`response: 0.32`) for staggered items. Order: header-left (tabs) index 0, header-right (icons) index 1, content panels 2+.
+### Task 17: Content choreography — open ✅
 
-**Shadow:** Replace linear `0.7 * animationProgress` with late-onset easing — no shadow until `animationProgress > 0.4`, then ramp via `pow(progress, 2.5)`. Shadow should appear *after* notch has mostly expanded.
+**Shipped.** Content now grows out of the notch center using continuous `contentProgress` (environment key) instead of binary `notchState`.
 
-**Border:** Luminance easing — linger slightly on close (don't disappear linearly).
+- `ContentRevealModifier` — reusable view modifier with per-element stagger, smoothstep opacity, scale 0.92→1.0, subtle y-offset, blur 12→0
+- `contentProgress` computed from `animationProgress` with smoothstep(0.2, 0.95) remapping
+- Header + HomeView refactored to use `.contentReveal(progress:staggerIndex:)`
 
-**Files:** `drop.swift`, `ContentView.swift`
+### Task 18: Content choreography — close ✅
 
-### Task 17: Content choreography — open
-
-**Status:** Not started
-
-Content *grows out of* the notch center, not just fades in.
-
-**Current problem:** Content visibility is keyed to `notchState` (binary: `.open` or not). Everything fades in simultaneously via opacity + blur. No sense of content emerging from the notch.
-
-**Fix:**
-- Key content opacity/scale to `animationProgress` (continuous 0→1), not `notchState`
-- Each content panel: `scaleEffect(lerp(0.92, 1.0, progress))` + `opacity(smoothstep(0.3, 0.8, progress))`
-- Content begins revealing at `animationProgress > 0.3` (during `.opening` phase, not after `.open`)
-- Header elements slide in with subtle `offset(y: lerp(-4, 0, progress))`
-- Stagger between panels uses Task 16 timing
-
-**Files:** `NotchHomeView.swift`, `BoringHeader.swift`, `ContentView+Appearance.swift` (add `smoothstep` helper)
-
-### Task 18: Content choreography — close
-
-**Status:** Not started | Depends on: Task 17
-
-Reverse of Task 17 — content *retracts into* the notch before the shell finishes closing.
-
-**Approach:** Since content is keyed to `animationProgress` (from Task 17), the close path is mostly free — progress goes 1→0 and content scales down + fades. Verify stagger runs in reverse order (last-in, first-out).
-
-**Optional enhancement:** Slightly faster content exit than shell close — content should be ~80% gone while notch is still at 50% size. Achievable by remapping content progress: `pow(animationProgress, 0.7)` gives content a head start on disappearing.
-
-**Files:** `NotchHomeView.swift`, `BoringHeader.swift`
+**Shipped (free from Task 17).** Since content is keyed to continuous `contentProgress`, close path works automatically — progress goes 1→0 and content scales down + fades with stagger.
 
 ### Task 19: Matched album art transition
 
@@ -121,18 +99,9 @@ Album art thumbnail in closed state smoothly morphs into expanded player art via
 
 **Files:** Closed music plugin view, `PluginMusicPlayerView.swift`, `NotchContentRouter.swift`
 
-### Task 20: Replace `Task.sleep` phase completion
+### Task 20: Replace `Task.sleep` phase completion ✅
 
-**Status:** Not started
-
-`open()` and `close()` use `Task.sleep(for: duration)` then check `guard self.phase == .opening`. This is fragile — rapid open/close sequences can race.
-
-**Options:**
-- **Option A (preferred, macOS 14+):** `withAnimation(.spring(...)) { } completion: { }` — animation-framework callback
-- **Option B (fallback):** Store completion task, cancel previous on new open/close (re-entrancy guard)
-- **Option C (advanced):** Drive phase transitions from `animationProgress` thresholds
-
-**Files:** `BoringViewModel+OpenClose.swift`
+**Shipped.** `open()` and `close()` now use `withAnimation(_:_:completion:)` — animation-framework callbacks instead of `Task.sleep` timers. Eliminates race conditions on rapid open/close.
 
 ### Task 15: Gesture-driven progressive open (Future)
 
