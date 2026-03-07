@@ -1,7 +1,6 @@
 import Foundation
 import EventKit
 import SwiftUI
-import Defaults
 
 @MainActor
 @Observable
@@ -29,11 +28,11 @@ class CalendarService: CalendarServiceProtocol {
     
     // MARK: - Settings Protocol
     
-    private var settings: CalendarSettingsProtocol
+    private var settings: any NotchCalendarSettings
     
     // MARK: - Initialization
     
-    init(settings: CalendarSettingsProtocol = DefaultsCalendarSettings()) {
+    init(settings: any NotchCalendarSettings = DefaultsNotchSettings.shared) {
         self.settings = settings
         self.currentWeekStartDate = Calendar.current.startOfDay(for: Date())
         setupEventStoreChangedObserver()
@@ -197,18 +196,5 @@ class CalendarService: CalendarServiceProtocol {
     func setReminderCompleted(reminderID: String, completed: Bool) async {
         await dataProvider.setReminderCompleted(reminderID: reminderID, completed: completed)
         await updateEvents()
-    }
-}
-
-// MARK: - Settings Protocol
-
-protocol CalendarSettingsProtocol: Sendable {
-    var calendarSelectionState: CalendarSelectionState { get set }
-}
-
-struct DefaultsCalendarSettings: CalendarSettingsProtocol {
-    var calendarSelectionState: CalendarSelectionState {
-        get { Defaults[.calendarSelectionState] }
-        nonmutating set { Defaults[.calendarSelectionState] = newValue }
     }
 }

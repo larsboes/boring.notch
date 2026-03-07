@@ -9,6 +9,13 @@
 import Observation
 import SwiftUI
 
+@MainActor protocol NotchAnimationStateProviding: AnyObject {
+    var helloAnimationRunning: Bool { get }
+    var sneakPeek: SneakPeek { get }
+    var expandingView: ExpandedItem { get }
+    var shelfService: (any ShelfServiceProtocol)? { get set }
+}
+
 
 // MARK: - Display State Types
 
@@ -42,7 +49,7 @@ struct NotchStateInput: Equatable {
 
     // Coordinator state
     var helloAnimationRunning: Bool
-    var sneakPeek: sneakPeek
+    var sneakPeek: SneakPeek
     var expandingView: ExpandedItem
     
     // The ID of the plugin that should be shown in the closed notch (from PluginManager)
@@ -196,7 +203,7 @@ class NotchStateMachine {
     static func createInput(
         notchState: NotchState,
         currentView: NotchViews,
-        coordinator: BoringViewCoordinator,
+        coordinator: any NotchAnimationStateProviding,
         musicService: any MusicServiceProtocol,
         pluginManager: PluginManager?,
         hideOnClosed: Bool,

@@ -109,7 +109,7 @@ protocol ShelfSettings {
 // MARK: - Display Settings
 
 @MainActor
-protocol DisplaySettings {
+protocol DisplaySettings: AnyObject {
     var openLastTabByDefault: Bool { get set }
     var preferredScreenUUID: String? { get set }
     var showOnAllDisplays: Bool { get set }
@@ -151,6 +151,7 @@ protocol NotchCalendarSettings {
     var hideAllDayEvents: Bool { get set }
     var autoScrollToNextEvent: Bool { get set }
     var showFullEventTitles: Bool { get set }
+    var calendarSelectionState: CalendarSelectionState { get set }
 }
 
 // MARK: - Notification Settings

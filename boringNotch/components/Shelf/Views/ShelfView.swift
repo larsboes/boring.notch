@@ -16,7 +16,7 @@ struct ShelfView: View {
         pluginManager?.services.shelf.selection ?? ShelfSelectionModel()
     }
     
-    private var quickLookService: QuickLookService {
+    private var quickLookService: any QuickLookServiceProtocol {
         pluginManager!.services.quickLook
     }
     private var quickShareService: QuickShareService {

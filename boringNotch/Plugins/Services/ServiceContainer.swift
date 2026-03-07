@@ -6,7 +6,7 @@ import Foundation
 /// Services are optional until their implementations are created during migration.
 /// This allows incremental adoption of the plugin architecture.
 @MainActor
-final class ServiceContainer {
+final class ServiceContainer: NotchServiceProvider {
     // MARK: - Core Services
 
     /// Music playback service (wraps MusicManager)
@@ -86,7 +86,7 @@ final class ServiceContainer {
     public let shelfFileHandler: any ShelfFileHandlerProtocol
 
     /// Quick Look preview service
-    public let quickLook: QuickLookService
+    public let quickLook: any QuickLookServiceProtocol
 
     /// Quick Share service
     public let quickShare: QuickShareService
@@ -148,7 +148,7 @@ final class ServiceContainer {
         temporaryFileStorage: any TemporaryFileStorageServiceProtocol,
         shelfImageProcessor: any ShelfImageProcessorProtocol,
         shelfFileHandler: any ShelfFileHandlerProtocol,
-        quickLook: QuickLookService,
+        quickLook: any QuickLookServiceProtocol,
         quickShare: QuickShareService,
         bluetooth: (any BluetoothServiceProtocol)? = nil,
         bluetoothManager: BluetoothManager,

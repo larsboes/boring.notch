@@ -17,34 +17,8 @@ final class LocalAPIServerController {
     func start() {
         guard server == nil else { return }
 
-        let router = APIRouter(
-            notchState: { [weak self] in
-                await MainActor.run {
-                    self?.currentNotchState() ?? APINotchState(
-                        phase: "closed",
-                        screen: "unknown",
-                        size: APISize(width: 0, height: 0)
-                    )
-                }
-            },
-            openNotch: { [weak self] in
-                await MainActor.run {
-                    self?.viewModelProvider().open()
-                    self?.server?.broadcast(APIEventPayload(type: "notch.opened", data: ["source": "api"]))
-                }
-            },
-            closeNotch: { [weak self] in
-                await MainActor.run {
-                    self?.viewModelProvider().close(force: true)
-                    self?.server?.broadcast(APIEventPayload(type: "notch.closed", data: ["source": "api"]))
-                }
-            },
-            toggleNotch: { [weak self] in
-                await MainActor.run {
-                    self?.toggle()
-                }
-            }
-        )
+        let router = APIRouter()
+        registerDefaultRoutes(on: router)
 
         let server = LocalAPIServer(router: router)
         do {
@@ -53,6 +27,53 @@ final class LocalAPIServerController {
             subscribeToEvents()
         } catch {
             print("Failed to start Local API server: \(error)")
+        }
+    }
+
+    private func registerDefaultRoutes(on router: APIRouteRegistrar) {
+        router.register(method: .get, path: "/api/v1/notch/state") { [weak self] _ in
+            await MainActor.run {
+                guard let self = self else {
+                    return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Server unavailable"))
+                }
+                return .json(APIResponseEnvelope.success(self.currentNotchState()))
+            }
+        }
+
+        router.register(method: .post, path: "/api/v1/notch/open") { [weak self] _ in
+            await MainActor.run {
+                guard let self = self else {
+                    return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Server unavailable"))
+                }
+                self.viewModelProvider().open()
+                self.server?.broadcast(APIEventPayload(type: "notch.opened", data: ["source": "api"]))
+                return .json(APIResponseEnvelope<APIErrorData>.success())
+            }
+        }
+
+        router.register(method: .post, path: "/api/v1/notch/close") { [weak self] _ in
+            await MainActor.run {
+                guard let self = self else {
+                    return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Server unavailable"))
+                }
+                self.viewModelProvider().close(force: true)
+                self.server?.broadcast(APIEventPayload(type: "notch.closed", data: ["source": "api"]))
+                return .json(APIResponseEnvelope<APIErrorData>.success())
+            }
+        }
+
+        router.register(method: .post, path: "/api/v1/notch/toggle") { [weak self] _ in
+            await MainActor.run {
+                guard let self = self else {
+                    return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Server unavailable"))
+                }
+                self.toggle()
+                return .json(APIResponseEnvelope<APIErrorData>.success())
+            }
+        }
+
+        router.register(method: .get, path: "/api/v1/events") { _ in
+            .json(status: 400, APIResponseEnvelope<APIErrorData>.failure("Use WebSocket upgrade for /api/v1/events"))
         }
     }
 

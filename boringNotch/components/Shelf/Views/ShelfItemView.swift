@@ -12,7 +12,7 @@ import QuickLook
 struct ShelfItemView: View {
     let item: ShelfItem
     let shelfService: ShelfServiceProtocol
-    let quickLookService: QuickLookService
+    let quickLookService: any QuickLookServiceProtocol
     let quickShareService: QuickShareService
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
@@ -28,7 +28,7 @@ struct ShelfItemView: View {
     private var isSelected: Bool { selection.isSelected(item.id) }
     private var shouldHideDuringDrag: Bool { selection.isDragging && selection.isSelected(item.id) && false }
 
-    init(item: ShelfItem, shelfService: ShelfServiceProtocol, quickLookService: QuickLookService, quickShareService: QuickShareService) {
+    init(item: ShelfItem, shelfService: ShelfServiceProtocol, quickLookService: any QuickLookServiceProtocol, quickShareService: QuickShareService) {
         self.item = item
         self.shelfService = shelfService
         self.quickLookService = quickLookService

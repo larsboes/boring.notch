@@ -122,6 +122,7 @@ final class MockNotchSettings: NotchSettings {
     var hideAllDayEvents: Bool = false
     var autoScrollToNextEvent: Bool = true
     var showFullEventTitles: Bool = false
+    var calendarSelectionState: CalendarSelectionState = .all
 
     // MARK: - Notification Settings
     var showShelfNotifications: Bool = true

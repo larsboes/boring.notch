@@ -5,7 +5,7 @@
 //  Central registry and lifecycle manager for all plugins.
 //
 
-import SwiftUI
+import Foundation
 import Combine
 
 // MARK: - Plugin Manager
@@ -62,10 +62,6 @@ final class PluginManager {
             .filter { $0.isEnabled }
     }
 
-    /// Plugins that show content in the expanded panel
-    var panelPlugins: [AnyNotchPlugin] {
-        activePlugins.filter { $0.expandedPanelContent() != nil }
-    }
 
     // MARK: - Initialization
 
@@ -73,7 +69,7 @@ final class PluginManager {
         services: ServiceContainer,
         eventBus: PluginEventBus,
         appState: AppStateProviding,
-        coordinator: BoringViewCoordinator,
+        coordinator: any NotchAnimationStateProviding,
         builtInPlugins: [any NotchPlugin] = []
     ) {
         self.services = services

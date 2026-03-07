@@ -10,6 +10,11 @@ import SwiftUI
 // MARK: - View Helpers
 
 extension PluginManager {
+    /// Plugins that show content in the expanded panel
+    var panelPlugins: [AnyNotchPlugin] {
+        activePlugins.filter { $0.expandedPanelContent() != nil }
+    }
+
     /// Get the view for a plugin's closed notch content
     @ViewBuilder
     func closedNotchView(for id: String) -> some View {

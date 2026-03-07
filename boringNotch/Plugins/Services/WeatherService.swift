@@ -8,7 +8,6 @@
 import Foundation
 import CoreLocation
 import Combine
-import Defaults
 
 /// Concrete implementation of WeatherServiceProtocol.
 /// Wraps the legacy WeatherManager to provide a modern, testable interface.
@@ -30,7 +29,7 @@ final class WeatherService: NSObject, WeatherServiceProtocol, CLLocationManagerD
     
     private let weatherService: OpenWeatherMapService
     
-    init(settings: WeatherSettingsProtocol = DefaultsWeatherSettings()) {
+    init(settings: any WidgetSettings = DefaultsNotchSettings.shared) {
         self.weatherService = OpenWeatherMapService(settings: settings)
         super.init()
         locationManager.delegate = self
@@ -170,29 +169,18 @@ private struct OpenWeatherWind: Codable {
     let speed: Double
 }
 
-// MARK: - Settings Protocol
-
-protocol WeatherSettingsProtocol: Sendable {
-    var apiKey: String { get }
-}
-
-struct DefaultsWeatherSettings: WeatherSettingsProtocol {
-    var apiKey: String {
-        Defaults[.openWeatherMapApiKey]
-    }
-}
-
+@MainActor
 class OpenWeatherMapService {
     static let shared = OpenWeatherMapService()
     
-    private let settings: WeatherSettingsProtocol
+    private let settings: any WidgetSettings
     
-    init(settings: WeatherSettingsProtocol = DefaultsWeatherSettings()) {
+    init(settings: any WidgetSettings = DefaultsNotchSettings.shared) {
         self.settings = settings
     }
-
+    
     func fetchWeather(for location: CLLocation) async throws -> WeatherData {
-        let apiKey = settings.apiKey
+        let apiKey = settings.openWeatherMapApiKey
         guard !apiKey.isEmpty else {
             throw NSError(domain: "OpenWeatherMap", code: 401, userInfo: [NSLocalizedDescriptionKey: "Please add your OpenWeatherMap API key in Settings > Weather"])
         }

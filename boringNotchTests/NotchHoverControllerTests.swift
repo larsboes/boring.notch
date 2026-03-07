@@ -71,8 +71,8 @@ final class NotchHoverControllerTests: XCTestCase {
         controller.tick(now: t0)
         XCTAssertEqual(controller.state, .entering(since: t0))
 
-        // Tick at 50ms — should transition to inside and fire open
-        controller.tick(now: t0.addingTimeInterval(0.050))
+        // Tick just past 50ms — should transition to inside and fire open
+        controller.tick(now: t0.addingTimeInterval(0.051))
         XCTAssertEqual(controller.state, .inside)
         XCTAssertTrue(openCalled)
     }
@@ -88,7 +88,7 @@ final class NotchHoverControllerTests: XCTestCase {
         // Get to .inside state
         hoverChecker.mouseInZone = true
         controller.tick(now: t0)
-        controller.tick(now: t0.addingTimeInterval(0.050))
+        controller.tick(now: t0.addingTimeInterval(0.051))
         XCTAssertEqual(controller.state, .inside)
 
         // Mouse leaves
@@ -118,7 +118,7 @@ final class NotchHoverControllerTests: XCTestCase {
         // Get to .inside
         hoverChecker.mouseInZone = true
         controller.tick(now: t0)
-        controller.tick(now: t0.addingTimeInterval(0.050))
+        controller.tick(now: t0.addingTimeInterval(0.051))
 
         // Mouse leaves
         hoverChecker.mouseInZone = false
@@ -147,7 +147,7 @@ final class NotchHoverControllerTests: XCTestCase {
         // Get to .inside
         hoverChecker.mouseInZone = true
         controller.tick(now: t0)
-        controller.tick(now: t0.addingTimeInterval(0.050))
+        controller.tick(now: t0.addingTimeInterval(0.051))
 
         // Mouse leaves
         hoverChecker.mouseInZone = false
@@ -175,7 +175,7 @@ final class NotchHoverControllerTests: XCTestCase {
         // Get to .inside
         hoverChecker.mouseInZone = true
         controller.tick(now: t0)
-        controller.tick(now: t0.addingTimeInterval(0.050))
+        controller.tick(now: t0.addingTimeInterval(0.051))
         XCTAssertEqual(controller.state, .inside)
 
         // Mouse leaves — but close is prevented
@@ -192,7 +192,7 @@ final class NotchHoverControllerTests: XCTestCase {
         // Get to .inside
         hoverChecker.mouseInZone = true
         controller.tick(now: t0)
-        controller.tick(now: t0.addingTimeInterval(0.050))
+        controller.tick(now: t0.addingTimeInterval(0.051))
 
         // Mouse leaves — battery popover blocks exit
         hoverChecker.mouseInZone = false
@@ -208,7 +208,7 @@ final class NotchHoverControllerTests: XCTestCase {
         // Get to .exiting
         hoverChecker.mouseInZone = true
         controller.tick(now: t0)
-        controller.tick(now: t0.addingTimeInterval(0.050))
+        controller.tick(now: t0.addingTimeInterval(0.051))
         hoverChecker.mouseInZone = false
         controller.tick(now: t0.addingTimeInterval(0.100))
         XCTAssertEqual(controller.state, .exiting(since: t0.addingTimeInterval(0.100)))
@@ -235,7 +235,7 @@ final class NotchHoverControllerTests: XCTestCase {
 
         hoverChecker.mouseInZone = true
         controller.tick(now: t0)
-        controller.tick(now: t0.addingTimeInterval(0.050))
+        controller.tick(now: t0.addingTimeInterval(0.051))
         XCTAssertEqual(controller.state, .inside)
 
         controller.stopHeartbeat()

@@ -63,7 +63,7 @@ extension ShelfActionService {
 
 @MainActor
 final class ShelfContextMenuHandler {
-    static func present(event: NSEvent, in view: NSView, item: ShelfItem, service: ShelfServiceProtocol, quickLookService: QuickLookService, quickShareService: QuickShareService) {
+    static func present(event: NSEvent, in view: NSView, item: ShelfItem, service: ShelfServiceProtocol, quickLookService: any QuickLookServiceProtocol, quickShareService: QuickShareService) {
         ensureContextMenuSelection(item: item, service: service)
         let menu = NSMenu()
 

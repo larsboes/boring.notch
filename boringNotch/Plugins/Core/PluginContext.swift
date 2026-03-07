@@ -7,9 +7,7 @@
 //
 
 import Foundation
-import SwiftUI
 import Combine
-import AppKit
 
 // MARK: - Plugin Context
 
@@ -21,7 +19,7 @@ final class PluginContext {
     let settings: PluginSettings
 
     /// Access to shared services
-    let services: ServiceContainer
+    let services: any NotchServiceProvider
 
     /// For inter-plugin communication
     let eventBus: PluginEventBus
@@ -31,7 +29,7 @@ final class PluginContext {
 
     init(
         settings: PluginSettings,
-        services: ServiceContainer,
+        services: any NotchServiceProvider,
         eventBus: PluginEventBus,
         appState: AppStateProviding
     ) {

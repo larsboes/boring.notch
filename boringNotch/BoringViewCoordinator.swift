@@ -20,7 +20,7 @@ enum SneakContentType {
     case download
 }
 
-struct sneakPeek {
+struct SneakPeek {
     var show: Bool = false
     var type: SneakContentType = .music
     var value: CGFloat = 0
@@ -47,7 +47,7 @@ struct ExpandedItem {
 }
 
 @MainActor
-@Observable class BoringViewCoordinator {
+@Observable class BoringViewCoordinator: NotchAnimationStateProviding {
     var currentView: NotchViews = .home
     var helloAnimationRunning: Bool = false
     private(set) var sneakPeekDispatch: DispatchWorkItem?
@@ -70,7 +70,7 @@ struct ExpandedItem {
     var sneakPeekDuration: TimeInterval
     var sneakPeekTask: Task<Void, Never>?
 
-    var sneakPeek: sneakPeek = .init() {
+    var sneakPeek: SneakPeek = .init() {
         didSet {
             if sneakPeek.show {
                 scheduleSneakPeekHide(after: sneakPeekDuration)

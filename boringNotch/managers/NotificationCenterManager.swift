@@ -2,6 +2,7 @@ import Combine
 import SwiftUI
 import UserNotifications
 
+@MainActor
 @Observable
 class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNotificationCenterDelegate {
     var notifications: [NotchNotification] = []
@@ -25,7 +26,7 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
 
     func requestAuthorization() {
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            Task { @MainActor in
+            Task {
                 self.checkAuthorizationStatus()
                 if granted {
                     print("Notification permission granted")
@@ -38,7 +39,7 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
 
     func checkAuthorizationStatus() {
         center.getNotificationSettings { notifSettings in
-            Task { @MainActor in
+            Task {
                 self.authorizationStatus = notifSettings.authorizationStatus
             }
         }

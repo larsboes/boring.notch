@@ -13,13 +13,13 @@ final class ShelfMenuActionTarget: NSObject {
     let item: ShelfItem
     weak var view: NSView?
     let service: ShelfServiceProtocol
-    let quickLookService: QuickLookService
+    let quickLookService: any QuickLookServiceProtocol
     let quickShareService: QuickShareService
 
     // Keep associated objects (like accessory view handlers) without magic keys
     static var sliderHandlerAssoc = AssociatedObject<AnyObject>()
 
-    init(item: ShelfItem, view: NSView, service: ShelfServiceProtocol, quickLookService: QuickLookService, quickShareService: QuickShareService) {
+    init(item: ShelfItem, view: NSView, service: ShelfServiceProtocol, quickLookService: any QuickLookServiceProtocol, quickShareService: QuickShareService) {
         self.item = item
         self.view = view
         self.service = service

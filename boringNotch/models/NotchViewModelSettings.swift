@@ -9,6 +9,7 @@ import Foundation
 
 /// Protocol for providing settings to BoringViewModel
 /// This allows dependency injection and removes direct Defaults access
+@MainActor
 protocol NotchViewModelSettings {
     var shelfHoverDelay: Double { get }
     var backgroundImageURL: URL? { get }

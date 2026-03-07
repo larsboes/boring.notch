@@ -35,7 +35,7 @@ final class ShelfItemViewModel {
     }
 
     // MARK: - Actions
-    func handleClick(event: NSEvent, view: NSView, items: [ShelfItem], service: ShelfServiceProtocol, quickLookService: QuickLookService, quickShareService: QuickShareService) {
+    func handleClick(event: NSEvent, view: NSView, items: [ShelfItem], service: ShelfServiceProtocol, quickLookService: any QuickLookServiceProtocol, quickShareService: QuickShareService) {
         let selection = service.selection
         let flags = event.modifierFlags
         if flags.contains(.shift) {
@@ -50,7 +50,7 @@ final class ShelfItemViewModel {
         if event.clickCount == 2 { handleDoubleClick(items: items, service: service) }
     }
 
-    func handleRightClick(event: NSEvent, view: NSView, service: ShelfServiceProtocol, quickLookService: QuickLookService, quickShareService: QuickShareService) {
+    func handleRightClick(event: NSEvent, view: NSView, service: ShelfServiceProtocol, quickLookService: any QuickLookServiceProtocol, quickShareService: QuickShareService) {
         ShelfContextMenuHandler.present(event: event, in: view, item: item, service: service, quickLookService: quickLookService, quickShareService: quickShareService)
     }
 

@@ -15,8 +15,7 @@ import Observation
 
 @MainActor
 @Observable
-final class QuickLookService {
-    static let shared = QuickLookService()
+final class QuickLookService: QuickLookServiceProtocol {
     
     var urls: [URL] = []
     var selectedURL: URL?
@@ -105,18 +104,23 @@ extension QuickLookService {
     }
 }
 
-struct QuickLookPresenter: ViewModifier {
-    var service: QuickLookService
+struct QuickLookPresenterProvider: ViewModifier {
+    @Binding var selectedURL: URL?
+    let urls: [URL]
 
     func body(content: Content) -> some View {
-        @Bindable var service = service
         content
-            .quickLookPreview($service.selectedURL, in: service.urls)
+            .quickLookPreview($selectedURL, in: urls)
     }
 }
 
 extension View {
-    func quickLookPresenter(using service: QuickLookService) -> some View {
-        self.modifier(QuickLookPresenter(service: service))
+    @MainActor
+    func quickLookPresenter(using service: any QuickLookServiceProtocol) -> some View {
+        let binding = Binding<URL?>(
+            get: { service.selectedURL },
+            set: { service.selectedURL = $0 }
+        )
+        return self.modifier(QuickLookPresenterProvider(selectedURL: binding, urls: service.urls))
     }
 }

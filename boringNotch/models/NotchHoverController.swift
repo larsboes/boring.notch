@@ -69,11 +69,12 @@ enum HoverState: Equatable {
 
     init(
         settings: NotchViewModelSettings,
-        displaySettings: any DisplaySettings = DefaultsNotchSettings.shared,
+        displaySettings: (any DisplaySettings)? = nil,
         hoverZoneManager: (any HoverZoneChecking)? = nil
     ) {
         self.settings = settings
-        self.hoverZoneManager = hoverZoneManager ?? HoverZoneManager(displaySettings: displaySettings)
+        let ds = displaySettings ?? DefaultsNotchSettings.shared
+        self.hoverZoneManager = hoverZoneManager ?? HoverZoneManager(displaySettings: ds)
     }
 
     // MARK: - Hover Zone

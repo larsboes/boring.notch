@@ -4,8 +4,9 @@
 macOS SwiftUI app that replaces the MacBook notch with an interactive widget system. Plugin-first architecture — every feature (music, battery, calendar, weather, shelf, webcam, notifications, clipboard) is a plugin.
 
 ## Tech Stack
-- **Language:** Swift 5.9+, SwiftUI, AppKit
-- **Architecture:** Plugin-first (PluginManager, NotchPlugin protocol, ServiceContainer)
+- **Domain Layer**: Compilable WITHOUT SwiftUI/AppKit. Located in `Core/` (domain-focused types like `NotchStateMachine`).
+- **UI Extension Layer**: UI-specific extensions on Domain objects. Located in `Plugins/UI/`.
+- **Dependency Injection**: No `.shared` singletons. Inject via protocols in `ServiceContainer`.
 - **Dependencies:** Defaults (settings), Sparkle (updates), Lottie (animations), KeyboardShortcuts
 - **Build:** `xcodebuild -scheme boringNotch -destination 'platform=macOS' build 2>&1 | tail -50`
 - **Test:** `xcodebuild -scheme boringNotch -destination 'platform=macOS' test 2>&1 | tail -50`
@@ -35,8 +36,8 @@ Layer rules are import constraints:
 
 | Layer | Directory | Allowed Imports | Forbidden |
 |-------|-----------|-----------------|-----------|
-| **Domain** | `Plugins/Core/`, `Core/NotchStateMachine` | `Foundation`, `Combine`, `Swift stdlib` | SwiftUI, AppKit, Defaults, any framework |
-| **Application** | `Plugins/BuiltIn/`, `PluginManager`, `ServiceContainer` | Domain + service protocols | Concrete infra types |
+| **Domain** | `Core/NotchStateMachine` | `Foundation`, `Combine`, `Swift stdlib` | SwiftUI, AppKit, Defaults, any framework |
+| **Application** | `Plugins/Core/`, `Plugins/UI/`, `Plugins/BuiltIn/`, `PluginManager`, `ServiceContainer` | Domain + service protocols + SwiftUI/AppKit for plugin presentation contracts | Concrete infra types |
 | **Infrastructure** | `managers/`, `Plugins/Services/` (implementations), `DefaultsNotchSettings` | Anything needed | — |
 | **Presentation** | `components/`, plugin `Views/`, `ContentView` | Application layer + SwiftUI/AppKit | Direct Defaults, concrete services |
 
