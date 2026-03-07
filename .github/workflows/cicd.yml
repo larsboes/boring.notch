@@ -1,4 +1,4 @@
-name: Build for macOS
+name: CI
 
 on:
   push:
@@ -15,25 +15,44 @@ concurrency:
 
 jobs:
   build:
-    name: Build Boring Notch
+    name: Build
+    runs-on: macos-latest
     strategy:
       matrix:
-        platform:
-          - macOS
-        xcode:
-          - ^16
-        scheme:
-          - boringNotch
-    runs-on: macos-latest
+        xcode: [^16]
     steps:
-    - name: Code Checkout
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: mxcl/xcodebuild@v3
       with:
         xcode: ${{ matrix.xcode }}
-        platform: ${{ matrix.platform }}
-        scheme: ${{ matrix.scheme }}
+        platform: macOS
+        scheme: boringNotch
         action: build
         verbosity: xcpretty
         upload-logs: always
         configuration: release
+
+  test:
+    name: Test
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        xcode: [^16]
+    steps:
+    - uses: actions/checkout@v4
+    - uses: mxcl/xcodebuild@v3
+      with:
+        xcode: ${{ matrix.xcode }}
+        platform: macOS
+        scheme: boringNotch
+        action: test
+        verbosity: xcpretty
+        upload-logs: always
+
+  arch-check:
+    name: Architecture Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run architecture checks
+      run: bash .github/scripts/arch-check.sh
