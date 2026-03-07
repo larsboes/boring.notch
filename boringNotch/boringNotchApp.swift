@@ -124,6 +124,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await pluginManager.activateEnabledPlugins()
         }
+        graph.localAPIServerController.start()
 
         coordinator.configure(
             eventBus: pluginManager.eventBus,
@@ -173,6 +174,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await pluginManager.deactivateAllPlugins()
         }
+        graph.localAPIServerController.stop()
 
         NotificationCenter.default.removeObserver(self)
         if let observer = screenLockedObserver {

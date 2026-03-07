@@ -96,6 +96,7 @@ final class WindowCoordinator {
                 .environment(coordinator)
                 .environment(stateMachine)
                 .environment(\.pluginManager, pluginManager as PluginManager?)
+                .environment(\.settings, settings)
                 .environment(\.showSettingsWindow, showSettingsWindow ?? {})
         )
 

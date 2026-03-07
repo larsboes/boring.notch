@@ -39,6 +39,12 @@ struct SettingsView: View {
                 NavigationLink(value: "Weather") {
                     Label("Weather", systemImage: "cloud.sun.fill")
                 }
+                NavigationLink(value: "Habit Tracker") {
+                    Label("Habit Tracker", systemImage: "checkmark.circle.fill")
+                }
+                NavigationLink(value: "Pomodoro") {
+                    Label("Pomodoro", systemImage: "timer")
+                }
                 NavigationLink(value: "Notifications") {
                     Label("Notifications", systemImage: "bell.badge")
                 }
@@ -84,6 +90,18 @@ struct SettingsView: View {
                     CalendarSettings()
                 case "Weather":
                     WeatherSettings()
+                case "Habit Tracker":
+                    if let pm = pluginManager {
+                        pm.settingsView(for: "com.boringnotch.habittracker")
+                    } else {
+                        Text("Plugin Manager unavailable")
+                    }
+                case "Pomodoro":
+                    if let pm = pluginManager {
+                        pm.settingsView(for: "com.boringnotch.pomodoro")
+                    } else {
+                        Text("Plugin Manager unavailable")
+                    }
                 case "Notifications":
                     NotificationsSettingsView()
                 case "HUD":

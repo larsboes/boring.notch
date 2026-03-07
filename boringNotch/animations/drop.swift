@@ -14,8 +14,8 @@ enum StandardAnimations {
     /// Interactive spring for responsive UI (used for notch interactions)
     /// Tuned for snappier feedback during gestures and hover
     static let interactive = Animation.interactiveSpring(
-        response: 0.32,        // Faster response for immediate feedback
-        dampingFraction: 0.82, // Slightly higher damping to reduce oscillation
+        response: 0.30,        // Faster response for immediate feedback
+        dampingFraction: 0.86, // Higher damping for less overshoot during scrubbing
         blendDuration: 0
     )
 
@@ -23,7 +23,7 @@ enum StandardAnimations {
     /// Subtle bounce for a polished feel
     static let open = Animation.spring(
         response: 0.38,
-        dampingFraction: 0.78,
+        dampingFraction: 0.82,
         blendDuration: 0.1
     )
     /// Estimated settle duration for the open animation
@@ -66,8 +66,8 @@ enum StandardAnimations {
     /// - Parameter index: The index of the element in the sequence
     /// - Returns: Animation with appropriate delay for staggered effect
     static func staggered(index: Int) -> Animation {
-        Animation.spring(response: 0.3, dampingFraction: 0.85)
-            .delay(Double(index) * 0.04)
+        Animation.spring(response: 0.28, dampingFraction: 0.88)
+            .delay(Double(index) * 0.03)
     }
 }
 

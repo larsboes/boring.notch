@@ -121,3 +121,38 @@ final class ExportablePluginTests: XCTestCase {
         }
     }
 }
+
+final class APIRouterTests: XCTestCase {
+    func testNotchStateRouteReturnsStateEnvelope() async {
+        let router = APIRouter(
+            notchState: { APINotchState(phase: "open", screen: "main", size: APISize(width: 120, height: 48)) },
+            openNotch: {},
+            closeNotch: {},
+            toggleNotch: {}
+        )
+
+        let request = APIRequest(method: .get, path: "/api/v1/notch/state", headers: [:], body: Data())
+        let response = await router.route(request)
+
+        XCTAssertEqual(response.statusCode, 200)
+        let json = String(data: response.body, encoding: .utf8) ?? ""
+        XCTAssertTrue(json.contains("\"ok\":true"))
+        XCTAssertTrue(json.contains("\"phase\":\"open\""))
+    }
+
+    func testUnknownRouteReturns404() async {
+        let router = APIRouter(
+            notchState: { APINotchState(phase: "closed", screen: "main", size: APISize(width: 200, height: 32)) },
+            openNotch: {},
+            closeNotch: {},
+            toggleNotch: {}
+        )
+
+        let request = APIRequest(method: .post, path: "/api/v1/does-not-exist", headers: [:], body: Data())
+        let response = await router.route(request)
+
+        XCTAssertEqual(response.statusCode, 404)
+        let json = String(data: response.body, encoding: .utf8) ?? ""
+        XCTAssertTrue(json.contains("\"ok\":false"))
+    }
+}

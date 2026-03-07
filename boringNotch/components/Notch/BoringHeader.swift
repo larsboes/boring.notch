@@ -61,6 +61,48 @@ struct BoringHeader: View {
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                             .padding(.trailing, 8)
                     } else {
+                        if settings.showHabitTracker {
+                            Button(action: {
+                                withAnimation(.smooth) {
+                                    coordinator.currentView = coordinator.currentView == .habitTracker ? .home : .habitTracker
+                                }
+                            }) {
+                                ZStack {
+                                    Color.black.opacity(0.001)
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(coordinator.currentView == .habitTracker ? .white : .gray)
+                                        .imageScale(.medium)
+                                        .frame(width: 30, height: 30)
+                                        .background(
+                                            Capsule().fill(coordinator.currentView == .habitTracker ? Color(nsColor: .secondarySystemFill) : .black)
+                                        )
+                                }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        if settings.showPomodoro {
+                            Button(action: {
+                                withAnimation(.smooth) {
+                                    coordinator.currentView = coordinator.currentView == .pomodoro ? .home : .pomodoro
+                                }
+                            }) {
+                                ZStack {
+                                    Color.black.opacity(0.001)
+                                    Image(systemName: "timer")
+                                        .foregroundColor(coordinator.currentView == .pomodoro ? .white : .gray)
+                                        .imageScale(.medium)
+                                        .frame(width: 30, height: 30)
+                                        .background(
+                                            Capsule().fill(coordinator.currentView == .pomodoro ? Color(nsColor: .secondarySystemFill) : .black)
+                                        )
+                                }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
                         if settings.showMirror {
                             Button(action: {
                                 vm.toggleCameraPreview()

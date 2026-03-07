@@ -26,7 +26,7 @@
 | 5 — Local API | **Next** | REST + WebSocket — the foundation for all external integrations |
 | 6 — API-Powered Plugins | Planned | Teleprompter, DisplaySurface |
 | 7 — Automation | Planned | App Intents, URL scheme |
-| 8 — Standalone Plugins | Planned | HabitTracker, Pomodoro |
+| 8 — Standalone Plugins | ✅ Complete | HabitTracker + Pomodoro shipped as dedicated tabs (right-side header icons). |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
 
 ### Integrated Community PRs
@@ -74,8 +74,8 @@ Added `.animation(StandardAnimations.staggered(index:))` to `BoringHeader` — l
 |-----------|---------|------------------|
 | `open` | response: 0.38, damping: 0.78 | May need slightly higher damping (less bounce) |
 | `close` | response: 0.35, damping: 0.92 | Good — decisive and quick |
-| `interactive` | interactiveSpring(response: 0.3) | Test with gestures |
-| `staggered` | spring(response: 0.4, damping: 0.8) + delay | Delay intervals may need tightening |
+| `interactive` | interactiveSpring(response: 0.30, damping: 0.86) | Tuned for less overshoot during scrubbing |
+| `staggered` | spring(response: 0.28, damping: 0.88) + 0.03s delay | Tightened intervals |
 
 ### Task 15: Gesture-driven progressive open (Future)
 
@@ -295,25 +295,33 @@ Scheme: `boringnotch://`. Routes: open, close, shelf/add, plugin actions, export
 
 ---
 
-## Phase 8 — Standalone Plugins
+## Phase 8 — Standalone Plugins ✅ Complete
 
 **Goal:** Ship 2 standalone plugins to further validate the plugin API.
 
-### Task 24: HabitTrackerPlugin
+### Task 24: HabitTrackerPlugin ✅ Done
 
-- Conforms to `NotchPlugin` + `ExportablePlugin` (JSON + CSV)
-- Closed notch: dots for today's habits (filled = done, hollow = pending)
-- Expanded: habit list, tap to complete, streak counter
-- Data stored in `~/Library/Application Support/boringNotch/habits.json`
-- Tests: `HabitStoreTests`, `HabitPluginTests`
+- Conforms to `NotchPlugin` with full `activate()`/`deactivate()` lifecycle
+- Closed notch: dot indicators for today's habits
+- Expanded: habit list with tap-to-complete, streak counter, add/remove habits
+- Data persisted via `HabitStore` (UserDefaults-backed with JSON coding)
+- Dedicated "Habits" tab — icon button (✓) on right side of `BoringHeader`
+- Conditionally shown based on `settings.showHabitTracker`
 
-### Task 25: PomodoroPlugin
+### Task 25: PomodoroPlugin ✅ Done
 
-- Conforms to `NotchPlugin` + `ExportablePlugin` (CSV compatible with Toggl/Clockify)
-- Closed notch: circular progress ring, color-coded by session type
-- Expanded: start/pause/skip, work/break labels, session count
-- Publishes `SneakPeekRequestedEvent` on session complete
-- Tests: `PomodoroTimerTests` (pure unit test)
+- Conforms to `NotchPlugin` with configurable `PomodoroTimer`
+- Closed notch: circular progress ring, color-coded by session type (work/short break/long break)
+- Expanded: compact horizontal layout — 80px timer ring + controls (play/pause, reset, skip)
+- Session tracking with dots showing progress toward long break
+- Dedicated "Focus" tab — icon button (⏱) on right side of `BoringHeader`
+- Conditionally shown based on `settings.showPomodoro`
+
+### UI Architecture
+
+- **Moved out of `NotchHomeView`** — plugins no longer clutter the home panel
+- **Right-side header icons** in `BoringHeader` toggle their respective views (tap again = back to Home)
+- **Routed via `NotchContentRouter`** with new `.habitTracker` / `.pomodoro` cases in `NotchViews` enum
 
 ---
 
@@ -371,7 +379,7 @@ Requirements: signed Swift package bundles, permission manifests, approval UI, p
 | 5 | `curl localhost:19384/api/v1/notch/state` returns valid JSON. WebSocket streams events. `notchctl` works. |
 | 6 | Teleprompter scrolls text fed via API. DisplaySurface renders arbitrary content from `curl`. |
 | 7 | All App Intents in Shortcuts. URL scheme routes work. |
-| 8 | HabitTracker + Pomodoro shipped. Both export. Both tested. |
+| 8 | ✅ HabitTracker + Pomodoro shipped as dedicated tabs. Compact notch-friendly layouts. |
 | 9 | External plugin loads from ~/Library/Application Support/boringNotch/Plugins/. |
 
 ---

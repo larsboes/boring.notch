@@ -197,6 +197,16 @@ struct NotchContentRouter: View {
                     NotesView(manager: pluginManager.services.notesManager)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            case .habitTracker:
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.habittracker")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            case .pomodoro:
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.pomodoro")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

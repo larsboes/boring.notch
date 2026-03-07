@@ -14,7 +14,7 @@ struct TabModel: Identifiable {
     let view: NotchViews
 }
 
-let tabs = [
+let baseTabs = [
     TabModel(label: "Home", icon: "house.fill", view: .home),
     TabModel(label: "Notifications", icon: "bell.fill", view: .notifications),
     TabModel(label: "Shelf", icon: "tray.fill", view: .shelf),
@@ -25,9 +25,10 @@ let tabs = [
 struct TabSelectionView: View {
     @Environment(BoringViewCoordinator.self) var coordinator
     @Namespace var animation
+    
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(tabs) { tab in
+            ForEach(baseTabs) { tab in
                     TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view

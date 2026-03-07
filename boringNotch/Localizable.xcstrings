@@ -903,6 +903,9 @@
         }
       }
     },
+    "%lld 🔥" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -1302,6 +1305,9 @@
           }
         }
       }
+    },
+    "+%lld" : {
+
     },
     "1s" : {
 
@@ -1710,7 +1716,6 @@
       }
     },
     "Add" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1911,7 +1916,13 @@
         }
       }
     },
+    "Add New Habit" : {
+
+    },
     "Add Note" : {
+
+    },
+    "Add some in settings" : {
 
     },
     "Add to Favorites" : {
@@ -5856,6 +5867,9 @@
         }
       }
     },
+    "Completed Sessions: %lld" : {
+
+    },
     "Condition" : {
 
     },
@@ -6766,6 +6780,9 @@
         }
       }
     },
+    "Cycle" : {
+
+    },
     "Data & Privacy" : {
 
     },
@@ -7675,6 +7692,9 @@
         }
       }
     },
+    "Durations (Minutes)" : {
+
+    },
     "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!" : {
       "localizations" : {
         "ar" : {
@@ -8281,6 +8301,9 @@
         }
       }
     },
+    "Enable Habit Tracker" : {
+
+    },
     "Enable haptic feedback" : {
       "localizations" : {
         "ar" : {
@@ -8382,6 +8405,9 @@
       }
     },
     "Enable location access" : {
+
+    },
+    "Enable Pomodoro Timer" : {
 
     },
     "Enable shadow" : {
@@ -9300,6 +9326,9 @@
         }
       }
     },
+    "Focus Time: %lld" : {
+
+    },
     "Format" : {
 
     },
@@ -10113,6 +10142,12 @@
       }
     },
     "Grant Access" : {
+
+    },
+    "Habit name..." : {
+
+    },
+    "Habit Tracker" : {
 
     },
     "Hide all-day events" : {
@@ -11756,6 +11791,9 @@
 
     },
     "Location access is required to show weather information." : {
+
+    },
+    "Long Break: %lld" : {
 
     },
     "Lottie JSON URL" : {
@@ -14275,6 +14313,9 @@
         }
       }
     },
+    "No active habits" : {
+
+    },
     "No connected devices found" : {
 
     },
@@ -15920,6 +15961,15 @@
           }
         }
       }
+    },
+    "Plugin Manager unavailable" : {
+
+    },
+    "Pomodoro" : {
+
+    },
+    "Pomodoro Settings" : {
+
     },
     "Preferred display" : {
       "localizations" : {
@@ -18116,6 +18166,9 @@
         }
       }
     },
+    "Sessions before long break: %lld" : {
+
+    },
     "Settings" : {
       "localizations" : {
         "ar" : {
@@ -18317,6 +18370,9 @@
       }
     },
     "Shelf Events" : {
+
+    },
+    "Short Break: %lld" : {
 
     },
     "Shortcuts" : {
@@ -20648,6 +20704,9 @@
         }
       }
     },
+    "Symbol" : {
+
+    },
     "System" : {
       "localizations" : {
         "ar" : {
@@ -21256,6 +21315,15 @@
           }
         }
       }
+    },
+    "Total Completions: %lld" : {
+
+    },
+    "Total Focus Time: %lld min" : {
+
+    },
+    "Total Habits: %lld" : {
+
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
       "localizations" : {

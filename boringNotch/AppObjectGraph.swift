@@ -18,6 +18,7 @@ final class AppObjectGraph {
     let spaceManager = NotchSpaceManager()
     let settingsWindowController = SettingsWindowController()
     lazy var coordinator = BoringViewCoordinator(settings: settings)
+    lazy var localAPIServerController = LocalAPIServerController(eventBus: eventBus) { [unowned self] in self.vm }
 
     init() {
         // One-time legacy URL cache migration
@@ -40,7 +41,9 @@ final class AppObjectGraph {
                 ShelfPlugin(),
                 WebcamPlugin(),
                 NotificationsPlugin(),
-                ClipboardPlugin()
+                ClipboardPlugin(),
+                HabitTrackerPlugin(),
+                PomodoroPlugin()
             ]
         )
     }()

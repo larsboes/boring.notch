@@ -30,6 +30,8 @@ public enum NotchViews: Sendable {
     case notifications
     case clipboard
     case notes
+    case habitTracker
+    case pomodoro
 }
 
 enum SettingsEnum {
