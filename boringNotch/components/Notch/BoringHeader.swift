@@ -105,6 +105,27 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
+                        if settings.showTeleprompter {
+                            Button(action: {
+                                withAnimation(.smooth) {
+                                    coordinator.currentView = coordinator.currentView == .teleprompter ? .home : .teleprompter
+                                }
+                            }) {
+                                ZStack {
+                                    Color.black.opacity(0.001)
+                                    Image(systemName: "text.justify.left")
+                                        .foregroundColor(coordinator.currentView == .teleprompter ? .white : .gray)
+                                        .imageScale(.medium)
+                                        .frame(width: 30, height: 30)
+                                        .background(
+                                            Capsule().fill(coordinator.currentView == .teleprompter ? Color(nsColor: .secondarySystemFill) : .black)
+                                        )
+                                }
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
                         if settings.showMirror {
                             Button(action: {
                                 vm.toggleCameraPreview()

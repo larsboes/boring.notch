@@ -208,6 +208,11 @@ struct NotchContentRouter: View {
                     pluginManager.expandedPanelView(for: "com.boringnotch.pomodoro")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            case .teleprompter:
+                if let pluginManager {
+                    pluginManager.expandedPanelView(for: "com.boringnotch.teleprompter")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
