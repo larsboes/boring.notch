@@ -12,6 +12,7 @@
 ### Key Constraints
 
 - **300-line hard limit per file**
+- DDD & SOLID Architecture
 - **No new singletons** — `AppObjectGraph` is the only DI root
 - **Protocol before implementation** — new services get a protocol first
 - **Build must stay green** — no broken intermediate commits
