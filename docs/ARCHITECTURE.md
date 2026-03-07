@@ -1,6 +1,6 @@
 # Architecture Overview
 
-> **Note:** This document reflects the system architecture as of January 2026 (v1.0 Plugin System).
+> **Note:** This document reflects the system architecture as of March 2026 (v1.0 Plugin System + SOLID/DDD hardening).
 
 Boring Notch is a macOS application designed to transform the static camera notch into a dynamic, interactive utility hub. The architecture is built on a **modular, plugin-first** foundation, ensuring extensibility, testability, and separation of concerns.
 
@@ -83,6 +83,8 @@ graph TB
 2.  **ServiceContainer**: A dependency injection container that holds all system services (`MusicService`, `BatteryService`, etc.). Plugins request services from here.
 3.  **NotchStateMachine**: A pure logic component that determines *what* should be shown on the screen based on various inputs (is music playing? is battery low? is user hovering?).
 4.  **NotchContentRouter**: The View layer component that maps the State Machine's output to actual SwiftUI views.
+5.  **DisplayPrioritizer**: Pure struct that determines which plugin wins the closed notch based on `DisplayRequest` priorities. Extracted from PluginManager (SRP).
+6.  **PluginID**: Centralized enum of all plugin identifiers — eliminates stringly-typed references across 30+ call sites.
 
 ---
 
@@ -113,13 +115,13 @@ sequenceDiagram
     loop Every Render Cycle
         SM->>PM: highestPriorityClosedNotchPlugin()
         PM->>Plugin: Check displayRequest
-        PM-->>SM: Returns "com.boringnotch.music"
-        
-        SM->>SM: Compute State: .closed(content: .plugin("...music"))
+        PM-->>SM: Returns PluginID.music
+
+        SM->>SM: Compute State: .closed(content: .plugin(PluginID.music))
         SM-->>Router: Update State
     end
-    
-    Router->>PM: closedNotchView(for: "com.boringnotch.music")
+
+    Router->>PM: closedNotchView(for: PluginID.music)
     PM->>Plugin: closedNotchContent()
     Plugin-->>UI: Renders MusicLiveActivity
 ```
@@ -239,7 +241,9 @@ boringNotch/
 │   ├── Core/                 # Framework Definitions
 │   │   ├── NotchPlugin.swift           # The Protocol
 │   │   ├── PluginManager.swift         # The Registry
-│   │   └── PluginEventBus.swift        # Inter-plugin communication
+│   │   ├── PluginEventBus.swift        # Inter-plugin communication
+│   │   ├── PluginID.swift              # Centralized plugin identifiers
+│   │   └── DisplayPrioritizer.swift    # Closed notch priority arbitration
 │   │
 │   ├── Services/             # System Integrations
 │   │   ├── ServiceContainer.swift      # DI Container
@@ -258,6 +262,19 @@ boringNotch/
 │   ├── NotchContentRouter.swift
 │   └── ...
 ```
+
+---
+
+## ⚠️ Known Architecture Debt
+
+Tracked violations from comprehensive SOLID/DDD review (2026-03-08). See PRD for full details and fix triggers.
+
+| Issue | Principle | Severity | Fix Trigger |
+|-------|-----------|----------|-------------|
+| `BoringViewModel` depends on concrete `BoringViewCoordinator` (22 files) | DIP | Medium | When coordinator needs mocking or second impl |
+| `NotchServiceProvider` has 28 properties — plugins over-depend | ISP | Medium | Phase 9 (third-party plugins) |
+| `CoordinatorSettings` composes 6 sub-protocols but uses ~5 props | ISP | Low | Next settings refactor |
+| `NotchContentRouter.openContent()` switches on `NotchViews` enum | OCP | Low | When adding plugin-provided views dynamically |
 
 ---
 

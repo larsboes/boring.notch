@@ -30,7 +30,7 @@
 
 ---
 
-## Current State (2026-03-07)
+## Current State (2026-03-08)
 
 **Working branch:** `refactor/singleton-elimination-tier3`
 **Branch sync:** `developer` = working branch (`refactor/singleton-elimination-tier3`), `main` may differ
@@ -48,6 +48,7 @@
 - `0d7bd2b` — DI tightening + unsafe force-unwrap removal + singleton elimination work
 - `89661d5` — project build wiring repair for LocalAPI/private sources
 - `0b881d7` — architecture gate update for split settings files + core force-unwrap checks
+- `cece6ed` — SOLID + DDD architecture cleanup (SRP extractions, PluginID, DisplayPrioritizer, HeaderButton)
 
 ---
 
@@ -110,6 +111,51 @@
 | 10.7 | Teleprompter | **Hover-to-pause** — `.onHover` on `TeleprompterClosedView` pauses/resumes scrolling. `isHovering` state in `TeleprompterState`. Remaining: visual pause indicator overlay. |
 | 10.8 | Teleprompter | **Keyboard shortcuts** — `TeleprompterShortcutHandler` with 5 user-configurable shortcuts (play/pause, speed up/down, reset, go home). Registered in plugin `activate()`, unregistered in `deactivate()`. |
 | 10.10 | Teleprompter | **Improved closed display (partial)** — text centered under camera, full-width reading zone, voice beam, smooth per-pixel scroll. Remaining: karaoke fade, progress bar, section title, elapsed/remaining time. |
+| 4.29 | Arch Debt | **SRP: TeleprompterTimerManager** — Extracted timer/mic lifecycle from `TeleprompterState` into dedicated `TeleprompterTimerManager`. State class now owns only scroll position, config, and domain logic. |
+| 4.30 | Arch Debt | **SRP: DisplayPrioritizer** — Extracted display arbitration from `PluginManager` into pure `DisplayPrioritizer` struct. PluginManager delegates via `DisplayPrioritizer.highestPriority(among:)`. |
+| 4.31 | Arch Debt | **SRP: HeaderButton** — Extracted `HeaderButton`/`HeaderActionButton` components from `BoringHeader`. Header reduced from 197→130 lines, eliminated 5x copy-paste button boilerplate. Sub-views: `leadingContent`, `notchOverlay`, `trailingControls`, `headerButtons`. |
+| 4.32 | Arch Debt | **Clean Code: ContentView sub-views** — Extracted `notchBackground`, `glassOverlay`, `topEdgeLine` from 175-line body into computed views. |
+| 4.33 | DDD | **PluginID enum** — Centralized all 30+ stringly-typed plugin identifiers into `PluginID` constants. All plugins, routers, event emitters, and settings views now use type-safe references. |
+| 4.34 | DDD | **SneakContentType.isHUD** — Moved HUD-type check from free function in BoringHeader to computed property on enum (domain logic on domain type). |
+| 4.35 | Clean Code | **DisplaySurfaceState** — Made `ttlTask` private, added `[weak self]` capture, added explicit `clear()` method. |
+| 4.36 | Clean Code | **Named constants** — `TeleprompterState` magic numbers extracted: `endBuffer` (40px), `speedStep` (10), `speedMin` (10), `speedMax` (150). |
+
+---
+
+## Known Architecture Debt (Tracked)
+
+Issues identified during comprehensive review (2026-03-08). Documented here for future phases.
+
+### DIP: BoringViewModel → concrete BoringViewCoordinator
+
+**Severity:** Medium | **Files:** 22 reference `BoringViewCoordinator` concretely | **Effort:** High
+
+`BoringViewModel.coordinator` is typed as `BoringViewCoordinator` (concrete), not a protocol. Same for `ContentView`, `NotchContentRouter`, and `BoringHeader` via `@Environment`. Abstracting requires a `@Bindable`-compatible protocol, which SwiftUI doesn't natively support for existentials. Would require either:
+- A `@Bindable`-aware wrapper type
+- Or splitting coordinator into read-only protocol + mutation methods
+
+**When to fix:** When `BoringViewCoordinator` needs to be testable in isolation, or if a second coordinator implementation is needed.
+
+### ISP: Fat NotchServiceProvider (28 properties)
+
+**Severity:** Medium | **Files:** `NotchServiceProvider.swift`, all plugin `activate()` methods | **Effort:** High
+
+A timer plugin needing only `sound` + `notifications` must depend on 28 services including `bluetooth`, `weather`, `brightness`. Should be split into focused sub-protocols:
+- `MediaServices` (music, lyrics, sound)
+- `SystemServices` (volume, brightness, battery)
+- `StorageServices` (shelf, temporary files, sharing)
+- `UIServices` (notifications, quicklook)
+- `FullServiceProvider` (union for backward compat)
+
+**When to fix:** When adding third-party plugin support (Phase 9) — external plugins should not see internal services.
+
+### ISP: Fat CoordinatorSettings
+
+**Severity:** Low | **Files:** `NotchSettingsSubProtocols.swift:182-186` | **Effort:** Medium
+
+`CoordinatorSettings` composes 6 sub-protocols (`GeneralAppSettings`, `HUDSettings`, `MediaSettings`, `AppearanceSettings`, `DisplaySettings`, `ShelfSettings`) but the coordinator only uses ~5 properties from them. Should be narrowed to actual usage.
+
+**When to fix:** Next settings refactor pass or when adding new coordinator implementations.
 
 ---
 
