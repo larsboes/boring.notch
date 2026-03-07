@@ -4,6 +4,8 @@
 //
 
 import Foundation
+import CoreBluetooth
+import Observation
 
 /// Protocol providing access to all services available to plugins.
 /// Extracted from ServiceContainer to allow better dependency injection and testing.
@@ -39,8 +41,37 @@ protocol NotchServiceProvider {
     /// AI text generation service (domain-level — use this, not AIManager directly)
     var ai: any AITextGenerationService { get }
     
-    // Managers (consider protocols for these if needed later)
-    var bluetoothManager: BluetoothManager { get }
-    var notesManager: NotesManager { get }
-    var clipboardManager: ClipboardManager { get }
+    // App-specific services still used by legacy views/plugins
+    var bluetoothManager: any BluetoothStateServiceProtocol { get }
+    var notesManager: any NotesServiceProtocol { get }
+    var clipboardManager: any ClipboardServiceProtocol { get }
 }
+
+@MainActor
+protocol NotesServiceProtocol: AnyObject, Observable {
+    var notes: [NoteItem] { get }
+    func addNote(title: String, content: String)
+    func deleteNote(_ note: NoteItem)
+}
+
+@MainActor
+protocol ClipboardServiceProtocol: AnyObject, Observable {
+    var items: [ClipboardItem] { get }
+    func startMonitoring()
+    func stopMonitoring()
+    func clearHistory()
+    func copyToPasteboard(_ item: ClipboardItem)
+    func deleteItem(_ item: ClipboardItem)
+}
+
+@MainActor
+protocol BluetoothStateServiceProtocol: AnyObject, Observable {
+    var connectedDevices: [BluetoothDevice] { get }
+    var bluetoothState: CBManagerState { get }
+    var isInitialized: Bool { get }
+    func initializeBluetooth()
+}
+
+extension NotesManager: NotesServiceProtocol {}
+extension ClipboardManager: ClipboardServiceProtocol {}
+extension BluetoothManager: BluetoothStateServiceProtocol {}

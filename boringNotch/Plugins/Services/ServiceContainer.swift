@@ -69,13 +69,13 @@ final class ServiceContainer: NotchServiceProvider {
     var bluetooth: (any BluetoothServiceProtocol)?
 
     /// Concrete BluetoothManager for views that need @Observable access
-    let bluetoothManager: BluetoothManager
+    let bluetoothManager: any BluetoothStateServiceProtocol
 
     /// Notes manager for shelf notes
-    let notesManager: NotesManager
+    let notesManager: any NotesServiceProtocol
 
     /// Clipboard manager for clipboard history
-    let clipboardManager: ClipboardManager
+    let clipboardManager: any ClipboardServiceProtocol
 
     /// Face tracking service
     public let face: any FaceServiceProtocol
@@ -104,8 +104,8 @@ final class ServiceContainer: NotchServiceProvider {
         self.music = MusicService(manager: MusicManager(settings: settings))
         self.sound = SoundService()
         self.battery = BatteryService(eventBus: eventBus, settings: settings)
-        self.calendar = CalendarService()
-        self.weather = WeatherService()
+        self.calendar = CalendarService(settings: settings)
+        self.weather = WeatherService(settings: settings)
         self.face = FaceService(settings: settings)
         self.dragDrop = DragDropService()
 
@@ -164,9 +164,9 @@ final class ServiceContainer: NotchServiceProvider {
         quickShare: QuickShareService,
         ai: any AITextGenerationService,
         bluetooth: (any BluetoothServiceProtocol)? = nil,
-        bluetoothManager: BluetoothManager,
-        notesManager: NotesManager,
-        clipboardManager: ClipboardManager
+        bluetoothManager: any BluetoothStateServiceProtocol,
+        notesManager: any NotesServiceProtocol,
+        clipboardManager: any ClipboardServiceProtocol
     ) {
         self.music = music
         self.sound = sound

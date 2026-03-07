@@ -32,7 +32,7 @@ class CalendarService: CalendarServiceProtocol {
     
     // MARK: - Initialization
     
-    init(settings: any NotchCalendarSettings = DefaultsNotchSettings.shared) {
+    init(settings: any NotchCalendarSettings) {
         self.settings = settings
         self.currentWeekStartDate = Calendar.current.startOfDay(for: Date())
         setupEventStoreChangedObserver()

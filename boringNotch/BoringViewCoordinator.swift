@@ -99,7 +99,7 @@ struct ExpandedItem {
         }
     }
 
-    init(settings: any CoordinatorSettings = DefaultsNotchSettings.shared) {
+    init(settings: any CoordinatorSettings) {
         self.settings = settings
         self.sneakPeekDuration = settings.sneakPeakDuration
 

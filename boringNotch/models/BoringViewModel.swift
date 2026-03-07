@@ -26,12 +26,7 @@ import SwiftUI
 
     var contentType: ContentType = .normal
 
-    // MARK: - Phase State (replaces notchState + hoverController)
-
-    /// The current phase of the notch UI (closed, opening, open, closing)
     var phase: NotchPhase = .closed
-
-    /// Backwards compatibility: computed notchState based on phase
     var notchState: NotchState {
         phase.isVisible ? .open : .closed
     }
@@ -65,7 +60,6 @@ import SwiftUI
         }
     }
 
-    // Notch size properties delegated to sizeCalculator
     var notchSize: CGSize {
         get { sizeCalculator.notchSize }
         set { sizeCalculator.notchSize = newValue }
@@ -99,17 +93,13 @@ import SwiftUI
     let sharingService: any SharingServiceProtocol
     var shelfService: ShelfServiceProtocol?
 
-    /// Window reference for position validation
     weak var window: NSWindow?
-
-    /// Whether mouse is currently inside the notch region (delegated to hoverController)
     var isHoveringNotch: Bool {
         hoverController.isHoveringNotch
     }
 
     // MARK: - Initialization
 
-    /// Initialize with dependency injection.
     @MainActor
     init(
         screenUUID: String? = nil,
@@ -121,7 +111,7 @@ import SwiftUI
         dragDropService: any DragDropServiceProtocol,
         sharingService: any SharingServiceProtocol,
         settings: NotchViewModelSettings? = nil,
-        displaySettings: any DisplaySettings = DefaultsNotchSettings.shared
+        displaySettings: any DisplaySettings
     ) {
         self.coordinator = coordinator
         self.detector = detector
@@ -134,24 +124,16 @@ import SwiftUI
         self.displaySettings = displaySettings
         self.animation = animationLibrary.animation
 
-        // Initialize extracted components
         self.hoverController = NotchHoverController(settings: self.settings, displaySettings: displaySettings)
         self.sizeCalculator = NotchSizeCalculator(settings: self.settings, displaySettings: displaySettings, musicService: musicService)
         self.observerSetup = NotchObserverSetup(settings: self.settings, detector: detector)
-
-        // Shelf service will be injected via property setter
         self.shelfService = nil
 
         super.init()
-
-        // Configure hover controller's close prevention check
         hoverController.shouldPreventClose = { [weak self] in
             self?.sharingService.preventNotchClose ?? false
         }
-
-        // Configure hover callbacks (open/close/shelf)
         configureHoverCallbacks()
-
         setupDragDropCallbacks()
 
         self.screenUUID = screenUUID
@@ -159,7 +141,6 @@ import SwiftUI
         sizeCalculator.closedNotchSize = sizeCalculator.notchSize
         sizeCalculator.inactiveNotchSize = getInactiveNotchSize(settings: displaySettings, screenUUID: screenUUID)
 
-        // Initialize hover zone with screen coordinates
         hoverController.updateHoverZone(screenUUID: screenUUID)
 
         setupDetectorObserver()
@@ -186,23 +167,21 @@ import SwiftUI
         }
     }
 
-    /// Convenience initializer for previews only
     @MainActor
     override convenience init() {
         let mockSettings = MockNotchSettings()
         let musicService = MusicService(manager: MusicManager(settings: mockSettings))
         self.init(
-            coordinator: BoringViewCoordinator(),
+            coordinator: BoringViewCoordinator(settings: mockSettings),
             detector: FullscreenMediaDetector(musicService: musicService, settings: mockSettings),
             webcamService: WebcamManager(),
             musicService: musicService,
             soundService: SoundService(),
             dragDropService: DragDropService(),
-            sharingService: SharingStateManager()
+            sharingService: SharingStateManager(),
+            displaySettings: mockSettings
         )
     }
-
-    // MARK: - Setup Methods
 
     private func setupDragDropCallbacks() {
         dragDropService.onDragEntersNotchRegion = { [weak self] in
@@ -210,7 +189,6 @@ import SwiftUI
                 guard let self = self else { return }
                 self.dragDetectorTargeting = true
                 self.open()
-                // Switch to shelf view when dragging over notch
                 self.coordinator.currentView = .shelf
             }
         }
@@ -248,7 +226,6 @@ import SwiftUI
                 self.notchSize = result.closedSize
             }
 
-            // Update drag detector region
             if let screenFrame = getScreenFrame(self.screenUUID) {
                 let width = openNotchSize.width
                 let height = openNotchSize.height
@@ -278,8 +255,6 @@ import SwiftUI
         }
     }
 
-    // MARK: - Computed Properties
-
     var effectiveClosedNotchHeight: CGFloat {
         sizeCalculator.effectiveClosedNotchHeight(
             screenUUID: screenUUID,
@@ -299,7 +274,6 @@ import SwiftUI
         )
     }
 
-    /// Sync window's isNotchOpen state with current phase
     func syncWindowState() {
         if let boringWindow = window as? BoringNotchWindow {
             boringWindow.isNotchOpen = phase.isInteractive
@@ -308,9 +282,6 @@ import SwiftUI
         }
     }
 
-    // MARK: - Static Utility Methods
-
-    /// Copy background image to app storage
     static func copyBackgroundImageToAppStorage(sourceURL: URL) -> URL? {
         NotchObserverSetup.copyBackgroundImageToAppStorage(sourceURL: sourceURL)
     }

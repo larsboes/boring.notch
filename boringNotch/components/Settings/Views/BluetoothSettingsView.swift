@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BluetoothSettingsView: View {
-    var bluetoothManager: BluetoothManager
+    var bluetoothManager: any BluetoothStateServiceProtocol
     @State private var iconPickerPresented = false
     @State private var selectedDeviceForIcon: String?
     @Environment(\.bindableSettings) var settings

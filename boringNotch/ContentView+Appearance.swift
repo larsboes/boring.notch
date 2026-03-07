@@ -118,7 +118,7 @@ extension ContentView {
             translation: translation, phase: phase,
             notchState: vm.notchState,
             isHoveringCalendar: vm.isHoveringCalendar,
-            preventClose: pluginManager!.services.sharing.preventNotchClose,
+            preventClose: pluginManager?.services.sharing.preventNotchClose ?? false,
             sensitivity: settings.gestureSensitivity
         )
         applyGestureResult(result, closeAction: { vm.close(force: true) })

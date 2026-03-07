@@ -28,7 +28,7 @@ struct ContentView: View {
     @State var haptics: Bool = false
 
     var musicService: any MusicServiceProtocol {
-        pluginManager?.services.music ?? MusicService(manager: MusicManager(settings: MockNotchSettings()))
+        vm.musicService
     }
 
     @Namespace var albumArtNamespace
@@ -64,8 +64,11 @@ struct ContentView: View {
 
     var body: some View {
         @Bindable var vm = vm
-        // Inject shelf service into view model
-        let _ = { vm.shelfService = pluginManager!.services.shelf }()
+        let _ = {
+            if let pluginManager {
+                vm.shelfService = pluginManager.services.shelf
+            }
+        }()
         
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
@@ -177,7 +180,7 @@ struct ContentView: View {
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         // Cancel any pending close when sharing finishes
-                        if !pluginManager!.services.sharing.preventNotchClose {
+                        if pluginManager?.services.sharing.preventNotchClose != true {
                             vm.cancelPendingClose()
                         }
                     }
@@ -228,7 +231,7 @@ struct ContentView: View {
                 }
 
                 vm.dropEvent = false
-                if !pluginManager!.services.sharing.preventNotchClose {
+                if pluginManager?.services.sharing.preventNotchClose != true {
                     vm.close()
                 }
             }
@@ -254,15 +257,15 @@ struct ContentView: View {
     @ViewBuilder
     var dragDetector: some View {
         @Bindable var vm = vm
-        if settings.boringShelf && vm.notchState == .closed {
+        if settings.boringShelf && vm.notchState == .closed, let pluginManager {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-            vm.dropEvent = true
-            pluginManager!.services.shelf.load(providers)
-            return true
-        }
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                    vm.dropEvent = true
+                    pluginManager.services.shelf.load(providers)
+                    return true
+                }
         } else {
             EmptyView()
         }

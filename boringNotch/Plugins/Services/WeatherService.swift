@@ -29,7 +29,7 @@ final class WeatherService: NSObject, WeatherServiceProtocol, CLLocationManagerD
     
     private let weatherService: OpenWeatherMapService
     
-    init(settings: any WidgetSettings = DefaultsNotchSettings.shared) {
+    init(settings: any WidgetSettings) {
         self.weatherService = OpenWeatherMapService(settings: settings)
         super.init()
         locationManager.delegate = self
@@ -171,11 +171,9 @@ private struct OpenWeatherWind: Codable {
 
 @MainActor
 class OpenWeatherMapService {
-    static let shared = OpenWeatherMapService()
-    
     private let settings: any WidgetSettings
-    
-    init(settings: any WidgetSettings = DefaultsNotchSettings.shared) {
+
+    init(settings: any WidgetSettings) {
         self.settings = settings
     }
     

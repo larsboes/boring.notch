@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ClipboardView: View {
-    var manager: ClipboardManager
+    var manager: any ClipboardServiceProtocol
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -39,7 +39,7 @@ struct ClipboardView: View {
 
 struct ClipboardRow: View {
     let item: ClipboardItem
-    var manager: ClipboardManager
+    var manager: any ClipboardServiceProtocol
     @State private var isHovering = false
     
     var body: some View {

@@ -34,6 +34,7 @@ final class NotchHoverControllerTests: XCTestCase {
         hoverChecker = MockHoverZoneChecker()
         controller = NotchHoverController(
             settings: MockNotchViewModelSettings(),
+            displaySettings: MockNotchSettings(),
             hoverZoneManager: hoverChecker
         )
     }

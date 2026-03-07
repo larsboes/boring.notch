@@ -92,8 +92,6 @@ struct NotchStateInput: Equatable {
 @MainActor
 @Observable
 class NotchStateMachine {
-    static let shared = NotchStateMachine()
-
     private(set) var displayState: NotchDisplayState = .closed(content: .idle)
     private(set) var lastInput: NotchStateInput?
 
