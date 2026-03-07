@@ -45,12 +45,25 @@ Cherry-picked and adapted the best community contributions that were pending on 
 | Clipboard history + note-taking (SQLite-backed) | #788 |
 | Animated face with mouse tracking | #751 |
 
+### New Plugins
+- **Teleprompter Pro** — full-featured teleprompter with countdown timer, mic monitoring, hover-to-pause, keyboard shortcuts, AI text assist (refine/summarize/draft via Ollama), speed/font/color controls
+- **Habit Tracker** — daily habit tracking with streaks, progress rings, and persistent storage
+- **Pomodoro Timer** — focus timer with work/break intervals, session history, and notch-integrated controls
+- **Display Surface** — generic display arbitration for surfacing prioritized content
+
+### AI & Integrations
+- **AI subsystem** — `AIManager` + `AIProvider` protocol with Ollama backend for on-device text generation
+- **Local API server** — HTTP + WebSocket server for external integrations. Auth middleware, rate limiting, plugin API routes
+- **`notchctl` CLI** — command-line control of boringNotch via the Local API
+- **App Intents & URL Scheme** — Siri Shortcuts integration + `boringnotch://` deep links
+
 ### Additional Improvements
-- **Standardized animation system** — `StandardAnimations` enum for consistent open/close/interactive curves
+- **Apple-quality animations** — content reveal modifier, shadow easing, spring-tuned open/close choreography
 - **Dual hover zones** — separate closed/open hover detection for accurate mouse tracking
 - **Heartbeat-based hover** — replaced event-driven hover with a robust heartbeat controller (11 unit tests)
 - **Data export** — `ExportablePlugin` protocol with export UI in Settings
-- **CI pipeline** — build, test, and architecture checks on every push
+- **SOLID & DDD hardening** — SRP extractions, type-safe `PluginID` enum, domain purity enforcement
+- **CI pipeline** — build, test, and architecture boundary checks on every push
 
 ---
 
