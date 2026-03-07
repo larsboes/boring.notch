@@ -73,6 +73,10 @@
 | 4.18 | Architecture | Removed `NotchStateMachine.shared` and reduced singleton-default constructor usage in coordinator/view-model/service paths. |
 | 4.19 | Build | Repaired Xcode target source wiring for LocalAPI/private files to keep build reproducible and green. |
 | 4.20 | CI | Updated architecture check script allowlist for split settings files and added force-unwrap guardrails in core runtime paths. |
+| 4.21 | Animation | Spring curve refinement — open: 0.32/0.92, close: 0.26/0.97, interactive: 0.20/0.94. Apple DI confidence. |
+| 4.22 | Animation | Album art ghost fix — matchedGeometryEffect suppressed during transitions + lighting effect gated behind phase. |
+| 4.23 | Animation | Shell-first content timeline — contentProgress delayed to 30%, ContentRevealModifier tightened, stagger cascade faster. |
+| 4.24 | UX | Header controls gated on `phase == .open` — no accidental taps during transition. |
 | 5.1 | API | **Loopback binding** — `LocalAPIServer` now binds `127.0.0.1` only via `NWParameters.requiredLocalEndpoint`. |
 | 5.2 | API | **Dynamic routing** — `APIRouteRegistrar` protocol (own file) enables plugins to register/unregister REST routes at runtime. Path params (`/plugins/{id}`) with proper 404 vs 405. |
 | 5.3 | API | **Auth middleware** — Keychain-backed Bearer token in `APIAuthMiddleware` (`@unchecked Sendable`, `NSLock`). Denies on keychain failure (secure default). Enforced on all POST endpoints. |
@@ -105,22 +109,36 @@
 
 ### Task 14: Spring curve refinement
 
-**Status:** Paused — values tuned, needs on-device feel testing
+**Status:** ✅ Complete
 
-| Animation | Current | Tuning direction |
-|-----------|---------|------------------|
-| `open` | response: 0.38, damping: 0.78 | May need slightly higher damping (less bounce) |
-| `close` | response: 0.35, damping: 0.92 | Good — decisive and quick |
-| `interactive` | interactiveSpring(response: 0.30, damping: 0.86) | Tuned for less overshoot during scrubbing |
-| `staggered` | spring(response: 0.32, damping: 0.86) + 0.06s delay | Widened intervals for perceptible stagger |
+| Animation | Before | After | Change |
+|-----------|--------|-------|--------|
+| `open` | response: 0.38, damping: 0.82 | response: 0.32, damping: 0.92 | Less bounce, more confident — Apple DI feel |
+| `close` | response: 0.35, damping: 0.92 | response: 0.26, damping: 0.97 | Quicker, near-critically damped retraction |
+| `interactive` | response: 0.30, damping: 0.86 | response: 0.20, damping: 0.94 | Tight tracking, zero wobble |
+| `staggered` | response: 0.32, damping: 0.86, delay: 0.06s | response: 0.30, damping: 0.88, delay: 0.05s | Tighter cascade |
 
 ### Task 19: Matched album art transition
 
-**Status:** Not started | Depends on: Task 17
+**Status:** Partially implemented — matchedGeometryEffect wired but suppressed during transitions
 
-Album art thumbnail in closed state smoothly morphs into expanded player art via `matchedGeometryEffect`. Namespace is already threaded through views but no `matchedGeometryEffect` connects closed↔open art yet.
+`matchedGeometryEffect(id: "albumArt")` is connected on both `MusicLiveActivity` (closed) and `PluginAlbumArtView` (open). However, during `opening`/`closing` phases the effect is suppressed (namespace set to nil) because the container's spring animation conflicts with the geometry morph, causing stretch/ghost artifacts. Full morph will be re-enabled with Task 15 (gesture-driven progressive open) where the transition is scrubbed rather than spring-animated.
 
-**Files:** Closed music plugin view, `PluginMusicPlayerView.swift`, `NotchContentRouter.swift`
+### Task 21: Animation artifact fixes + shell-first timeline
+
+**Status:** ✅ Complete
+
+**Album art ghost fix:**
+- `matchedGeometryEffect` suppressed during transitions (both closed and open art views) — prevents spring-vs-morph conflict that caused stretch/jump.
+- `albumArtBackground` lighting effect (blur/rotate/scale glow) suppressed during transitions — eliminates ghost decoration artifacts.
+
+**Shell-first content timeline:**
+- `contentProgress` starts at 30% of shell expansion (was 20%) — visible "shell leads, content follows" effect.
+- `ContentRevealModifier` tightened: scale 0.94 (was 0.92), offset -3 (was -4), blur 8 (was 12). Subtler, more confident reveal.
+- Stagger step reduced to 0.06 (was 0.08) for quicker cascade.
+
+**Header/action gating:**
+- Controls gated on `phase == .open` (fires after animation completes) instead of `notchState == .open` (fires at animation start). Prevents accidental taps and visual flicker during transition.
 
 ### Task 15: Gesture-driven progressive open (Future)
 
