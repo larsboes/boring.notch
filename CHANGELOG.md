@@ -8,40 +8,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### 🏗 Architecture Overhaul (Plugin System)
-This release marks the completion of a massive architectural refactoring ("Phase 5"). The application has moved from a monolithic singleton-based design to a modular, plugin-first architecture.
+Completion of massive architectural refactoring ("Phase 5"). Monolithic singleton-based design → modular, plugin-first architecture.
 
-*   **Plugin Engine**: Introduced `PluginManager` and `NotchPlugin` protocol.
-*   **Everything is a Plugin**: Migrated all core features (Music, Battery, Calendar, Shelf, Weather, Webcam) into standalone plugins located in `Plugins/BuiltIn/`.
-*   **Service Container**: Replaced scattered singletons with a unified `ServiceContainer` for dependency injection.
-*   **Testability**: All services now use protocols (`MusicServiceProtocol`, etc.), enabling mock injection for unit tests.
+*   **Plugin Engine**: `PluginManager` + `NotchPlugin` protocol.
+*   **Everything is a Plugin**: All core features (Music, Battery, Calendar, Shelf, Weather, Webcam) migrated to standalone plugins in `Plugins/BuiltIn/`.
+*   **Service Container**: Replaced scattered singletons with unified `ServiceContainer` for DI.
+*   **Testability**: All services use protocols (`MusicServiceProtocol`, etc.), enabling mock injection.
 
 ### ✨ New Features
-*   **Teleprompter Pro**: Full-featured teleprompter plugin with countdown timer, mic monitoring, hover-to-pause, keyboard shortcuts, AI text assist (refine/summarize/draft), control panel with speed/font/color controls.
+*   **Teleprompter Pro**: Full-featured teleprompter with countdown timer, mic monitoring, hover-to-pause, keyboard shortcuts, AI text assist (refine/summarize/draft via Ollama), control panel with speed/font/color.
 *   **Browser Extension**: Safari web extension for media control from the notch.
-*   **Notifications Plugin**: A new dedicated plugin for handling system notifications.
-*   **Clipboard Plugin**: A new plugin to manage clipboard history directly from the notch.
-*   **Protocol-Based Services**: Services now expose clean APIs, making it easier to add new features or swap implementations (e.g., swapping Music providers).
+*   **Habit Tracker Plugin**: Daily habit tracking with streaks, progress rings, persistent storage.
+*   **Pomodoro Plugin**: Focus timer with work/break intervals, session history, notch-integrated controls.
+*   **Display Surface Plugin**: Generic display arbitration for surfacing prioritized content.
+*   **Notifications Plugin**: Dedicated system notification handling.
+*   **Clipboard Plugin**: Clipboard history management from the notch.
+*   **AI Subsystem**: `AIManager` + `AIProvider` protocol with Ollama backend for text generation.
+*   **Local API Server**: HTTP + WebSocket server for external integrations (`notchctl` CLI, browser extension). Auth middleware, rate limiting, plugin API routes.
+*   **App Intents & URL Scheme**: Siri Shortcuts integration + `boringnotch://` URL scheme handler.
+*   **Protocol-Based Services**: Clean APIs enabling easy provider swaps.
+
+### 🐛 Bug Fixes
+*   **XPC Helper**: Fixed IOServicePort leak in brightness check; broke retain cycle in connection invalidation handler.
+*   **Animation**: Fixed album art ghost on track change, smoother closing animation, shell-first open/close timeline.
+*   **Settings**: Reverted `bindableSettings` fatalError — SwiftUI resolves default before env modifier applies.
+*   **DI**: Added missing `@Environment(\.settings)` and Combine imports post-refactor.
+*   **Home View**: Default to home view on notch open instead of shelf.
 
 ### 🧹 Tech Debt & Improvements
-*   **Singleton Removal**: Removed over 300+ usage sites of `.shared` singletons in Views. Views now receive dependencies via `@Environment` or init injection.
-*   **Modern State Management**: Migrated `NotchStateMachine`, `DownloadWatcher`, and other core models to Swift 5.9's `@Observable` macro for better performance and cleaner syntax.
-*   **Decoupled Settings**: Managers no longer read directly from `Defaults`. Settings are injected, making the logic pure and testable.
-*   **File Structure**: Reorganized the codebase to clearly separate `Core/` infrastructure from `Plugins/` feature logic.
+*   **Singleton Removal**: 300+ `.shared` sites removed. Views use `@Environment` or init injection.
+*   **Modern State Management**: Migrated to Swift 5.9 `@Observable` macro across all core models.
+*   **Decoupled Settings**: Split `DefaultsNotchSettings` into focused extensions (+Display, +HUD, +Music, +Plugins). No direct `Defaults[.]` outside settings files.
+*   **File Structure**: `Core/` for domain + coordination, `Plugins/` for features, `UI/` for view helpers.
+*   **Apple-quality animations**: Content reveal modifier, shadow easing, spring-tuned choreography.
+*   **Architecture gate CI**: Automated boundary violation checks.
 
-### 🏛 SOLID & DDD Hardening (2026-03-08)
-Comprehensive architecture review and refactoring across 34 files.
+### 🏛 SOLID & DDD Hardening
+Comprehensive review and refactoring across 34+ files.
 
 #### SRP Extractions
-*   **TeleprompterTimerManager**: Timer and microphone monitor lifecycle extracted from `TeleprompterState`. State class now owns only scroll position, config, and domain logic.
-*   **DisplayPrioritizer**: Display arbitration logic extracted from `PluginManager` into pure struct. PluginManager delegates via `DisplayPrioritizer.highestPriority(among:)`.
-*   **HeaderButton / HeaderActionButton**: Reusable button components extracted from `BoringHeader`, eliminating 5x copy-paste boilerplate. Header reduced from 197 to 130 lines.
-*   **ContentView sub-views**: `notchBackground`, `glassOverlay`, `topEdgeLine` extracted from 175-line body.
+*   **TeleprompterTimerManager**: Timer + mic monitor lifecycle extracted from `TeleprompterState`.
+*   **TeleprompterScrollEngine / ShortcutHandler / CountdownState**: Further SRP splits.
+*   **DisplayPrioritizer**: Display arbitration extracted from `PluginManager` into pure struct.
+*   **HeaderButton / HeaderActionButton**: Reusable components from `BoringHeader` (197→130 lines).
+*   **ContentView sub-views**: `notchBackground`, `glassOverlay`, `topEdgeLine` extracted.
 
 #### DDD Improvements
-*   **PluginID enum**: All 30+ stringly-typed plugin identifiers replaced with centralized `PluginID` constants. Plugins, routers, event emitters, and settings views all use type-safe references. Typos are now compile errors.
-*   **SneakContentType.isHUD**: HUD-type check moved from free function in view to computed property on the domain enum.
+*   **PluginID enum**: 30+ stringly-typed identifiers → type-safe constants. Typos are compile errors.
+*   **SneakContentType.isHUD**: Moved to computed property on domain enum.
+*   **NotchServiceProvider**: Protocol for clean service resolution across plugin boundaries.
 
 #### Clean Code
-*   **DisplaySurfaceState**: Made `ttlTask` private, added `[weak self]` capture, added explicit `clear()` method.
-*   **Named constants**: TeleprompterState magic numbers extracted (`endBuffer`, `speedStep`, `speedMin`, `speedMax`).
-*   **SpotifyController.setFavorite()**: LSP contract documented — `supportsFavorite` already guards callers.
+*   **DisplaySurfaceState**: Private `ttlTask`, `[weak self]` capture, explicit `clear()`.
+*   **Named constants**: Magic numbers extracted across teleprompter state.
+*   **SpotifyController.setFavorite()**: LSP contract documented.
