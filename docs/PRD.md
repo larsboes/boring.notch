@@ -41,6 +41,7 @@
 | 4a — Architecture Debt | **Next** | 9 regressions from audit: 300L breach, duplicate files, DI gaps, stray Defaults, naming |
 | 5 — Local API | **MVP shipped; hardening active** | Core REST notch control + WebSocket events are live. Plugin/music routes, auth, and rate limiting remain. |
 | 6 — API-Powered Plugins | Planned | Teleprompter, DisplaySurface |
+| 6b — On-Device AI Assist (Optional) | Planned | Foundation Models-backed script assist for Teleprompter + Display |
 | 7 — Automation | Planned | App Intents, URL scheme |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
 
@@ -406,6 +407,99 @@ POST /api/v1/display/clear            → clear display
 
 ---
 
+## Phase 6b — On-Device AI Assist (Optional)
+
+**Goal:** Add optional on-device text-generation assists without making core plugin behavior depend on AI availability.
+
+**Scope boundary (hard rule):**
+- Teleprompter scrolling/timing/rendering remains deterministic and fully usable without AI.
+- AI is assistive only (rewrite, summarize, sectioning, marker generation).
+
+### Task 21b.1: AI provider abstraction
+
+**Files:**
+- `Plugins/Services/AITextGenerationServiceProtocol.swift`
+- `Plugins/Services/NoAITextGenerationService.swift`
+- `Plugins/Services/FoundationModelsTextGenerationService.swift` (gated)
+
+**Protocol (minimal):**
+```swift
+@MainActor
+protocol AITextGenerationServiceProtocol {
+    var isAvailable: Bool { get }
+    func rewrite(_ text: String, style: String) async throws -> String
+    func summarize(_ text: String) async throws -> String
+    func section(_ text: String) async throws -> [String]
+}
+```
+
+**Requirements:**
+- `NoAITextGenerationService` is default and deterministic.
+- Foundation Models provider is used only when available at runtime.
+- No plugin depends directly on Foundation Models types.
+
+### Task 21b.2: Teleprompter assist actions
+
+**UI actions (expanded panel):**
+- Rewrite script
+- Summarize to bullet outline
+- Generate section markers
+- Estimate speaking time
+
+**API endpoints (optional helpers):**
+```
+POST /api/v1/teleprompter/assist/rewrite
+POST /api/v1/teleprompter/assist/summarize
+POST /api/v1/teleprompter/assist/section
+```
+
+**Contract rule:** Existing Teleprompter endpoints (`load/start/pause/stop/state`) remain unchanged.
+
+### Task 21b.3: Runtime gating + settings
+
+**Settings:**
+- Toggle: "Enable On-Device AI Assist"
+- Availability status + reason
+- Fallback message when unavailable
+
+**Behavior:**
+- If unavailable, assist actions return clear `ok: false` errors and suggest manual flow.
+- No crashes/no-op ambiguity when model assets are not ready.
+
+### Task 21b.4: Additional plugin opportunities (post-Teleprompter)
+
+**DisplaySurfacePlugin (assistive formatting):**
+- Summarize long pushed content into concise notch-safe cards.
+- Convert raw logs/notes into bullet lists or key/value highlights.
+
+**NotificationsPlugin (digest mode):**
+- Merge bursts of notifications into "what matters now" summaries.
+- Keep urgent items explicit while compressing low-priority noise.
+
+**ClipboardPlugin (text cleanup):**
+- Rewrite/clean copied text and extract action items.
+- Convert messy notes into checklist-friendly output.
+
+**CalendarPlugin (meeting briefs):**
+- Generate compact "next up" summaries for upcoming events.
+- Optional prep prompts for imminent meetings.
+
+**HabitTracker/Pomodoro (coach summaries):**
+- End-of-session recap text and next-action suggestions.
+- Optional motivational copy with strict fallback to deterministic defaults.
+
+**Constraint (all plugins):**
+- AI assists are optional overlays only; no core plugin workflow may depend on AI availability.
+
+### Task 21b.5: Tests
+
+- Unit tests for provider selection and fallback behavior.
+- Endpoint tests for assist routes (success/unavailable/error mapping).
+- Teleprompter regression tests proving non-AI flow still passes.
+- Regression tests for at least one non-Teleprompter assist flow (DisplaySurface or Clipboard).
+
+---
+
 ## Phase 7 — Automation & Integrations
 
 **Goal:** Make boringNotch controllable from macOS automation frameworks.
@@ -471,5 +565,6 @@ Requirements: signed Swift package bundles, permission manifests, approval UI, p
 | 4a | Zero arch violations. All 9 items resolved. Build green + tests pass. CLAUDE.md updated to match reality. |
 | 5 | **MVP done:** `curl localhost:19384/api/v1/notch/state` returns valid JSON, notch open/close/toggle routes work, and WebSocket streams events. **Phase complete:** plugin/music endpoints shipped, auth + rate limiting implemented, event schema finalized, `notchctl` works. |
 | 6 | Teleprompter scrolls text fed via API. DisplaySurface renders arbitrary content from `curl`. |
+| 6b | AI assist actions work when available, fail gracefully when unavailable, and Teleprompter core behavior is unchanged without AI. |
 | 7 | All App Intents in Shortcuts. URL scheme routes work. |
 | 9 | External plugin loads from ~/Library/Application Support/boringNotch/Plugins/. |
