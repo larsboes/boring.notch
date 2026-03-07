@@ -80,7 +80,7 @@ final class MockNotchSettings: NotchSettings {
 
     // MARK: - Shelf Settings
     var boringShelf: Bool = true
-    var openShelfByDefault: Bool = true
+    var openShelfByDefault: Bool = false
     var shelfTapToOpen: Bool = true
     var expandedDragDetection: Bool = true
     var copyOnDrag: Bool = false
