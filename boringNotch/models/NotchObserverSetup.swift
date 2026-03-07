@@ -51,20 +51,22 @@ class NotchObserverSetup {
         }
 
         Task { @MainActor in
-            // Poll/Observe detector status and screenUUID
+            // React to @Observable changes via withObservationTracking
             while !Task.isCancelled {
                 let shouldHide = withObservationTracking {
                     calculateHideOnClosed(screenUUID: screenUUID)
-                } onChange: {
-                    Task { @MainActor in
-                        // Trigger re-evaluation
-                    }
-                }
+                } onChange: { }
 
                 onHideOnClosedChanged(shouldHide)
 
-                // Wait to avoid tight loop
-                try? await Task.sleep(for: .milliseconds(200))
+                // Yield until the observed properties change
+                await withCheckedContinuation { continuation in
+                    withObservationTracking {
+                        _ = self.detector.fullscreenStatus
+                    } onChange: {
+                        continuation.resume()
+                    }
+                }
             }
         }
     }

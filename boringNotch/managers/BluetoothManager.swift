@@ -29,7 +29,7 @@ final class BluetoothManager: NSObject {
     
     func startMonitoring() {
         updateConnectedDevices()
-        timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
             self?.updateConnectedDevices()
         }
     }

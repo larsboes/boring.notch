@@ -97,7 +97,7 @@ enum HoverState: Equatable {
         heartbeat = Task { [weak self] in
             while !Task.isCancelled {
                 self?.tick()
-                try? await Task.sleep(for: .milliseconds(16))
+                try? await Task.sleep(for: .milliseconds(32))
             }
         }
     }

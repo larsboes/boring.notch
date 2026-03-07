@@ -166,22 +166,25 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
 
     private func observeRetentionChanges() {
         retentionObservation = Task { @MainActor [weak self] in
-            var lastRetention = self?.settings.notificationRetentionDays ?? 7
-            var lastDeliveryStyle = self?.settings.notificationDeliveryStyle ?? .banner
+            // Use withObservationTracking to react to @Observable changes
+            // instead of polling every 2 seconds
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(2))
-                guard let self = self else { break }
-                let currentRetention = self.settings.notificationRetentionDays
-                if currentRetention != lastRetention {
-                    lastRetention = currentRetention
-                    self.pruneExpiredNotifications()
-                    self.persist()
+                let changed = await withCheckedContinuation { continuation in
+                    withObservationTracking {
+                        guard let self = self else {
+                            continuation.resume(returning: false)
+                            return
+                        }
+                        _ = self.settings.notificationRetentionDays
+                        _ = self.settings.notificationDeliveryStyle
+                    } onChange: {
+                        continuation.resume(returning: true)
+                    }
                 }
-                let currentDeliveryStyle = self.settings.notificationDeliveryStyle
-                if currentDeliveryStyle != lastDeliveryStyle {
-                    lastDeliveryStyle = currentDeliveryStyle
-                    self.cachedDeliveryStyle = currentDeliveryStyle
-                }
+                guard changed, let self = self else { break }
+                self.pruneExpiredNotifications()
+                self.persist()
+                self.cachedDeliveryStyle = self.settings.notificationDeliveryStyle
             }
         }
     }

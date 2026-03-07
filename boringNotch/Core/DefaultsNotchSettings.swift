@@ -361,6 +361,14 @@ final class DefaultsNotchSettings: NotchSettings {
         get { Defaults[.showWeather] }
         set { Defaults[.showWeather] = newValue }
     }
+    var showHabitTracker: Bool {
+        get { Defaults[.showHabitTracker] }
+        set { Defaults[.showHabitTracker] = newValue }
+    }
+    var showPomodoro: Bool {
+        get { Defaults[.showPomodoro] }
+        set { Defaults[.showPomodoro] = newValue }
+    }
     var openWeatherMapApiKey: String {
         get { Defaults[.openWeatherMapApiKey] }
         set { Defaults[.openWeatherMapApiKey] = newValue }

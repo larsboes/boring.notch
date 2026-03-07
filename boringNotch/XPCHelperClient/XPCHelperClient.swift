@@ -70,13 +70,12 @@ final class XPCHelperClient: NSObject {
     }
 
     // MARK: - Monitoring
-    func startMonitoringAccessibilityAuthorization(every interval: TimeInterval = 3.0) {
+    func startMonitoringAccessibilityAuthorization(every interval: TimeInterval = 30.0) {
         // Ensure only one monitor exists
         stopMonitoringAccessibilityAuthorization()
         monitoringTask = Task.detached { [weak self] in
             guard let self = self else { return }
             while !Task.isCancelled {
-                // Call the helper method periodically which will notify on change
                 _ = await self.isAccessibilityAuthorized()
                 do {
                     try await Task.sleep(for: .seconds(interval))

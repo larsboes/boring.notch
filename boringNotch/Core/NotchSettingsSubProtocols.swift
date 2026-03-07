@@ -138,6 +138,8 @@ protocol WidgetSettings {
     var showCalendar: Bool { get set }
     var showWeather: Bool { get set }
     var openWeatherMapApiKey: String { get set }
+    var showHabitTracker: Bool { get set }
+    var showPomodoro: Bool { get set }
 }
 
 // MARK: - Calendar Settings

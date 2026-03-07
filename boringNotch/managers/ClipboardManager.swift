@@ -30,13 +30,13 @@ final class ClipboardManager {
 
     private var lastChangeCount: Int = NSPasteboard.general.changeCount
     private var timer: Timer?
+    private(set) var isMonitoring = false
 
     init() {
         setupDatabase()
         fetchItems()
-        startMonitoring()
     }
-    
+
     private func setupDatabase() {
         do {
             let path = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .userDomainMask, true).first!
@@ -56,10 +56,18 @@ final class ClipboardManager {
         }
     }
     
-    private func startMonitoring() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+    func startMonitoring() {
+        guard !isMonitoring else { return }
+        isMonitoring = true
+        timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
             self?.checkPasteboard()
         }
+    }
+
+    func stopMonitoring() {
+        timer?.invalidate()
+        timer = nil
+        isMonitoring = false
     }
     
     private func checkPasteboard() {

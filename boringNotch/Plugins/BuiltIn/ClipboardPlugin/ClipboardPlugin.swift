@@ -37,10 +37,12 @@ final class ClipboardPlugin: NotchPlugin {
 
     func activate(context: PluginContext) async throws {
         self.context = context
+        context.services.clipboardManager.startMonitoring()
         state = .active
     }
-    
+
     func deactivate() async {
+        context?.services.clipboardManager.stopMonitoring()
         state = .inactive
     }
     
