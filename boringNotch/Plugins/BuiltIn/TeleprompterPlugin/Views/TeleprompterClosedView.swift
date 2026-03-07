@@ -1,17 +1,22 @@
 import SwiftUI
 
 /// Closed-notch teleprompter display — the primary reading view.
-/// Uses double the physical notch height: top half = physical notch area (camera),
-/// bottom half = scrolling text right below the camera for eye contact.
+/// The notch extends well below camera level, giving a generous reading area
+/// right below the camera for natural eye contact.
 struct TeleprompterClosedView: View {
     let state: TeleprompterState
 
     @Environment(BoringViewModel.self) var vm
     @Environment(\.displayClosedNotchHeight) var displayClosedNotchHeight
 
-    /// Physical notch height is half of the total display height
-    private var physicalNotchHeight: CGFloat {
-        displayClosedNotchHeight / 2
+    /// Real notch height (camera area) — keep text out of this zone
+    private var cameraZoneHeight: CGFloat {
+        getRealNotchHeight()
+    }
+
+    /// The reading area below the camera
+    private var readingAreaHeight: CGFloat {
+        max(0, displayClosedNotchHeight - cameraZoneHeight)
     }
 
     /// Match closed notch width + flanking (same pattern as MusicLiveActivity)
@@ -21,67 +26,98 @@ struct TeleprompterClosedView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top half — physical notch area (camera lives here, stay clear)
+            // Top zone — physical notch area (camera lives here, stay clear)
             Color.clear
-                .frame(height: physicalNotchHeight)
+                .frame(height: cameraZoneHeight)
 
-            // Bottom half — teleprompter text, centered below camera
+            // Reading zone — teleprompter text, directly below camera
             ZStack {
+                // Background Voice Glow Beam (Only active while scrolling/playing)
+                if state.isScrolling {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.blue.opacity(0.8),
+                                    Color.indigo.opacity(0.6),
+                                    Color.purple.opacity(0.4),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        // Scale the height based on vocal input
+                        .frame(height: max(10, readingAreaHeight * state.micMonitor.normalizedLevel))
+                        // Fade in on voice, but keep a dim glow otherwise
+                        .opacity(0.2 + (state.micMonitor.normalizedLevel * 0.8))
+                        // Aggressive blurred blend for glass aesthetic
+                        .blur(radius: 12)
+                        .blendMode(.screen)
+                        // Top aligned so it beams out directly from beneath the notch
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .animation(.interpolatingSpring(stiffness: 120, damping: 14), value: state.micMonitor.normalizedLevel)
+                }
+
                 if state.text.isEmpty {
                     Text("No script loaded")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.tertiary)
                 } else {
-                    // Current line with crossfade transition
-                    Text(currentLine)
-                        .font(.system(
-                            size: min(14, physicalNotchHeight * 0.38),
-                            weight: .medium,
-                            design: .default
-                        ))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.7)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: contentWidth - 40)
-                        .id(currentLineIndex) // force view identity change for transition
-                        .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .move(edge: .bottom)),
-                            removal: .opacity.combined(with: .move(edge: .top))
-                        ))
-                        .animation(.easeInOut(duration: 0.4), value: currentLineIndex)
+                    ScrollView {
+                        Text(state.text)
+                            .font(.system(
+                                size: state.config.fontSize,
+                                weight: .medium,
+                                design: .default
+                            ))
+                            .foregroundStyle(state.textColor.color.opacity(0.95))
+                            .lineSpacing(8)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: contentWidth - 32)
+                            .padding(.top, 8)
+                            .padding(.bottom, readingAreaHeight) // Allow scrolling past the end
+                            .background(
+                                GeometryReader { geo in
+                                    Color.clear.preference(key: TeleprompterContentHeightKey.self, value: geo.size.height)
+                                }
+                            )
+                            .offset(y: -state.scrollPosition)
+                    }
+                    .scrollDisabled(true)
+                    .scrollIndicators(.never)
+                    // Hover-to-pause mechanic
+                    .onHover { hovering in
+                        state.isHovering = hovering
+                    }
+                    .onPreferenceChange(TeleprompterContentHeightKey.self) { height in
+                        // Record actual rendered height so state knows when to stop scrolling
+                        if abs(state.contentHeight - Double(height)) > 1.0 {
+                            // Run async to avoid modifying state during view update
+                            Task { @MainActor in
+                                state.contentHeight = Double(height)
+                            }
+                        }
+                    }
                 }
             }
-            .frame(width: contentWidth, height: physicalNotchHeight)
+            .frame(width: contentWidth, height: readingAreaHeight)
             .clipped()
         }
         .frame(width: contentWidth, height: displayClosedNotchHeight)
+        .overlay {
+            if state.countdownState.isActive {
+                CountdownOverlayView(state: state.countdownState)
+            }
+        }
     }
+}
 
-    // MARK: - Line Calculation
+// MARK: - Preference Key
 
-    /// All non-empty lines in the script
-    private var lines: [String] {
-        state.text
-            .components(separatedBy: .newlines)
-            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-    }
-
-    /// Virtual line height in scroll-pixels.
-    /// Controls reading pace: readingTime = pixelsPerLine / speed.
-    /// At 100px and speed 30: ~3.3s per line. At speed 50: ~2s per line.
-    private static let pixelsPerLine: Double = 100
-
-    /// Current line index based on scroll position
-    private var currentLineIndex: Int {
-        guard !lines.isEmpty else { return 0 }
-        let raw = Int(state.scrollPosition / Self.pixelsPerLine)
-        return min(raw, lines.count - 1)
-    }
-
-    /// The text of the current line
-    private var currentLine: String {
-        guard !lines.isEmpty else { return "" }
-        return lines[currentLineIndex]
+struct TeleprompterContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }

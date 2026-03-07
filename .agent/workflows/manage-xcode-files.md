@@ -8,14 +8,14 @@ When adding or removing Swift files, you must ensure the Xcode project file (`.x
 
 ## Usage
 
-The script `manage_xcode_files.rb` is located in the root of the project.
+The script `manage_xcode_files.rb` is located in the `scripts` directory of the project.
 
 ### Adding Files
 
 To add one or more files to the project:
 
 ```bash
-ruby manage_xcode_files.rb add path/to/File1.swift path/to/File2.swift
+ruby scripts/manage_xcode_files.rb add path/to/File1.swift path/to/File2.swift
 ```
 
 - You can pass multiple file paths.
@@ -26,7 +26,7 @@ ruby manage_xcode_files.rb add path/to/File1.swift path/to/File2.swift
 To remove one or more files from the project (and optionally delete them from disk):
 
 ```bash
-ruby manage_xcode_files.rb remove path/to/File1.swift path/to/File2.swift
+ruby scripts/manage_xcode_files.rb remove path/to/File1.swift path/to/File2.swift
 ```
 
 - **Note**: The script currently removes references from the project. It does *not* delete the file from the filesystem by default, but it's good practice to delete the file using `rm` *before* or *after* running this script if you intend to fully delete it.
@@ -40,14 +40,14 @@ ruby manage_xcode_files.rb remove path/to/File1.swift path/to/File2.swift
    ```
 2. Add to Xcode:
    ```bash
-   ruby manage_xcode_files.rb add boringNotch/Plugins/Services/MyNewService.swift
+   ruby scripts/manage_xcode_files.rb add boringNotch/Plugins/Services/MyNewService.swift
    ```
 
 ## Example Workflow (Removing a Manager)
 
 1. Remove from Xcode:
    ```bash
-   ruby manage_xcode_files.rb remove boringNotch/managers/OldManager.swift
+   ruby scripts/manage_xcode_files.rb remove boringNotch/managers/OldManager.swift
    ```
 2. Delete from filesystem:
    ```bash

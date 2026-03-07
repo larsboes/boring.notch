@@ -40,7 +40,7 @@
 | 1, 1b, 2, 3, 5, 6, 6b, 7 | ✅ Shipped | Core plugins, API Hardening, AI Assist, Automation, Battery & Export |
 | 4 — Animation + Arch Debt | **Active** | 15+ items done. Remaining: spring tuning, album art morph, gesture-driven open. |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
-| 10 — Teleprompter Pro | Planned | Voice-driven scrolling, countdown, enhanced editor, display polish, keyboard shortcuts |
+| 10 — Teleprompter Pro | **Active** | 10.0/10.4/10.7/10.8 shipped. Remaining: script library, voice scrolling, enhanced editor, display customization, closed display polish, screen sharing, detachable mode |
 | 11 — Foundation Models | Planned | On-device AI via Apple FoundationModels (macOS 26+), streaming, structured generation |
 
 **Latest architecture hardening commits:**
@@ -104,6 +104,12 @@
 | 7.1 | Automation | **App Intents** — `OpenNotchIntent` + `CloseNotchIntent` routed through `NotificationCenter` bridge to `BoringViewModel`. No singleton coupling. |
 | 7.2 | Automation | **URL scheme** — `boringnotch://` open/close/toggle/plugins. Toggle checks `vm.notchState` for correct dispatch. Registered via `NSAppleEventManager` in AppDelegate. |
 | 7.3 | Automation | **Intent bridge** — `BoringViewModel.setupIntentObservers()` observes `.openNotchIntent` / `.closeNotchIntent` on main queue with `[weak self]`. |
+| 10.0 | Teleprompter | **Expanded panel redesign** — full-width two-column layout (editor left ~60%, control panel right ~40%). `TeleprompterControlPanel.swift` extracted. Speed controls, font size slider, 5 text color swatches (`PrompterColor` enum), AI actions, script info (word count, reading time, sections). Bottom action bar with Present CTA. |
+| 10.3 | Teleprompter | **Voice visual feedback (partial)** — `MicrophoneMonitor` + linear gradient beam in `TeleprompterClosedView`. Responds to RMS level with spring animation. Remaining: radial arc shape, configurable color/opacity. |
+| 10.4 | Teleprompter | **Countdown timer** — `CountdownState` (tick-based, configurable 0/3/5s) + `CountdownOverlayView` (cinematic scale+fade numbers, tap-to-cancel). Wired into `startPresentation()` flow. Overlay renders in closed view during countdown. |
+| 10.7 | Teleprompter | **Hover-to-pause** — `.onHover` on `TeleprompterClosedView` pauses/resumes scrolling. `isHovering` state in `TeleprompterState`. Remaining: visual pause indicator overlay. |
+| 10.8 | Teleprompter | **Keyboard shortcuts** — `TeleprompterShortcutHandler` with 5 user-configurable shortcuts (play/pause, speed up/down, reset, go home). Registered in plugin `activate()`, unregistered in `deactivate()`. |
+| 10.10 | Teleprompter | **Improved closed display (partial)** — text centered under camera, full-width reading zone, voice beam, smooth per-pixel scroll. Remaining: karaoke fade, progress bar, section title, elapsed/remaining time. |
 
 ---
 
@@ -282,17 +288,37 @@ Requirements: signed Swift package bundles, permission manifests, approval UI, p
 
 The existing teleprompter (Phase 6) is functional but bare-bones:
 - Timer-driven scroll at fixed px/s
-- Basic `TextEditor` for script input
-- Play/pause/stop + speed slider (10–80 px/s)
+- Basic `TextEditor` for script input (360px wide in a 740px notch — wastes half the space)
+- Play/pause/stop + basic speed controls
 - Paste from clipboard
 - AI assist (refine/summarize/draft-intro) via Ollama only
-- Closed view shows one line of text beside the notch
+- Closed view: centered text with voice beam + hover-to-pause (functional)
+- No script management, no mode selection, no progress indicators
 
-**What's missing for professional use:** voice-driven scrolling, visual feedback, countdown, keyboard controls, calibration, rich editing, and on-device AI that works without installing Ollama.
+**What's missing for professional use:** script library, voice-driven scrolling, visual feedback polish, calibration, rich editing, display customization, detachable mode, and on-device AI that works without installing Ollama.
 
-### 10.1 — Voice-Driven Scrolling ("Flow Mode")
+### 10.0 — Expanded Panel Redesign ✅
 
-**Status:** Planned
+Full-width two-column layout (editor ~60% left, control panel ~40% right, action bar bottom). Files: `TeleprompterExpandedView.swift` (rewritten), `TeleprompterControlPanel.swift` (new). See shipped work table for details.
+
+### 10.1 — Script Library
+
+**Status:** Planned | **Priority:** P1
+
+Save, load, and manage named scripts. The dropdown in the expanded panel header switches between scripts.
+
+**Implementation:**
+- `TeleprompterScriptLibrary` — manages saved scripts as `[ScriptEntry]`
+- `ScriptEntry`: `id: UUID`, `name: String`, `text: String`, `createdAt: Date`, `lastUsedAt: Date`
+- Storage: `PluginSettings` (JSON-encoded array), persists across app restarts
+- UI: dropdown menu in expanded panel header showing script names + "New Script" / "Delete" options
+- Auto-save: current script saves on every edit (debounced 1s) and on notch close
+- Import: drag-and-drop `.txt`/`.md`/`.rtf` onto editor creates a new script entry
+- Limit: 50 scripts max (warn at 40, hard cap at 50)
+
+### 10.2 — Voice-Driven Scrolling ("Flow Mode")
+
+**Status:** Planned | **Priority:** P2
 
 Use `AVAudioEngine` + `SFSpeechRecognizer` to match scroll speed to speaking pace. When the speaker pauses, scrolling pauses. When they speed up, scrolling accelerates.
 
@@ -314,121 +340,95 @@ Use `AVAudioEngine` + `SFSpeechRecognizer` to match scroll speed to speaking pac
 5. Fallback: if speech recognition off, use audio RMS level to modulate speed
 ```
 
-**Key constraint:** Flow Mode is *optional*. Manual scroll (current timer-based) remains the default. User toggles between modes.
+**Key constraint:** Flow Mode is *optional*. Manual scroll (current timer-based) remains the default. User toggles between modes in the expanded panel's control column.
 
-### 10.2 — Voice Visual Feedback
+**Mode UI:** Radio toggle in control panel — `○ Manual  ○ Voice (Flow)`. Voice mode shows a microphone sensitivity slider below. Manual mode shows speed controls.
 
-**Status:** Planned
+### 10.3 — Voice Visual Feedback
+
+**Status:** Partially implemented (basic beam exists in `TeleprompterClosedView`) | **Priority:** P2
 
 Visual beam/glow emanating from the notch that responds to microphone input level. Helps speakers monitor their volume without looking away from camera.
 
-**Implementation:**
-- `VoiceBeamView` — SwiftUI view overlaying the notch area
-- Reads audio level from `VoiceScrollEngine`'s tap (shared `AVAudioEngine`)
-- Renders as a radial gradient / arc that scales with RMS amplitude
-- Color: subtle blue-purple gradient (matches notch aesthetic)
-- Configurable: on/off, opacity, color
+**Current state:** `MicrophoneMonitor` + basic linear gradient beam already exist in `TeleprompterClosedView`. Needs polish.
 
-### 10.3 — Countdown Timer
+**Remaining work:**
+- Refine beam shape: radial arc rather than rectangular gradient
+- Color configurable: blue-purple (default), green, amber
+- Opacity configurable (settings)
+- Smooth animation curves (current spring is decent, may need tuning)
+- On/off toggle in settings
 
-**Status:** Planned
+### 10.4 — Countdown Timer ✅
 
-3-2-1 countdown before scrolling begins. Gives the speaker time to settle, check camera framing, take a breath.
+Cinematic 3-2-1 countdown before scrolling. Configurable (0/3/5s). Files: `CountdownState.swift`, `CountdownOverlayView.swift`. Wired into `startPresentation()` flow.
 
-**Implementation:**
-- `CountdownOverlayView` displayed in closed notch when "Start" is pressed
-- Large, cinematic numbers (SF Rounded, heavy weight) with scale+fade animation
-- Configurable duration: 3s (default), 5s, or off
-- After countdown completes → scrolling begins automatically
-- Cancel by clicking notch during countdown
+### 10.5 — Built-In Script Editor (Enhanced)
 
-### 10.4 — Built-In Script Editor (Enhanced)
+**Status:** Planned | **Priority:** P1
 
-**Status:** Planned
-
-Replace the minimal `TextEditor` with a proper script editing experience.
+The left column of the expanded panel is the editor. Enhance beyond basic `TextEditor`.
 
 **Features:**
-- Larger editing area in expanded panel (full available height)
-- Markdown-aware rendering: `## Section` headers render as visual dividers
-- Word count + estimated reading time display (based on current scroll speed)
-- Section navigation: click section headers to jump
-- Undo/redo support
+- Full available height (no fixed 140px) — editor grows with the notch
+- Markdown-aware rendering: `## Section` headers render as visual dividers in a preview mode
+- Section navigation: click section headers to jump (in preview mode)
+- Undo/redo support (native `TextEditor` undo, plus AI action undo)
 - Import from file (`.txt`, `.md`, `.rtf`) via drag-and-drop or file picker
-- Auto-save script to `PluginSettings` (persists across app restarts)
-- Multiple scripts: save/load named scripts
+- Auto-save to script library (debounced 1s)
+- Edit/Preview toggle: switch between editing raw text and reading formatted preview
 
-### 10.5 — Scroll Speed Calibration
+### 10.6 — Scroll Speed Calibration
 
-**Status:** Planned
+**Status:** Planned | **Priority:** P2
 
 Guided calibration flow where the user reads a sample text at their natural pace. The system measures their reading speed and sets the default accordingly.
 
 **Implementation:**
-- Calibration wizard accessible from settings
+- Calibration wizard accessible from settings (or first-run)
 - Shows sample paragraph in the notch area
 - User reads aloud (or reads silently and taps when done)
 - Calculates words-per-minute → maps to px/s scroll speed
 - Stores calibrated speed as default
-- Preview: real-time scroll speed preview at top of calibration screen (like Moody)
+- Preview: real-time scroll speed preview during calibration
 
-### 10.6 — Hover-to-Pause
+### 10.7 — Hover-to-Pause ✅
 
-**Status:** Planned
+`.onHover` pauses/resumes scrolling. Remaining: visual pause indicator overlay.
 
-Moving the cursor over the teleprompter text instantly pauses scrolling. Moving cursor away resumes. Zero-friction control for quick script checks.
+### 10.8 — Keyboard Shortcuts ✅
 
-**Implementation:**
-- `.onHover` modifier on `TeleprompterClosedView`
-- Sets `state.isScrolling = false` on hover enter, `true` on exit
-- Only active when teleprompter was already scrolling (don't start scrolling on hover exit if it wasn't running)
-- Visual indicator: subtle pause icon appears on hover
+5 user-configurable shortcuts (play/pause, speed up/down, reset, go home) via `KeyboardShortcuts` framework. File: `TeleprompterShortcutHandler.swift`. Registered in plugin lifecycle.
 
-### 10.7 — Keyboard Shortcuts
+### 10.9 — Display Customization
 
-**Status:** Planned
+**Status:** Planned | **Priority:** P1
 
-Professional prompters need hands-free or keyboard-only control.
+Inline in the expanded panel's control column (not buried in settings):
 
-| Shortcut | Action |
-|----------|--------|
-| `Space` (when teleprompter active) | Play/Pause toggle |
-| `↑` / `↓` | Manual scroll (fine-grained) |
-| `⌘↑` / `⌘↓` | Increase/decrease speed |
-| `⌘⇧T` | Open teleprompter panel |
-| `Escape` | Stop and reset |
-| `⌘R` | Restart from beginning |
+- **Font size:** slider/stepper (10–40pt), live preview in editor
+- **Text color:** 5 preset swatches (white, warm white, yellow, green, cyan) — common prompter colors. Dot selector, not a full color picker.
+- **Background opacity:** slider (0–100% behind text for readability in closed view)
+- **Mirror mode:** toggle — horizontally flip text (for physical teleprompter setups with beam splitters)
+- **Line highlight:** toggle — current line full opacity, surrounding lines fade (karaoke-style)
+- **Margin/padding:** compact slider for text inset in closed view
 
-**Implementation:** Register via `KeyboardShortcuts` framework (already a dependency). Only active when teleprompter has loaded text.
+### 10.10 — Improved Closed-Notch Display
 
-### 10.8 — Display Customization
+**Status:** Partially implemented | **Priority:** P0
 
-**Status:** Planned
-
-- Font size slider (already exists, expand range: 10–40pt)
-- Text color picker (white, yellow, green — common prompter colors)
-- Background opacity (0–100% behind text for readability)
-- Mirror mode (horizontally flip text — for physical teleprompter setups with beam splitters)
-- Line highlight: current line gets full opacity, surrounding lines fade (karaoke-style)
-- Margin/padding controls for text positioning
-
-### 10.9 — Improved Closed-Notch Display
-
-**Status:** Planned
-
-The current closed view shows one line of truncated text on one side. This needs to be a proper reading surface.
+The closed view already has centered text, voice beam, and hover-to-pause. Remaining:
 
 **Improvements:**
-- Text renders *centered under the camera* (the whole point of notch-prompting)
-- Show 2–3 lines: current line bold/bright, next lines progressively dimmer
-- Smooth per-pixel scroll (not line-snapping)
-- Progress indicator: subtle bar showing position in script (0–100%)
-- Current section title shown if script uses `##` headers
-- Elapsed time / remaining time (small, non-distracting)
+- Show 2–3 lines: current line bold/bright, next lines progressively dimmer (karaoke fade, see 10.9 line highlight)
+- Progress indicator: subtle bar at the bottom showing position in script (0–100%)
+- Current section title shown if script uses `##` headers (small, top-right of reading zone)
+- Elapsed time / remaining time (small, non-distracting, bottom corners)
+- Smooth per-pixel scroll already works — verify no line-snapping at any speed
 
-### 10.10 — Screen Sharing Safety
+### 10.11 — Screen Sharing Safety
 
-**Status:** Planned
+**Status:** Planned | **Priority:** P1
 
 The teleprompter text should be invisible during screen sharing — the speaker sees it, but their audience doesn't.
 
@@ -437,6 +437,22 @@ The teleprompter text should be invisible during screen sharing — the speaker 
 - This excludes the window from screen capture, screenshots, and screen sharing
 - Toggle in settings: "Hide from screen sharing" (default: on)
 - Alternative: detect active screen sharing via `CGDisplayStream` and auto-hide
+
+### 10.12 — Detachable Floating Mode
+
+**Status:** Planned | **Priority:** P3
+
+For external displays (no notch), desktop recording, or dual-screen setups where the user wants the prompter elsewhere.
+
+**Implementation:**
+- Separate `NSPanel` window (`.nonActivating`, `.floating`, draggable, resizable)
+- Mirrors `TeleprompterState` — same scroll engine, same text, same controls
+- Shares all display settings (font, color, opacity, line highlight)
+- Inherits `sharingType = .none` from 10.11
+- Toggle: "Detach to floating window" button in expanded panel or settings
+- When detached: closed-notch teleprompter view hides, floating window takes over
+- When reattached: floating window closes, notch resumes
+- Keyboard shortcuts work regardless of attached/detached mode
 
 ---
 
@@ -658,20 +674,19 @@ Prioritized by user impact and dependency chain:
 
 | Priority | Task | Depends On | Impact |
 |----------|------|------------|--------|
-| **P0** | 10.3 Countdown timer | — | Quick win, high polish |
-| **P0** | 10.7 Keyboard shortcuts | — | Essential for hands-free use |
-| **P0** | 10.9 Improved closed display | — | Core reading experience |
-| **P1** | 10.6 Hover-to-pause | — | Zero-friction control |
-| **P1** | 10.4 Enhanced editor | — | Content creation flow |
-| **P1** | 10.8 Display customization | — | Personal preference |
-| **P1** | 10.10 Screen sharing safety | — | Professional use case |
+| **P0** | 10.10 Improved closed display | — | Core reading experience |
+| **P1** | 10.1 Script library | — | Script management, persistence |
+| **P1** | 10.5 Enhanced editor | — | Content creation flow |
+| **P1** | 10.9 Display customization | — | Personal preference |
+| **P1** | 10.11 Screen sharing safety | — | Professional use case |
 | **P1** | 11.1 FoundationModelsProvider | — | Zero-config AI for all users |
 | **P1** | 11.6 Auto-select provider | 11.1 | Seamless provider switching |
-| **P2** | 10.1 Voice-driven scrolling | AVAudioEngine, SFSpeechRecognizer | Flagship differentiator |
-| **P2** | 10.2 Voice visual feedback | 10.1 (shared audio engine) | Polish on top of voice |
-| **P2** | 10.5 Scroll speed calibration | — | Nice-to-have |
+| **P2** | 10.2 Voice-driven scrolling | AVAudioEngine, SFSpeechRecognizer | Flagship differentiator |
+| **P2** | 10.3 Voice visual feedback | 10.2 | Polish on top of voice |
+| **P2** | 10.6 Scroll speed calibration | — | Nice-to-have |
 | **P2** | 11.2 Streaming support | 11.1 | Better AI UX |
 | **P2** | 11.3 Structured generation | 11.1 | Better AI output quality |
+| **P3** | 10.12 Detachable floating mode | 10.11 | External displays, dual-screen |
 | **P3** | 11.4 Expanded AI actions | 11.1 | More AI capabilities |
 | **P3** | 11.5 Smart instructions | 11.1 | Better AI context |
 | **P3** | 11.7 AI settings UI | 11.1 | Power user config |
@@ -722,5 +737,5 @@ Prioritized by user impact and dependency chain:
 | 6b | ✅ **Done.** 3-tier AI architecture. Domain protocol with deterministic fallback. No singleton access. Prompt engineering encapsulated. *(Phase 11: Ollama demoted to opt-in, Foundation Models becomes primary.)* |
 | 7 | ✅ **Done.** App Intents in Shortcuts. URL scheme routes work (including toggle). |
 | 9 | External plugin loads from ~/Library/Application Support/boringNotch/Plugins/. |
-| 10 | Teleprompter has voice-driven scrolling, countdown timer, keyboard shortcuts, improved closed display with 2–3 lines centered under camera, hover-to-pause, screen sharing safety. Creator-daily-driver quality. |
+| 10 | Expanded panel uses full 740px with two-column layout (editor + controls). Script library persists named scripts. Countdown timer works. Keyboard shortcuts for hands-free control. Closed display shows 2–3 lines with karaoke fade, progress bar, elapsed/remaining time. Voice-driven scrolling as optional Flow Mode. Screen sharing safety via `sharingType = .none`. Detachable floating window for external displays. Creator-daily-driver quality. |
 | 11 | `FoundationModelsProvider` is sole default provider on macOS 26+. AI features work with zero external dependencies. Ollama available as opt-in Advanced option only. Streaming AI responses in teleprompter UI. Structured generation via `@Generable`. On macOS <26: AI features cleanly absent (no broken states). |

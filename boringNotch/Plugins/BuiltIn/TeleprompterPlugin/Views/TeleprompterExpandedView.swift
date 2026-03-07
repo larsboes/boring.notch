@@ -1,189 +1,140 @@
 import SwiftUI
 
-/// Expanded panel for teleprompter — editing, setup, and configuration only.
-/// When play is pressed, the notch closes and the compact TeleprompterClosedView takes over.
+/// Expanded panel for teleprompter — full-width two-column layout.
+/// Left: script editor. Right: control panel. Bottom: action bar.
+/// When "Present" is pressed, the notch closes and TeleprompterClosedView takes over.
 struct TeleprompterExpandedView: View {
     @Bindable var state: TeleprompterState
-    @Environment(\.pluginManager) var pluginManager
-    @Environment(\.settings) var settings
     @Environment(BoringViewModel.self) var vm
 
-    @State private var isAIProcessing: Bool = false
-    @State private var aiError: String?
-
     var body: some View {
-        VStack(spacing: 10) {
-            // MARK: - Text Input Area
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $state.text)
-                    .font(.system(size: 14, design: .monospaced))
-                    .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .background(Color.white.opacity(0.05))
-                    .cornerRadius(12)
-                    .frame(height: 120)
+        VStack(spacing: 0) {
+            // MARK: - Two-Column Content
+            HStack(alignment: .top, spacing: 10) {
+                // Left: Script Editor (~60%)
+                editorColumn
+                    .frame(maxWidth: .infinity)
 
-                if state.text.isEmpty {
-                    Text("Paste or type your script…")
-                        .font(.system(size: 14, design: .monospaced))
-                        .foregroundStyle(.tertiary)
-                        .padding(.top, 16)
-                        .padding(.leading, 13)
-                        .allowsHitTesting(false)
-                }
+                // Right: Control Panel (~40%)
+                TeleprompterControlPanel(state: state)
+                    .frame(width: 200)
             }
+            .padding(.horizontal, 12)
+            .padding(.top, 2)
 
-            // MARK: - AI Actions
-            if settings.isAIEnabled && !state.text.isEmpty {
-                aiActionBar
-            }
-
-            // MARK: - Error Banner
-            if let error = aiError {
-                errorBanner(error)
-            }
-
-            // MARK: - Controls
-            controlBar
+            // MARK: - Bottom Action Bar
+            actionBar
+                .padding(.horizontal, 12)
+                .padding(.bottom, 4)
+                .padding(.top, 2)
         }
-        .padding(12)
-        .frame(width: 340)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             // Notch opened — stop scrolling so user can edit
             state.isScrolling = false
         }
-        .overlay {
-            if isAIProcessing {
-                aiProcessingOverlay
-            }
-        }
     }
 
-    // MARK: - Subviews
+    // MARK: - Editor Column
 
-    private var aiActionBar: some View {
-        HStack(spacing: 6) {
-            AIActionButton(title: "Refine", icon: "sparkles") {
-                performAIAction(.refine)
-            }
-            AIActionButton(title: "Summarize", icon: "text.badge.minus") {
-                performAIAction(.summarize)
-            }
-            AIActionButton(title: "Draft Intro", icon: "mic.badge.plus") {
-                performAIAction(.draftIntro)
-            }
-        }
-        .disabled(isAIProcessing)
-        .opacity(isAIProcessing ? 0.5 : 1.0)
-    }
-
-    private func errorBanner(_ message: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 10))
-            Text(message)
-                .font(.system(size: 10))
-                .lineLimit(1)
-            Spacer()
-            Button { aiError = nil } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 8, weight: .bold))
-            }
-            .buttonStyle(.plain)
-        }
-        .foregroundStyle(.orange)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color.orange.opacity(0.1))
-        .cornerRadius(6)
-    }
-
-    private var controlBar: some View {
-        HStack(spacing: 16) {
-            // Play — closes notch and starts scrolling
-            Button(action: startScrolling) {
-                HStack(spacing: 6) {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 12))
-                    Text("Start")
-                        .font(.system(size: 12, weight: .semibold))
-                }
-                .padding(.vertical, 6)
-                .padding(.horizontal, 14)
-                .background(
-                    Capsule()
-                        .fill(state.text.isEmpty ? Color.white.opacity(0.05) : Color.green.opacity(0.8))
+    private var editorColumn: some View {
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(nsColor: .windowBackgroundColor).opacity(0.3))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
                 )
-                .foregroundStyle(state.text.isEmpty ? Color.gray.opacity(0.3) : Color.white)
-            }
-            .buttonStyle(.plain)
-            .disabled(state.text.isEmpty)
 
-            // Paste from clipboard
-            Button(action: pasteFromClipboard) {
-                Image(systemName: "doc.on.clipboard")
-                    .font(.system(size: 16))
-                    .foregroundStyle(.secondary)
+            TextEditor(text: $state.text)
+                .font(.system(size: 14, weight: .regular, design: .serif))
+                .scrollContentBackground(.hidden)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.clear)
+
+            if state.text.isEmpty {
+                Text("Type or paste your script here...")
+                    .font(.system(size: 14, design: .serif))
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 16)
+                    .padding(.leading, 16)
+                    .allowsHitTesting(false)
             }
-            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - Action Bar
+
+    private var actionBar: some View {
+        HStack(spacing: 8) {
+            // Left: utility actions
+            Button(action: pasteFromClipboard) {
+                Label("Paste", systemImage: "doc.on.clipboard")
+                    .font(.system(size: 10, weight: .medium))
+            }
+            .buttonStyle(ActionBarSecondaryStyle())
             .help("Paste from clipboard")
 
-            // Clear
             Button(action: {
                 state.text = ""
                 state.reset()
             }) {
-                Image(systemName: "trash")
-                    .font(.system(size: 14))
+                Label("Clear", systemImage: "trash")
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(state.text.isEmpty ? Color.secondary.opacity(0.3) : Color.red.opacity(0.7))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(ActionBarSecondaryStyle())
             .disabled(state.text.isEmpty)
             .help("Clear script")
 
             Spacer()
 
-            // Speed control
-            HStack(spacing: 6) {
-                Image(systemName: "gauge.with.dots.needle.33percent")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                Slider(
-                    value: .init(
-                        get: { state.config.speed },
-                        set: { state.config.speed = $0 }
-                    ),
-                    in: 10...80,
-                    step: 5
-                )
-                .frame(width: 70)
+            // Right: primary actions
+            if state.scrollPosition > 0 {
+                Button(action: {
+                    state.reset()
+                }) {
+                    Label("Reset", systemImage: "arrow.counterclockwise")
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .buttonStyle(ActionBarSecondaryStyle())
+                .help("Reset to beginning")
             }
+
+            Button(action: startPresentation) {
+                HStack(spacing: 4) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 10))
+                    Text(presentButtonTitle)
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .padding(.vertical, 6)
+                .padding(.horizontal, 14)
+                .background(
+                    Capsule()
+                        .fill(state.text.isEmpty
+                            ? Color.white.opacity(0.05)
+                            : Color.white.opacity(0.9))
+                )
+                .foregroundStyle(state.text.isEmpty ? .gray.opacity(0.3) : .black)
+            }
+            .buttonStyle(.plain)
+            .disabled(state.text.isEmpty)
+            .help("Start presenting")
         }
-        .padding(.horizontal, 4)
     }
 
-    private var aiProcessingOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.3)
-                .cornerRadius(12)
-            VStack(spacing: 6) {
-                ProgressView()
-                    .controlSize(.small)
-                Text("AI processing…")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .allowsHitTesting(true)
+    private var presentButtonTitle: String {
+        if state.scrollPosition <= 0 { return "Present" }
+        return state.isAtEnd ? "Restart" : "Resume"
     }
 
     // MARK: - Actions
 
-    private func startScrolling() {
-        state.reset()
-        state.isScrolling = true
-        // Close notch — teleprompter takes over in closed mode
+    private func startPresentation() {
         vm.close(force: true)
+        state.startPresentation()
     }
 
     private func pasteFromClipboard() {
@@ -192,47 +143,20 @@ struct TeleprompterExpandedView: View {
         state.text = content
         state.reset()
     }
-
-    private func performAIAction(_ action: TeleprompterAIAction) {
-        guard let ai = pluginManager?.services.ai else { return }
-
-        isAIProcessing = true
-        aiError = nil
-
-        Task {
-            do {
-                try await state.aiAssist(action: action, ai: ai)
-                isAIProcessing = false
-            } catch {
-                aiError = error.localizedDescription
-                isAIProcessing = false
-            }
-        }
-    }
 }
 
-// MARK: - AI Action Button
+// MARK: - Action Bar Button Style
 
-struct AIActionButton: View {
-    let title: String
-    let icon: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                Text(title)
-            }
-            .font(.system(size: 10, weight: .semibold))
+private struct ActionBarSecondaryStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
             .padding(.vertical, 5)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 8)
             .background(
                 Capsule()
-                    .fill(Color.white.opacity(0.08))
-                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 0.5)
+                    .fill(Color.white.opacity(0.06))
             )
-        }
-        .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .opacity(configuration.isPressed ? 0.7 : 1.0)
     }
 }

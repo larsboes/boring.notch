@@ -84,7 +84,8 @@ final class SpotifyController: MediaControllerProtocol {
     }
     
     func seek(to time: Double) async {
-        await executeAndRefresh("set player position to \(time)")
+        let seconds = Int(time)
+        await executeAndRefresh("set player position to \(seconds)")
     }
     
     func toggleShuffle() async {

@@ -263,7 +263,42 @@ final class NowPlayingController: MediaControllerProtocol {
             (diff ? self.playbackState.bundleIdentifier : "")
         )
         newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
+
+        if isBrowser(newPlaybackState.bundleIdentifier) {
+            var rawTitle = newPlaybackState.title
+            var rawArtist = newPlaybackState.artist
+
+            if rawTitle.hasSuffix(" - YouTube") {
+                rawTitle = String(rawTitle.dropLast(" - YouTube".count))
+            }
+
+            if rawTitle.contains(" - ") {
+                let components = rawTitle.components(separatedBy: " - ")
+                if components.count >= 2 {
+                    rawArtist = components[0].trimmingCharacters(in: .whitespaces)
+                    rawTitle = components.dropFirst().joined(separator: " - ").trimmingCharacters(in: .whitespaces)
+                }
+            }
+            
+            newPlaybackState.title = rawTitle
+            newPlaybackState.artist = rawArtist
+            
+            if newPlaybackState.duration > 0 && abs(newPlaybackState.duration - newPlaybackState.currentTime) < 0.1 {
+                newPlaybackState.duration = 0
+            }
+        }
+
         self.playbackState = newPlaybackState
+    }
+
+    private func isBrowser(_ bundleID: String) -> Bool {
+        let lower = bundleID.lowercased()
+        return lower.contains("chrome") || 
+               lower.contains("safari") || 
+               lower.contains("brave") || 
+               lower.contains("edgemac") || 
+               lower.contains("firefox") ||
+               lower.contains("thebrowser")
     }
 
     private func fetchFavoriteStateIfSupported() async {

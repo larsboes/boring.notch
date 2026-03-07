@@ -21,7 +21,9 @@ struct PluginMusicControlsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             songInfo
-            musicSliderWithTimes
+            if service.songDuration > 0 {
+                musicSliderWithTimes
+            }
             playbackControls
         }
         .buttonStyle(PlainButtonStyle())
@@ -118,7 +120,8 @@ struct PluginMusicControlsView: View {
                     dragging: $dragging,
                     lastDragged: $lastDragged,
                     onValueChange: { newValue in
-                        Task { await service.seek(to: newValue) }
+                        let progress = service.songDuration > 0 ? newValue / service.songDuration : 0
+                        Task { await service.seek(to: progress) }
                     }
                 )
                 .frame(height: 8)

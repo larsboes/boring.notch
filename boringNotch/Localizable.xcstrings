@@ -906,6 +906,15 @@
     "%lld 🔥" : {
 
     },
+    "%lld px/s" : {
+
+    },
+    "%lld sections" : {
+
+    },
+    "%lld words" : {
+
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -1307,6 +1316,9 @@
       }
     },
     "+%lld" : {
+
+    },
+    "~%@m reading time" : {
 
     },
     "1s" : {
@@ -2128,7 +2140,7 @@
         }
       }
     },
-    "AI processing…" : {
+    "AI Assist" : {
 
     },
     "All-day" : {
@@ -5580,6 +5592,9 @@
       }
     },
     "Closes the boringNotch." : {
+
+    },
+    "Color" : {
 
     },
     "Color Presets" : {
@@ -15783,10 +15798,10 @@
         }
       }
     },
-    "Paste from clipboard" : {
+    "Paste" : {
 
     },
-    "Paste or type your script…" : {
+    "Paste from clipboard" : {
 
     },
     "Pause at paragraph breaks" : {
@@ -17423,6 +17438,12 @@
 
     },
     "Request Reminders Access" : {
+
+    },
+    "Reset" : {
+
+    },
+    "Reset to beginning" : {
 
     },
     "Reset to Defaults" : {
@@ -20029,6 +20050,9 @@
     "Shuffle On" : {
 
     },
+    "Size" : {
+
+    },
     "Slider color" : {
       "localizations" : {
         "ar" : {
@@ -20439,7 +20463,6 @@
 
     },
     "Speed" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -20642,7 +20665,7 @@
     "Standard" : {
 
     },
-    "Start" : {
+    "Start presenting" : {
 
     },
     "Status" : {
@@ -20954,6 +20977,9 @@
           }
         }
       }
+    },
+    "Tap to cancel" : {
+
     },
     "Temperature" : {
 
@@ -21469,6 +21495,9 @@
           }
         }
       }
+    },
+    "Type or paste your script here..." : {
+
     },
     "Uninstall" : {
       "extractionState" : "stale",

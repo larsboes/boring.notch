@@ -15,11 +15,16 @@ final class TeleprompterPlugin: NotchPlugin {
     var state: PluginState = .inactive
     
     private let teleState = TeleprompterState()
+    private var shortcutHandler: TeleprompterShortcutHandler?
     private var context: PluginContext?
-    
+
     func activate(context: PluginContext) async throws {
         self.context = context
         self.state = .active
+
+        // Wire keyboard shortcuts
+        shortcutHandler = TeleprompterShortcutHandler(state: teleState)
+        shortcutHandler?.register()
         
         // Register API routes
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/teleprompter/load") { [weak self] request in
@@ -100,6 +105,8 @@ final class TeleprompterPlugin: NotchPlugin {
     
     func deactivate() async {
         self.state = .inactive
+        shortcutHandler?.unregister()
+        shortcutHandler = nil
         context?.services.apiRouteRegistrar?.unregister(path: "/api/v1/teleprompter/load")
         context?.services.apiRouteRegistrar?.unregister(path: "/api/v1/teleprompter/start")
         context?.services.apiRouteRegistrar?.unregister(path: "/api/v1/teleprompter/pause")
@@ -121,13 +128,12 @@ final class TeleprompterPlugin: NotchPlugin {
     }
     
     var displayRequest: DisplayRequest? {
-        guard teleState.isScrolling else { return nil }
-        // Request double the physical notch height — text goes in the bottom half, below the camera
+        guard teleState.isScrolling || teleState.countdownState.isActive else { return nil }
         let physicalHeight = getRealNotchHeight()
         return DisplayRequest(
             priority: .critical,
             category: DisplayRequest.utility,
-            preferredHeight: physicalHeight * 2
+            preferredHeight: physicalHeight * 5
         )
     }
 }

@@ -89,6 +89,20 @@ Cherry-picked and adapted the best community contributions that were pending on 
 
 ---
 
+## Browser Extension Setup (For YouTube/Web Media)
+
+To get perfect, sub-second scrubber and duration sync for browser media like YouTube, install the bundled companion extension:
+
+1. Open **Google Chrome** (or Chromium-based browser).
+2. Navigate to `chrome://extensions/`.
+3. Toggle on **Developer Mode** in the top-right corner.
+4. Click **Load Unpacked** in the top-left corner.
+5. Select the `boringNotch-extension` folder located inside the repository directory.
+
+The extension connects directly to boringNotch via a local WebSocket to transmit metadata and receive media commands without any additional config!
+
+---
+
 ## Architecture
 
 ```
