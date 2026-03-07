@@ -6,6 +6,7 @@
 //
 
 import Combine
+// NOTE: Defaults.updates/publisher needed for reactive observation — see NavigationState.swift comment.
 import Defaults
 import SwiftUI
 

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Charge: View {
     @Environment(\.bindableSettings) var settings
+    @Environment(\.xpcHelper) var xpcHelper
 
     var body: some View {
         @Bindable var settings = settings
@@ -59,10 +60,10 @@ struct Charge: View {
         }
         .onAppear {
             Task { @MainActor in
-                await XPCHelperClient.shared.isAccessibilityAuthorized()
+                await xpcHelper?.isAccessibilityAuthorized() ?? false
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Battery")
     }
 }

@@ -269,3 +269,13 @@ struct NotchStateChangedEvent: PluginEvent {
         self.state = state
     }
 }
+
+/// Event emitted when HUD UI adjusts a system value (volume/brightness).
+/// Handled by the Application layer to route to the appropriate service.
+struct HUDValueChangeEvent: PluginEvent {
+    let type: PluginEventType = .custom
+    let sourcePluginId: String
+    let timestamp = Date()
+    let hudType: SneakContentType
+    let newValue: CGFloat
+}

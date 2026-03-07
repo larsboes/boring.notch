@@ -157,7 +157,7 @@ struct Appearance: View {
                 }
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Appearance")
     }
 

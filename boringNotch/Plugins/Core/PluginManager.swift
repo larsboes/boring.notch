@@ -202,20 +202,8 @@ final class PluginManager {
     /// Get plugins at a specific closed notch position
     func plugins(at position: ClosedNotchPosition) -> [AnyNotchPlugin] {
         activePlugins.filter { plugin in
-            // Check if plugin conforms to PositionedPlugin via the wrapped plugin
-            // For now, we'll use a simple check based on plugin ID
-            switch position {
-            case .left:
-                return false // No built-in left plugins yet
-            case .center:
-                return plugin.id == "com.boringnotch.music"
-            case .right:
-                return plugin.id == "com.boringnotch.weather"
-            case .farRight:
-                return plugin.id == "com.boringnotch.battery"
-            case .replacing:
-                return false
-            }
+            guard let pluginPosition = plugin.closedNotchPosition else { return false }
+            return pluginPosition == position
         }
     }
 

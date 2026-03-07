@@ -120,7 +120,8 @@ import SwiftUI
         self.soundService = soundService
         self.dragDropService = dragDropService
         self.sharingService = sharingService
-        self.settings = settings ?? DefaultNotchViewModelSettings()
+        // settings must be provided; nil fallback only for secondary window clones
+        self.settings = settings ?? DefaultNotchViewModelSettings(source: MockNotchSettings())
         self.displaySettings = displaySettings
         self.animation = animationLibrary.animation
 

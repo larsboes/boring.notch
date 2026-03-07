@@ -102,7 +102,7 @@ struct WeatherSettings: View {
                 }
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Weather")
         .onAppear {
             pluginManager?.services.weather.checkLocationAuthorization()

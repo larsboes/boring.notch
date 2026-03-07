@@ -97,6 +97,8 @@ final class WindowCoordinator {
                 .environment(stateMachine)
                 .environment(\.pluginManager, pluginManager as PluginManager?)
                 .environment(\.settings, settings)
+                .environment(\.bindableSettings, settings as! DefaultsNotchSettings)
+                .environment(\.xpcHelper, pluginManager.services.xpcHelper)
                 .environment(\.showSettingsWindow, showSettingsWindow ?? {})
         )
 

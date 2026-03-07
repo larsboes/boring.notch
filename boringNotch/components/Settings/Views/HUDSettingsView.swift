@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HUD: View {
     @Environment(\.bindableSettings) var settings
+    @Environment(\.xpcHelper) var xpcHelper
     @State private var accessibilityAuthorized = false
     
     var body: some View {
@@ -40,7 +41,7 @@ struct HUD: View {
 
                         HStack(spacing: 12) {
                             Button("Request Accessibility") {
-                                XPCHelperClient.shared.requestAccessibilityAuthorization()
+                                xpcHelper?.requestAccessibilityAuthorization()
                             }
                             .buttonStyle(.borderedProminent)
                         }
@@ -113,16 +114,16 @@ struct HUD: View {
             }
             .disabled(!settings.hudReplacement)
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("HUDs")
         .task {
-            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            accessibilityAuthorized = await xpcHelper?.isAccessibilityAuthorized() ?? false
         }
         .onAppear {
-            XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+            xpcHelper?.startMonitoringAccessibilityAuthorization()
         }
         .onDisappear {
-            XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
+            xpcHelper?.stopMonitoringAccessibilityAuthorization()
         }
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
             if let granted = notification.userInfo?["granted"] as? Bool {

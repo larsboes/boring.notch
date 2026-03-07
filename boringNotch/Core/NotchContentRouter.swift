@@ -118,11 +118,12 @@ struct NotchContentRouter: View {
             HStack(alignment: .center) {
                 Image(systemName: "music.note")
                 GeometryReader { geo in
-                    if let musicService = pluginManager?.services.music, let track = musicService.currentTrack {
+                    if let musicPlugin = pluginManager?.plugin(id: "com.boringnotch.music", as: MusicPlugin.self),
+                       let track = musicPlugin.musicService?.currentTrack {
                         MarqueeText(
                             track.title + " - " + track.artist,
                             color: settings.playerColorTinting
-                                ? Color(nsColor: musicService.avgColor).ensureMinimumBrightness(factor: 0.6)
+                                ? Color(nsColor: musicPlugin.musicService?.avgColor ?? .gray).ensureMinimumBrightness(factor: 0.6)
                                 : .gray,
                             delayDuration: 1.0,
                             frameWidth: geo.size.width
@@ -142,14 +143,14 @@ struct NotchContentRouter: View {
                         assertionFailure("NotchContentRouter: pluginManager not injected")
                         return
                     }
-                    switch type {
-                    case .volume:
-                        pluginManager.services.volume.setAbsolute(Float32(newVal))
-                    case .brightness:
-                        pluginManager.services.brightness.setAbsolute(value: Float32(newVal))
-                    default:
-                        break
-                    }
+                    // Route HUD value changes through PluginEventBus instead of direct service access
+                    pluginManager.eventBus.emit(
+                        HUDValueChangeEvent(
+                            sourcePluginId: "com.boringnotch.system.hud",
+                            hudType: type,
+                            newValue: newVal
+                        )
+                    )
                 }
             )
             .padding(.bottom, 10)

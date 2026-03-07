@@ -14,6 +14,7 @@ class SettingsWindowController: NSWindowController {
     private var updaterController: SPUStandardUpdaterController?
     private var coordinator: BoringViewCoordinator?
     private var pluginManager: PluginManager?
+    private var settings: DefaultsNotchSettings?
     private var hasSetupContent = false
 
     init() {
@@ -40,9 +41,10 @@ class SettingsWindowController: NSWindowController {
         hasSetupContent = false
     }
 
-    func configure(coordinator: BoringViewCoordinator, pluginManager: PluginManager) {
+    func configure(coordinator: BoringViewCoordinator, pluginManager: PluginManager, settings: DefaultsNotchSettings) {
         self.coordinator = coordinator
         self.pluginManager = pluginManager
+        self.settings = settings
         // Mark that content needs refresh on next show
         hasSetupContent = false
     }
@@ -72,12 +74,14 @@ class SettingsWindowController: NSWindowController {
     }
 
     private func setupContentViewIfNeeded() {
-        guard let window = window, !hasSetupContent, let coordinator = coordinator else { return }
+        guard let window = window, !hasSetupContent, let coordinator = coordinator, let settings = settings else { return }
 
         let settingsView = SettingsView(updaterController: updaterController)
             .environment(coordinator)
             .environment(\.pluginManager, pluginManager)
-            .environment(\.bindableSettings, DefaultsNotchSettings.shared)
+            .environment(\.settings, settings)
+            .environment(\.bindableSettings, settings)
+            .environment(\.xpcHelper, pluginManager?.services.xpcHelper)
         let hostingView = NSHostingView(rootView: settingsView)
         window.contentView = hostingView
         hasSetupContent = true

@@ -34,29 +34,32 @@ final class MediaKeyInterceptor {
     private let keyboardBacklightService: any KeyboardBacklightServiceProtocol
     private let eventBus: PluginEventBus
     private let settings: any HUDSettings
+    private let xpcHelper: any XPCHelperServiceProtocol
 
     init(
         volumeService: any VolumeServiceProtocol,
         brightnessService: any BrightnessServiceProtocol,
         keyboardBacklightService: any KeyboardBacklightServiceProtocol,
         eventBus: PluginEventBus,
-        settings: any HUDSettings
+        settings: any HUDSettings,
+        xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared
     ) {
         self.volumeService = volumeService
         self.brightnessService = brightnessService
         self.keyboardBacklightService = keyboardBacklightService
         self.eventBus = eventBus
         self.settings = settings
+        self.xpcHelper = xpcHelper
     }
 
     // MARK: - Accessibility (via XPC)
 
     func requestAccessibilityAuthorization() {
-        XPCHelperClient.shared.requestAccessibilityAuthorization()
+        xpcHelper.requestAccessibilityAuthorization()
     }
 
     func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
-        await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: promptIfNeeded)
+        await xpcHelper.ensureAccessibilityAuthorization(promptIfNeeded: promptIfNeeded)
     }
 
     // MARK: - Event Tap
@@ -71,7 +74,7 @@ final class MediaKeyInterceptor {
         }
 
         // Check accessibility authorization
-        let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        let authorized = await xpcHelper.isAccessibilityAuthorized()
         if !authorized {
             if promptIfNeeded {
                 let granted = await ensureAccessibilityAuthorization(promptIfNeeded: true)

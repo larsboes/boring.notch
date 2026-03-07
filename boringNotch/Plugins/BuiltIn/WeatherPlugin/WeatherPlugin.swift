@@ -11,7 +11,7 @@ import Combine
 
 @MainActor
 @Observable
-final class WeatherPlugin: NotchPlugin {
+final class WeatherPlugin: NotchPlugin, PositionedPlugin {
     
     // MARK: - NotchPlugin
     
@@ -29,6 +29,10 @@ final class WeatherPlugin: NotchPlugin {
     var isEnabled: Bool = true
     
     private(set) var state: PluginState = .inactive
+    
+    // MARK: - PositionedPlugin
+    
+    var closedNotchPosition: ClosedNotchPosition { .right }
     
     // MARK: - Dependencies
     

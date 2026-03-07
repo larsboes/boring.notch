@@ -32,7 +32,7 @@ final class BatteryPlugin: NotchPlugin, PositionedPlugin {
     
     // MARK: - PositionedPlugin
     
-    var closedNotchPosition: ClosedNotchPosition { .right }
+    var closedNotchPosition: ClosedNotchPosition { .farRight }
     
     // MARK: - Dependencies
     

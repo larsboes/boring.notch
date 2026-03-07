@@ -103,7 +103,7 @@ struct Media: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Media")
     }
 

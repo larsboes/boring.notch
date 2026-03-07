@@ -12,11 +12,12 @@ import AppKit
 	var lastChangeAt: Date = .distantPast
 
 	private let visibleDuration: TimeInterval = 1.2
-	private let client = XPCHelperClient.shared
+	private let client: any XPCHelperServiceProtocol
 	private let eventBus: PluginEventBus
 
-	init(eventBus: PluginEventBus) {
+	init(eventBus: PluginEventBus, xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared) {
 		self.eventBus = eventBus
+		self.client = xpcHelper
 		refresh()
 	}
 
@@ -77,11 +78,12 @@ import AppKit
 	var lastChangeAt: Date = .distantPast
 
 	private let visibleDuration: TimeInterval = 1.2
-	private let client = XPCHelperClient.shared
+	private let client: any XPCHelperServiceProtocol
 	private let eventBus: PluginEventBus
 
-	init(eventBus: PluginEventBus) {
+	init(eventBus: PluginEventBus, xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared) {
 		self.eventBus = eventBus
+		self.client = xpcHelper
 		refresh()
 	}
 

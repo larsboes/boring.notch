@@ -168,6 +168,7 @@ struct OnboardingView: View {
     }
 
     @Environment(\.pluginManager) var pluginManager
+    @Environment(\.xpcHelper) var xpcHelper
 
     // MARK: - Permission Request Logic
 
@@ -188,6 +189,6 @@ struct OnboardingView: View {
     }
     
     func requestAccessibilityPermission() async {
-        _ = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+        _ = await xpcHelper?.ensureAccessibilityAuthorization(promptIfNeeded: true)
     }
 }

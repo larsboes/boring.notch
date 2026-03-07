@@ -6,8 +6,10 @@
 //
 
 import Combine
-// Settings-adjacent service: uses Defaults.updates() for reactive settings stream.
-// This is an accepted exception — no protocol-based reactive stream alternative exists yet.
+// NOTE: Defaults.updates() is required because DefaultsNotchSettings uses @Observable with
+// computed properties. The @Observable macro only instruments stored properties, so
+// withObservationTracking won't fire for Defaults-backed computed properties.
+// Settings values are accessed via protocol; only the reactive stream uses Defaults directly.
 import Defaults
 import SwiftUI
 

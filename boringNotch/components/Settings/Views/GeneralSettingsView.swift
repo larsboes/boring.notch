@@ -22,9 +22,9 @@ struct GeneralSettings: View {
                 Toggle(isOn: $settings.menubarIcon) {
                     Text("Show menu bar icon")
                 }
-                .tint(.effectiveAccent)
+                .tint(.effectiveAccent(from: settings))
                 LaunchAtLogin.Toggle("Launch at login")
-                .tint(.effectiveAccent)
+                .tint(.effectiveAccent(from: settings))
                 Toggle(isOn: $settings.showOnAllDisplays) {
                     Text("Show on all displays")
                 }
@@ -158,7 +158,7 @@ struct GeneralSettings: View {
             }
             .controlSize(.extraLarge)
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("General")
         .onChange(of: settings.openNotchOnHover) { _, _ in
             if !settings.openNotchOnHover {

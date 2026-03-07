@@ -153,7 +153,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         graph.settingsWindowController.configure(
             coordinator: coordinator,
-            pluginManager: pluginManager
+            pluginManager: pluginManager,
+            settings: graph.settings
         )
 
         let result = graph.setupNotificationObservers(
@@ -207,7 +208,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         graph.cleanupWindows()
         graph.keyboardShortcutCoordinator.cancelPendingTasks()
 
-        XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
+        graph.pluginManager.services.xpcHelper.stopMonitoringAccessibilityAuthorization()
 
         observers.forEach { NotificationCenter.default.removeObserver($0) }
         observers.removeAll()
@@ -264,7 +265,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 )
                 .environment(self.graph.coordinator)
-                .environment(\.pluginManager, self.graph.pluginManager))
+                .environment(\.pluginManager, self.graph.pluginManager)
+                .environment(\.settings, self.graph.settings)
+                .environment(\.bindableSettings, self.graph.settings)
+                .environment(\.xpcHelper, self.graph.pluginManager.services.xpcHelper))
             window.isRestorable = false
             window.identifier = NSUserInterfaceItemIdentifier("OnboardingWindow")
             onboardingWindowController = NSWindowController(window: window)

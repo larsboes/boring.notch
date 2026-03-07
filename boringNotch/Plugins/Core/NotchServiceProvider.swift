@@ -45,6 +45,9 @@ protocol NotchServiceProvider {
     var bluetoothManager: any BluetoothStateServiceProtocol { get }
     var notesManager: any NotesServiceProtocol { get }
     var clipboardManager: any ClipboardServiceProtocol { get }
+
+    /// XPC Helper for privileged operations (accessibility, brightness control)
+    var xpcHelper: any XPCHelperServiceProtocol { get }
 }
 
 @MainActor

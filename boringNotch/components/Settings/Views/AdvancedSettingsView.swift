@@ -235,7 +235,7 @@ struct Advanced: View {
                 Text("Window Behavior")
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Advanced")
         .onAppear {
             loadCustomColor()

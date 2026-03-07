@@ -215,6 +215,7 @@ struct AnyNotchPlugin: Identifiable {
     private let _expandedPanelContent: () -> AnyView?
     private let _settingsContent: () -> AnyView?
     private let _displayRequest: () -> DisplayRequest?
+    private let _closedNotchPosition: () -> ClosedNotchPosition?
 
     init<P: NotchPlugin>(_ plugin: P) {
         self.id = plugin.id
@@ -229,6 +230,12 @@ struct AnyNotchPlugin: Identifiable {
         self._expandedPanelContent = { plugin.expandedPanelContent() }
         self._settingsContent = { plugin.settingsContent() }
         self._displayRequest = { plugin.displayRequest }
+        // Preserve PositionedPlugin conformance through type erasure
+        if let positioned = plugin as? PositionedPlugin {
+            self._closedNotchPosition = { positioned.closedNotchPosition }
+        } else {
+            self._closedNotchPosition = { nil }
+        }
     }
 
     var metadata: PluginMetadata { _metadata() }
@@ -250,4 +257,5 @@ struct AnyNotchPlugin: Identifiable {
     func expandedPanelContent() -> AnyView? { _expandedPanelContent() }
     func settingsContent() -> AnyView? { _settingsContent() }
     var displayRequest: DisplayRequest? { _displayRequest() }
+    var closedNotchPosition: ClosedNotchPosition? { _closedNotchPosition() }
 }

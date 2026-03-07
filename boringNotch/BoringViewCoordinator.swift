@@ -66,6 +66,7 @@ struct ExpandedItem {
     // Injected service
     var shelfService: ShelfServiceProtocol?
     var mediaKeyInterceptor: MediaKeyInterceptor?
+    var xpcHelper: any XPCHelperServiceProtocol
 
     var sneakPeekDuration: TimeInterval
     var sneakPeekTask: Task<Void, Never>?
@@ -99,8 +100,9 @@ struct ExpandedItem {
         }
     }
 
-    init(settings: any CoordinatorSettings) {
+    init(settings: any CoordinatorSettings, xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared) {
         self.settings = settings
+        self.xpcHelper = xpcHelper
         self.sneakPeekDuration = settings.sneakPeakDuration
 
         // Perform migration from name-based to UUID-based storage
@@ -140,6 +142,11 @@ struct ExpandedItem {
             }
         }
 
+        // NOTE: Defaults.publisher/updates is required here because DefaultsNotchSettings
+        // uses @Observable with computed properties. The @Observable macro only instruments
+        // stored properties, so withObservationTracking won't fire for Defaults-backed
+        // computed properties. This is an accepted architectural exception.
+
         // Observe changes to hudReplacement
         hudReplacementCancellable = Defaults.publisher(.hudReplacement)
             .sink { [weak self] change in
@@ -150,7 +157,7 @@ struct ExpandedItem {
 
                     if change.newValue {
                         self.hudEnableTask = Task { @MainActor in
-                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                            let granted = await self.xpcHelper.ensureAccessibilityAuthorization(promptIfNeeded: true)
                             if Task.isCancelled { return }
                             if granted {
                                 await self.mediaKeyInterceptor?.start()
@@ -209,7 +216,7 @@ struct ExpandedItem {
             }
 
             if settings.hudReplacement {
-                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                let authorized = await xpcHelper.isAccessibilityAuthorized()
                 if !authorized {
                     settings.hudReplacement = false
                 } else {

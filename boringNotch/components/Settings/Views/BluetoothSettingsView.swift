@@ -66,7 +66,7 @@ struct BluetoothSettingsView: View {
                 }
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Bluetooth")
         .onAppear {
             Task { @MainActor in

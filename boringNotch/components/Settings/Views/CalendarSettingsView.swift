@@ -122,7 +122,7 @@ struct CalendarSettings: View {
                 }
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Calendar")
         .onAppear {
             Task {

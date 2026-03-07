@@ -25,7 +25,7 @@ protocol NotchViewModelSettings {
 struct DefaultNotchViewModelSettings: NotchViewModelSettings {
     private let source: any NotchSettings
 
-    init(source: any NotchSettings = DefaultsNotchSettings.shared) {
+    init(source: any NotchSettings) {
         self.source = source
     }
 

@@ -8,12 +8,6 @@
 import SwiftUI
 
 extension Color {
-    /// Convenience accessor using the shared settings instance.
-    /// Prefer `effectiveAccent(from:)` with injected settings where available.
-    @MainActor static var effectiveAccent: Color {
-        effectiveAccent(from: DefaultsNotchSettings.shared)
-    }
-
     @MainActor static func effectiveAccent(from settings: any DisplaySettings) -> Color {
         if settings.useCustomAccentColor,
            let colorData = settings.customAccentColorData,

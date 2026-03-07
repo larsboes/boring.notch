@@ -65,7 +65,7 @@ struct NotificationsSettingsView: View {
                 Text("History")
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Notifications")
         .onAppear {
             manager.refreshAuthorizationStatus()

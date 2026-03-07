@@ -83,6 +83,10 @@ class BoringNotchSkyLightWindow: NSPanel {
     }
     
     private func setupObservers() {
+        // NOTE: Defaults.publisher is required because DefaultsNotchSettings uses
+        // @Observable with computed properties, which don't trigger observation tracking.
+        // The settings protocol is used for value access; reactive streams need Defaults.
+
         // Listen for changes to the hideFromScreenRecording setting
         Defaults.publisher(.hideFromScreenRecording)
             .sink { [weak self] _ in

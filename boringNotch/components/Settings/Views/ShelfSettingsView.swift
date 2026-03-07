@@ -117,7 +117,7 @@ struct Shelf: View {
                     .foregroundColor(.secondary)
             }
         }
-        .accentColor(.effectiveAccent)
+        .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Shelf")
     }
 }

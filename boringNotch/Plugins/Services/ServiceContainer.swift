@@ -77,6 +77,9 @@ final class ServiceContainer: NotchServiceProvider {
     /// Clipboard manager for clipboard history
     let clipboardManager: any ClipboardServiceProtocol
 
+    /// XPC Helper for privileged operations
+    let xpcHelper: any XPCHelperServiceProtocol
+
     /// Face tracking service
     public let face: any FaceServiceProtocol
     
@@ -130,6 +133,7 @@ final class ServiceContainer: NotchServiceProvider {
         self.bluetoothManager = BluetoothManager(settings: settings)
         self.notesManager = NotesManager()
         self.clipboardManager = ClipboardManager()
+        self.xpcHelper = XPCHelperClient.shared
 
         let aiSettings = settings
         let aiManager = AIManager(isEnabled: {
@@ -166,7 +170,8 @@ final class ServiceContainer: NotchServiceProvider {
         bluetooth: (any BluetoothServiceProtocol)? = nil,
         bluetoothManager: any BluetoothStateServiceProtocol,
         notesManager: any NotesServiceProtocol,
-        clipboardManager: any ClipboardServiceProtocol
+        clipboardManager: any ClipboardServiceProtocol,
+        xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared
     ) {
         self.music = music
         self.sound = sound
@@ -195,5 +200,6 @@ final class ServiceContainer: NotchServiceProvider {
         self.bluetoothManager = bluetoothManager
         self.notesManager = notesManager
         self.clipboardManager = clipboardManager
+        self.xpcHelper = xpcHelper
     }
 }
