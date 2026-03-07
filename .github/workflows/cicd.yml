@@ -13,6 +13,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Least-privilege: only needs to read code for building.
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build
@@ -21,7 +25,8 @@ jobs:
       matrix:
         xcode: [^16]
     steps:
-    - uses: actions/checkout@v4
+    - name: Code Checkout
+      uses: actions/checkout@v6.0.2
     - uses: mxcl/xcodebuild@v3
       with:
         xcode: ${{ matrix.xcode }}
