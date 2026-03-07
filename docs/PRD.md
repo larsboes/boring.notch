@@ -62,46 +62,20 @@
 | `open` | response: 0.38, damping: 0.78 | May need slightly higher damping (less bounce) |
 | `close` | response: 0.35, damping: 0.92 | Good — decisive and quick |
 | `interactive` | interactiveSpring(response: 0.30, damping: 0.86) | Tuned for less overshoot during scrubbing |
-| `staggered` | spring(response: 0.28, damping: 0.88) + 0.03s delay | Tightened intervals |
+| `staggered` | spring(response: 0.32, damping: 0.86) + 0.06s delay | Widened intervals for perceptible stagger |
 
-### Task 16: Stagger timing + shadow easing ✅
-
-**Shipped.**
-- Stagger: `0.03s` → `0.06s` delay, softer spring (`response: 0.32, damping: 0.86`)
-- Shadow: late-onset `pow(animationProgress, 2.5)` curve, no shadow until 40% expanded
-- Border: `sqrt` easing for lingering luminance on close
-
-### Task 17: Content choreography — open ✅
-
-**Shipped.** Content now grows out of the notch center using continuous `contentProgress` (environment key) instead of binary `notchState`.
-
-- `ContentRevealModifier` — reusable view modifier with per-element stagger, smoothstep opacity, scale 0.92→1.0, subtle y-offset, blur 12→0
-- `contentProgress` computed from `animationProgress` with smoothstep(0.2, 0.95) remapping
-- Header + HomeView refactored to use `.contentReveal(progress:staggerIndex:)`
-
-### Task 18: Content choreography — close ✅
-
-**Shipped (free from Task 17).** Since content is keyed to continuous `contentProgress`, close path works automatically — progress goes 1→0 and content scales down + fades with stagger.
+### Task 16 ✅ Stagger timing + shadow easing
+### Task 17 ✅ Content choreography — open (`ContentRevealModifier`, continuous `contentProgress` env key)
+### Task 18 ✅ Content choreography — close (reverse of 17, automatic via `contentProgress` 1→0)
+### Task 20 ✅ `withAnimation` completion replaces `Task.sleep` phase transitions
 
 ### Task 19: Matched album art transition
 
 **Status:** Not started | Depends on: Task 17
 
-Album art thumbnail in closed state smoothly morphs into expanded player art via `matchedGeometryEffect`.
-
-**Current state:** `albumArtNamespace` is threaded through `ContentView` → `NotchContentRouter` → `NotchHomeView` but no `matchedGeometryEffect` connects closed↔open art.
-
-**Implementation:**
-- Add `.matchedGeometryEffect(id: "albumArt", in: namespace)` to closed music plugin's album art thumbnail
-- Add same to expanded `PluginMusicPlayerView` album art
-- Manage `zIndex` during transition to prevent clipping
-- Transition: art morphs position + size while notch expands. Classic Dynamic Island feel.
+Album art thumbnail in closed state smoothly morphs into expanded player art via `matchedGeometryEffect`. Namespace is already threaded through views but no `matchedGeometryEffect` connects closed↔open art yet.
 
 **Files:** Closed music plugin view, `PluginMusicPlayerView.swift`, `NotchContentRouter.swift`
-
-### Task 20: Replace `Task.sleep` phase completion ✅
-
-**Shipped.** `open()` and `close()` now use `withAnimation(_:_:completion:)` — animation-framework callbacks instead of `Task.sleep` timers. Eliminates race conditions on rapid open/close.
 
 ### Task 15: Gesture-driven progressive open (Future)
 
