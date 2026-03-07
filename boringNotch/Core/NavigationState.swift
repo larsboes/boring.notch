@@ -11,7 +11,7 @@ import Combine
 // withObservationTracking won't fire for Defaults-backed computed properties.
 // Settings values are accessed via protocol; only the reactive stream uses Defaults directly.
 import Defaults
-import SwiftUI
+import Observation
 
 // MARK: - Navigation State Protocol
 

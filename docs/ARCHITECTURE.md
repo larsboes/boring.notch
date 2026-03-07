@@ -239,9 +239,10 @@ boringNotch/
 │   ├── Core/                 # Framework Definitions
 │   │   ├── NotchPlugin.swift           # The Protocol
 │   │   ├── PluginManager.swift         # The Registry
-│   │   └── ServiceContainer.swift      # The Toolbox
+│   │   └── PluginEventBus.swift        # Inter-plugin communication
 │   │
 │   ├── Services/             # System Integrations
+│   │   ├── ServiceContainer.swift      # DI Container
 │   │   ├── MusicService.swift          # Media Player API
 │   │   ├── BatteryService.swift        # IOKit Wrapper
 │   │   └── ...

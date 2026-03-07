@@ -3537,6 +3537,9 @@
         }
       }
     },
+    "Behavior" : {
+
+    },
     "Beta" : {
 
     },
@@ -5467,6 +5470,9 @@
         }
       }
     },
+    "Close Notch" : {
+
+    },
     "Closed Notch" : {
       "localizations" : {
         "ar" : {
@@ -5566,6 +5572,9 @@
           }
         }
       }
+    },
+    "Closes the boringNotch." : {
+
     },
     "Color Presets" : {
       "localizations" : {
@@ -7190,6 +7199,9 @@
           }
         }
       }
+    },
+    "Display" : {
+
     },
     "Download" : {
       "localizations" : {
@@ -9329,6 +9341,9 @@
     "Focus Time: %lld" : {
 
     },
+    "Font Size: %lldpt" : {
+
+    },
     "Format" : {
 
     },
@@ -11455,6 +11470,9 @@
           }
         }
       }
+    },
+    "Inactive" : {
+
     },
     "Inactive notch height" : {
 
@@ -15650,6 +15668,9 @@
         }
       }
     },
+    "Opens the boringNotch." : {
+
+    },
     "OpenWeatherMap API Key" : {
 
     },
@@ -15752,6 +15773,12 @@
           }
         }
       }
+    },
+    "Pause at paragraph breaks" : {
+
+    },
+    "Pause Duration: %@s" : {
+
     },
     "Permission Status" : {
 
@@ -16570,6 +16597,9 @@
           }
         }
       }
+    },
+    "Ready" : {
+
     },
     "Release name" : {
       "localizations" : {
@@ -17857,6 +17887,9 @@
           }
         }
       }
+    },
+    "Scrolling" : {
+
     },
     "Search SF Symbols" : {
 
@@ -20397,7 +20430,6 @@
 
     },
     "Speed" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

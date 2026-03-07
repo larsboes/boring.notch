@@ -37,7 +37,7 @@
 
 | Phase | Status | Summary |
 |-------|--------|---------|
-| 1, 1b, 2, 3, 5, 6, 6b, 7, 8 | ✅ Shipped | Core plugins, API Hardening, AI Assist, Automation, Battery & Export |
+| 1, 1b, 2, 3, 5, 6, 6b, 7 | ✅ Shipped | Core plugins, API Hardening, AI Assist, Automation, Battery & Export |
 | 4 — Animation + Arch Debt | **Active** | 15+ items done. Remaining: spring tuning, album art morph, gesture-driven open. |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
 
@@ -77,6 +77,10 @@
 | 4.22 | Animation | Album art ghost fix — matchedGeometryEffect suppressed during transitions + lighting effect gated behind phase. |
 | 4.23 | Animation | Shell-first content timeline — contentProgress delayed to 30%, ContentRevealModifier tightened, stagger cascade faster. |
 | 4.24 | UX | Header controls gated on `phase == .open` — no accidental taps during transition. |
+| 4.25 | Arch Debt | Removed unused `SoundService.shared` singleton (dead code). |
+| 4.26 | Animation | HelloAnimation `Task.sleep(3.0)` replaced with `withAnimation` completion handler — eliminates timing drift on startup snake. |
+| 4.27 | Domain Purity | Removed `import SwiftUI` from 5 Core/ domain files (`NotchStateMachine`, `NotchSettingsSubProtocols`, `MockNotchSettings`, `DefaultsNotchSettings`, `NavigationState`) — now compile with only `Foundation`/`Observation`/`Defaults`. |
+| 4.28 | Docs | Fixed 5 doc discrepancies: ServiceContainer path in ARCHITECTURE.md, plugin registration location in PLUGIN_DEVELOPMENT.md, phantom Phase 8 in PRD, plugin count (8→12), BoringViewCoordinator status (legacy→active). Updated CLAUDE.md layer boundaries to distinguish domain vs coordinator files in Core/. |
 | 5.1 | API | **Loopback binding** — `LocalAPIServer` now binds `127.0.0.1` only via `NWParameters.requiredLocalEndpoint`. |
 | 5.2 | API | **Dynamic routing** — `APIRouteRegistrar` protocol (own file) enables plugins to register/unregister REST routes at runtime. Path params (`/plugins/{id}`) with proper 404 vs 405. |
 | 5.3 | API | **Auth middleware** — Keychain-backed Bearer token in `APIAuthMiddleware` (`@unchecked Sendable`, `NSLock`). Denies on keychain failure (secure default). Enforced on all POST endpoints. |

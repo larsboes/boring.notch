@@ -6,8 +6,8 @@
 //  Centralizes state determination logic from ContentView.
 //
 
+import Foundation
 import Observation
-import SwiftUI
 
 @MainActor protocol NotchAnimationStateProviding: AnyObject {
     var helloAnimationRunning: Bool { get }

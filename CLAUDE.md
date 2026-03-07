@@ -36,14 +36,14 @@ Layer rules are import constraints:
 
 | Layer | Directory | Allowed Imports | Forbidden |
 |-------|-----------|-----------------|-----------|
-| **Domain** | `Core/NotchStateMachine` | `Foundation`, `Combine`, `Swift stdlib` | SwiftUI, AppKit, Defaults, any framework |
-| **Application** | `Plugins/Core/`, `Plugins/UI/`, `Plugins/BuiltIn/`, `PluginManager`, `ServiceContainer` | Domain + service protocols + SwiftUI/AppKit for plugin presentation contracts | Concrete infra types |
+| **Domain** | `Core/` domain files: `NotchStateMachine`, `NotchPhase`, `NotchSettingsSubProtocols`, `MockNotchSettings` | `Foundation`, `Observation`, `Combine`, `Defaults` | SwiftUI, AppKit |
+| **Application** | `Core/` coordinators: `WindowCoordinator`, `HoverZoneManager`, `NotchContentRouter`, `SneakPeekService`, etc. + `Plugins/Core/`, `Plugins/UI/`, `Plugins/BuiltIn/` | Domain + SwiftUI/AppKit for coordination | Concrete infra types |
 | **Infrastructure** | `managers/`, `Plugins/Services/` (implementations), `DefaultsNotchSettings` | Anything needed | — |
 | **Presentation** | `components/`, plugin `Views/`, `ContentView` | Application layer + SwiftUI/AppKit | Direct Defaults, concrete services |
 
 **Bounded contexts:** Each plugin is its own bounded context. Plugins communicate exclusively via `PluginEventBus`, never by importing each other.
 
-**Domain purity rule:** Files in the Domain layer must compile without SwiftUI/AppKit. If they can't, they've leaked infrastructure.
+**Domain purity rule:** Domain-layer files in `Core/` (NotchStateMachine, NotchPhase, settings protocols, MockNotchSettings) must compile without SwiftUI/AppKit — only `Foundation`, `Observation`, `Combine`, `Defaults`. Application-layer coordinators in `Core/` (WindowCoordinator, HoverZoneManager, etc.) may import SwiftUI/AppKit.
 
 **Value objects:** Use `struct` for types with no identity. Use `@Observable final class` only for entities with lifecycle and observable state.
 
@@ -57,8 +57,8 @@ SwiftUI Views → PluginManager → NotchPlugin instances → Service Protocols 
 |-----------|--------|---------|
 | `Plugins/Core/` | Modern | PluginManager, NotchPlugin, PluginEventBus, PluginSettings |
 | `Plugins/Services/` | Modern | ServiceContainer, 20+ service protocols + implementations |
-| `Plugins/BuiltIn/` | Modern | 8 plugin implementations |
-| `Core/` | Modern | NotchStateMachine, WindowCoordinator, NotchContentRouter |
+| `Plugins/BuiltIn/` | Modern | 12 plugin implementations |
+| `Core/` | Modern | Domain types (NotchStateMachine, NotchPhase) + Application coordinators (WindowCoordinator, NotchContentRouter) |
 | `models/` | Mixed | BoringViewModel + extracted controllers |
 | `components/` | Legacy | Views migrating into plugin views |
 | `managers/` | Legacy | Managers wrapping into services |
@@ -70,7 +70,7 @@ SwiftUI Views → PluginManager → NotchPlugin instances → Service Protocols 
 - `boringNotch/AppObjectGraph.swift` — DI root; constructs all services and coordinators
 - `boringNotch/Plugins/Core/PluginManager.swift` — central plugin orchestrator
 - `boringNotch/Plugins/Services/ServiceContainer.swift` — DI container
-- `boringNotch/BoringViewCoordinator.swift` — view coordinator (legacy, being phased out)
+- `boringNotch/BoringViewCoordinator.swift` — view coordinator (active, implements NotchAnimationStateProviding)
 - `boringNotch/Core/NotchStateMachine.swift` — pure, tested, stable state machine
 
 ## Files to Not Touch

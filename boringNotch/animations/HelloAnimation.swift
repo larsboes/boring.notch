@@ -110,19 +110,15 @@ struct HelloAnimation: View {
             shape: { HelloShape() }
         )
         .task {
-            // Wait for the "opening" animation (notch expansion) to complete before starting the snake
+            // Wait for the notch expansion animation to settle before starting the snake.
+            // This coordinates with the external open animation, not a self-driven phase transition.
             try? await Task.sleep(for: .seconds(0.6))
-            
-            withAnimation(
-                StandardAnimations.hello
-            ) {
+
+            withAnimation(StandardAnimations.hello) {
                 progress = 1.0
+            } completion: {
+                onFinish()
             }
-            
-            // Wait for the animation to complete
-            try? await Task.sleep(for: .seconds(3.0))
-            
-            onFinish()
         }
     }
 }

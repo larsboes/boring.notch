@@ -166,10 +166,10 @@ final class MyPluginTests: XCTestCase {
 
 ## 📦 Registration
 
-Finally, add the plugin to `AppDelegate.swift` to register it:
+Finally, add the plugin to `AppObjectGraph.swift` (the DI composition root) to register it:
 
 ```swift
-// AppDelegate.swift
+// AppObjectGraph.swift
 lazy var pluginManager: PluginManager = {
     PluginManager(
         services: ServiceContainer(),

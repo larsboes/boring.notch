@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 final class MockNotchSettings: NotchSettings {
     nonisolated init() {}

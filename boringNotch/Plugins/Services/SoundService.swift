@@ -33,8 +33,6 @@ enum SoundEffect: String, Sendable {
 
 @MainActor
 final class SoundService: SoundServiceProtocol {
-    static let shared = SoundService()
-    
     // Cache sounds to avoid reloading from disk repeatedly
     private var soundCache: [SoundEffect: NSSound] = [:]
     

@@ -11,7 +11,7 @@
 
 import Foundation
 import Defaults
-import SwiftUI
+import Observation
 
 @MainActor
 @Observable

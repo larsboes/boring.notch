@@ -8,7 +8,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 // MARK: - HUD Settings
 
