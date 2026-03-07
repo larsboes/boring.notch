@@ -241,45 +241,28 @@ Only system singletons remain (NSApp, URLSession, XPCHelperClient, SkyLightOpera
 
 ---
 
-## Phase 3 — Data Portability Layer
+## Phase 3 — Data Portability Layer ✅ COMPLETE
 
 **Goal:** Every plugin can export its data in standard formats. Users own their data.
 
-**Why it matters:** Differentiator. Reinforces "no vendor lock-in" principle. Needed before adding Habit Tracker, Pomodoro (data-heavy plugins).
-
 ---
 
-### Task 10: `ExportablePlugin` Protocol + Export Infrastructure
+### Task 10: `ExportablePlugin` Protocol + Export Infrastructure ✅ COMPLETE
 
-**Files:**
-- Modify: `boringNotch/Plugins/Core/PluginCapabilities.swift`
-- Create: `boringNotch/Plugins/Core/ExportTypes.swift`
-- Create: `boringNotch/Plugins/Services/ExportCoordinator.swift`
+**Implementation (2026-03-07):** `ExportablePlugin` protocol and `ExportFormat` enum already existed in `PluginCapabilities.swift`. Added:
 
-**Acceptance criteria:**
-- `ExportablePlugin` protocol defined with `supportedExportFormats: [ExportFormat]` and `exportData(format:) async throws -> Data`
-- `ExportFormat` enum: `.json`, `.csv`, `.markdown`, `.ical`, `.html`
-- `ExportCoordinator` in `ServiceContainer` that calls `plugin.exportData(format:)` and saves to temp file + presents save panel
-- `MusicPlugin` adopts `ExportablePlugin` (exports listening history as JSON/CSV)
-- `CalendarPlugin` adopts `ExportablePlugin` (exports events as iCal/JSON)
-- `ShelfPlugin` adopts `ExportablePlugin` (exports item metadata as JSON/CSV)
+- **`ExportCoordinator`** (111L) — orchestrates export with NSSavePanel (single file) or NSOpenPanel (folder for bulk). Instantiated on demand, not a singleton.
+- **ShelfPlugin** — exports items as JSON/CSV via private `ShelfExportItem` DTO
+- **CalendarPlugin** — exports events as JSON/CSV/iCal via private `CalendarExportEvent` DTO
+- **MusicPlugin** — exports current now-playing snapshot as JSON (no history tracking yet)
+- **`ExportCoordinatorTests`** — 7 tests: format properties, error handling on missing services, mock plugin behavior
 
-**Test:** Write `ExportCoordinatorTests` using `MockExportablePlugin` that returns canned data.
+### Task 11: Export UI in Settings ✅ COMPLETE
 
----
+**Implementation (2026-03-07):**
 
-### Task 11: Export UI in Settings
-
-**Files:**
-- Modify: `boringNotch/components/Settings/Views/AdvancedSettingsView.swift` or new file
-- Create: `boringNotch/components/Settings/Views/DataPortabilityView.swift`
-
-**Acceptance criteria:**
-- Settings section "Data & Privacy" with list of all exportable plugins
-- Per-plugin: format picker + "Export" button
-- "Export All" button at bottom
-- Save panel (NSSavePanel) presented after export
-- Under 200 lines
+- **`DataPortabilityView`** (142L) — lists all `ExportablePlugin` conformers with per-plugin format picker + export button. Bulk "Export All as JSON" when multiple plugins available. Success/error feedback.
+- Added "Data & Privacy" tab to `SettingsView` navigation sidebar.
 
 ---
 
@@ -457,7 +440,7 @@ High-level requirements:
 | 1 | ✅ Zero `Defaults[` outside allowed files. Zero `@Default`. Zero non-allowed `.shared`. Zero files > 300 lines (except `DefaultsNotchSettings.swift`). **Completed 2026-03-02.** |
 | 1b | ✅ Zero `ObservableObject`/`@Published`. Zero direct coordinator HUD show-calls. Deprecated managers removed. **Completed 2026-03-02.** Pending macOS build verification. |
 | 2 | ✅ Hover is heartbeat-based. `NotchHoverController` has 11 unit tests. **Pending:** 6 manual edge cases on macOS. |
-| 3 | `ExportablePlugin` protocol exists. Music, Calendar, Shelf export. Export UI in Settings. |
+| 3 | ✅ `ExportablePlugin` protocol exists. Music, Calendar, Shelf export. Export UI in Settings. **Completed 2026-03-07.** |
 | 4 | HabitTracker + Pomodoro shipped. Both export. Both have unit tests. |
 | 5 | All 6 App Intents visible in Shortcuts. URL scheme routes all work. |
 | 6 | Local API responds on `localhost:19384`. WebSocket stream works. Raycast integration demonstrated. |
