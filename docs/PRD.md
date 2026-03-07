@@ -159,6 +159,47 @@ A timer plugin needing only `sound` + `notifications` must depend on 28 services
 
 ---
 
+## Known Performance Debt (Tracked)
+
+Issues identified during CPU/Memory/Battery analysis (2026-03-08).
+
+### Background TimelineView Rendering
+
+**Impact:** High (CPU/Battery) | **Files:** `PluginMusicControlsView` and others using `TimelineView`
+- **Issue:** `TimelineView(.animation)` drives slider and lyrics at screen refresh rate. If `isPlaying` is true, the timeline closure still evaluates 60fps in the background even when the notch is closed and invisible.
+- **Fix:** Gate the `TimelineView` schedule based on `vm.notchState`. If `.closed`, pass `.never` or `.periodic(from: .now, by: 1.0)`. Only run `.animation` when the notch is `.open`.
+- **DDD Alignment:** Pure Presentation/View Layer optimization.
+
+### Aggressive @Observable Invalidation
+
+**Impact:** Medium (CPU) | **Files:** `NotchStateMachine`, `ContentView`
+- **Issue:** `NotchStateInput` is massive. Any property change in `MusicService` or `BoringViewCoordinator` triggers state machine re-evaluation and `ContentView` re-layout.
+- **Fix:** Apply `.onChange` modifiers explicitly or use `access(keyPath:)` to restrict invalidation to actual dependencies, rather than invalidating on any property trigger.
+- **DDD Alignment:** Refines Domain/ViewModel boundaries to prevent UI thrashing.
+
+### AVAudioRecorder Background Execution
+
+**Impact:** Medium (CPU/Battery) | **Files:** `MicrophoneMonitor`
+- **Issue:** Polling 60fps using `.updateMeters()`. If the teleprompter is open but paused in the background, macOS keeps the audio hardware awake (orange dot visible), draining battery.
+- **Fix:** Tie `startMonitoring()`/`stopMonitoring()` strictly to `isScrolling` state, not just plugin active state. Release the mic hardware instantly when paused.
+- **DDD Alignment:** Matches external resource acquisition (Infrastructure) precisely to Domain state.
+
+### Window Coordinator Geometry Polling
+
+**Impact:** Low (CPU) | **Files:** `WindowCoordinator+MultiDisplay`
+- **Issue:** Uses a `Task.sleep(for: .milliseconds(150))` loop to monitor display layout changes, preventing CPU from reaching deep sleep C-states.
+- **Fix:** Replace polling with native `NSApplication.didChangeScreenParametersNotification` or `CGDisplayRegisterReconfigurationCallback`. Wake only when an actual hardware event occurs.
+- **DDD Alignment:** Moves from Infrastructure polling to native Event-Driven Infrastructure.
+
+### BoringNotchXPCHelper Auto-Restart Thrashing
+
+**Impact:** Low (CPU) | **Files:** `XPCHelperClient`
+- **Issue:** Immediate auto-reconnect on XPC crash (`interruptionHandler` / `invalidationHandler`). If a specific action (like parsing a bad Bluetooth packet) causes a crash loop, it spins up the XPC process indefinitely.
+- **Fix:** Implement exponential backoff. E.g., if dropped 3 times in 10s, pause reconnections for 5 minutes.
+- **DDD Alignment:** Enhances Infrastructure resilience without leaking complexity into Domain logic.
+
+---
+
 ## Phase 4 — Animation Polish + Architecture Debt (Active)
 
 **Goal:** Dynamic Island-quality open/close transitions + clean architecture.
