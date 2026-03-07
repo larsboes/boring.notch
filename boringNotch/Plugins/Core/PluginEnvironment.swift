@@ -34,6 +34,12 @@ struct DisplayClosedNotchHeightKey: EnvironmentKey {
     static let defaultValue: CGFloat = 32.0
 }
 
+struct ContentProgressKey: EnvironmentKey {
+    /// Content animation progress (0 = closed, 1 = fully open).
+    /// Remapped from shell animationProgress with content-specific easing.
+    static let defaultValue: CGFloat = 0.0
+}
+
 struct CornerRadiusScaleFactorKey: EnvironmentKey {
     static let defaultValue: CGFloat? = nil
 }
@@ -56,6 +62,11 @@ extension EnvironmentValues {
     var displayClosedNotchHeight: CGFloat {
         get { self[DisplayClosedNotchHeightKey.self] }
         set { self[DisplayClosedNotchHeightKey.self] = newValue }
+    }
+
+    var contentProgress: CGFloat {
+        get { self[ContentProgressKey.self] }
+        set { self[ContentProgressKey.self] = newValue }
     }
 
     var cornerRadiusScaleFactor: CGFloat? {

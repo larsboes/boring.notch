@@ -29,6 +29,23 @@ extension ContentView {
         a + (b - a) * t
     }
 
+    /// Smooth Hermite interpolation — maps progress from edge0→edge1 to 0→1 with ease-in/out.
+    /// Use for content that should start appearing partway through the animation.
+    /// Example: `smoothstep(0.3, 0.8, animationProgress)` → content fades 0→1 between 30-80% of shell animation.
+    func smoothstep(_ edge0: CGFloat, _ edge1: CGFloat, _ x: CGFloat) -> CGFloat {
+        let t = max(0, min(1, (x - edge0) / (edge1 - edge0)))
+        return t * t * (3 - 2 * t)
+    }
+
+    /// Content-specific progress — runs slightly ahead of shell animation on close.
+    /// Content exits faster than the notch shell shrinks (content ~80% gone when shell is at 50%).
+    var contentProgress: CGFloat {
+        let p = animationProgress
+        // On open: content slightly lags shell (starts at 25% shell progress)
+        // On close: content leads shell (pow < 1 accelerates the early phase)
+        return smoothstep(0.2, 0.95, p)
+    }
+
     var cornerRadiusScaleFactor: CGFloat? {
         guard settings.cornerRadiusScaling else { return nil }
         let effectiveHeight = displayClosedNotchHeight

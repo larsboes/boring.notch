@@ -13,6 +13,7 @@ struct BoringHeader: View {
     @Environment(\.pluginManager) var pluginManager
     @Environment(BoringViewCoordinator.self) var coordinator
     @Environment(\.showSettingsWindow) var showSettingsWindow
+    @Environment(\.contentProgress) var contentProgress
 
     var body: some View {
         @Bindable var coordinator = coordinator
@@ -26,9 +27,7 @@ struct BoringHeader: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .opacity(vm.notchState == .closed ? 0 : 1)
-            .blur(radius: vm.notchState == .closed ? 20 : 0)
-            .animation(StandardAnimations.staggered(index: 1), value: vm.notchState)
+            .contentReveal(progress: contentProgress, staggerIndex: 0)
             .zIndex(2)
 
             // Only show black notch overlay when Liquid Glass effect is DISABLED and on screens with hardware notch
@@ -156,9 +155,7 @@ struct BoringHeader: View {
             .font(.system(.headline, design: .rounded))
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 8)
-            .opacity(vm.notchState == .closed ? 0 : 1)
-            .blur(radius: vm.notchState == .closed ? 20 : 0)
-            .animation(StandardAnimations.staggered(index: 2), value: vm.notchState)
+            .contentReveal(progress: contentProgress, staggerIndex: 1)
             .zIndex(2)
         }
         .foregroundColor(.gray)

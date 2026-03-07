@@ -84,6 +84,7 @@ struct ContentView: View {
                     cornerRadiusScaleFactor: cornerRadiusScaleFactor,
                     cornerRadiusInsets: cornerRadiusInsets
                 )
+                    .environment(\.contentProgress, contentProgress)
                     .onAppear {
                         updateStateMachine()
                     }
@@ -119,16 +120,17 @@ struct ContentView: View {
                         }
                         .clipShape(currentNotchShape)
                         .shadow(
-                            // Smoothly fade shadow based on animation progress
-                            color: (animationProgress > 0 && settings.enableShadow)
-                                ? .black.opacity(0.7 * animationProgress) : .clear, radius: 6
+                            // Late-onset shadow — appears after notch has mostly expanded
+                            color: (animationProgress > 0.3 && settings.enableShadow)
+                                ? .black.opacity(0.7 * pow(animationProgress, 2.5)) : .clear, radius: 6
                         )
                     }
                     .overlay {
                         // Luminous border for liquid glass effect (works in both states)
                         if settings.liquidGlassEffect {
                             // Smoothly interpolate border opacity (0.6 closed → 1.0 open)
-                            let borderMultiplier = lerp(0.6, 1.0, animationProgress)
+                            // sqrt curve makes border linger longer on close (fast rise, slow fade)
+                            let borderMultiplier = lerp(0.6, 1.0, sqrt(animationProgress))
                             currentNotchShape
                                 .stroke(
                                     LinearGradient(

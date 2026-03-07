@@ -17,6 +17,7 @@ struct NotchHomeView: View {
     @Environment(\.settings) var settings
     @Environment(\.pluginManager) var pluginManager
     @Environment(BoringViewCoordinator.self) var coordinator
+    @Environment(\.contentProgress) var contentProgress
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
@@ -64,9 +65,7 @@ struct NotchHomeView: View {
             // Render Music Plugin
             if let pluginManager {
                 pluginManager.expandedPanelView(for: "com.boringnotch.music")
-                    .opacity(vm.notchState == .open ? 1 : 0)
-                    .blur(radius: vm.notchState == .closed ? 30 : 0)
-                    .animation(StandardAnimations.staggered(index: 0), value: vm.notchState)
+                    .contentReveal(progress: contentProgress, staggerIndex: 0)
             }
 
             if shouldShowCalendar {
@@ -77,10 +76,7 @@ struct NotchHomeView: View {
                             vm.isHoveringCalendar = isHovering
                         }
                         .environment(vm)
-                        .opacity(vm.notchState == .open ? 1 : 0)
-                        .blur(radius: vm.notchState == .closed ? 30 : 0)
-                        .animation(StandardAnimations.staggered(index: 1), value: vm.notchState)
-                        .transition(.opacity)
+                        .contentReveal(progress: contentProgress, staggerIndex: 1)
                 }
             }
 
@@ -89,10 +85,7 @@ struct NotchHomeView: View {
                     pluginManager.expandedPanelView(for: "com.boringnotch.weather")
                         .frame(width: itemWidth)
                         .environment(vm)
-                        .opacity(vm.notchState == .open ? 1 : 0)
-                        .blur(radius: vm.notchState == .closed ? 30 : 0)
-                        .animation(StandardAnimations.staggered(index: 2), value: vm.notchState)
-                        .transition(.opacity)
+                        .contentReveal(progress: contentProgress, staggerIndex: 2)
                 }
             }
 
@@ -100,9 +93,7 @@ struct NotchHomeView: View {
                 if let pluginManager {
                     pluginManager.expandedPanelView(for: "com.boringnotch.webcam")
                         .scaledToFit()
-                        .opacity(vm.notchState == .closed ? 0 : 1)
-                    // Do not blur the camera view to prevent "Unable to render flattened version" errors
-                        .animation(StandardAnimations.staggered(index: 3), value: vm.notchState)
+                        .contentReveal(progress: contentProgress, staggerIndex: 3, useBlur: false)
                 }
             }
         }

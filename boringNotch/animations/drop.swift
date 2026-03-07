@@ -63,11 +63,11 @@ enum StandardAnimations {
     static let contentDisappear = Animation.easeIn(duration: 0.15)
 
     /// Staggered animation for sequential content reveals
-    /// - Parameter index: The index of the element in the sequence
-    /// - Returns: Animation with appropriate delay for staggered effect
+    /// - Parameter index: The index of the element in the sequence (0 = first)
+    /// - Returns: Animation with appropriate delay for perceptible stagger
     static func staggered(index: Int) -> Animation {
-        Animation.spring(response: 0.28, dampingFraction: 0.88)
-            .delay(Double(index) * 0.03)
+        Animation.spring(response: 0.32, dampingFraction: 0.86)
+            .delay(Double(index) * 0.06)
     }
 }
 
