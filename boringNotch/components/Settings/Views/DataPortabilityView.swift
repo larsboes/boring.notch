@@ -15,7 +15,7 @@ struct DataPortabilityView: View {
     @State private var isExporting = false
 
     private var exportablePlugins: [any ExportablePlugin] {
-        pluginManager?.plugins.compactMap { $0 as? (any ExportablePlugin) } ?? []
+        pluginManager?.allPlugins.compactMap { $0.underlying as? (any ExportablePlugin) } ?? []
     }
 
     var body: some View {

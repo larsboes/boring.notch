@@ -112,6 +112,7 @@ final class ShelfPlugin: NotchPlugin, ExportablePlugin {
 
 // MARK: - Export Helpers
 
+@MainActor
 private struct ShelfExportItem: Codable {
     let id: String
     let name: String

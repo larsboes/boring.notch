@@ -30,7 +30,7 @@ import UniformTypeIdentifiers
 
     /// All plugins that support export
     var exportablePlugins: [any ExportablePlugin] {
-        pluginManager.plugins.compactMap { $0 as? (any ExportablePlugin) }
+        pluginManager.allPlugins.compactMap { $0.underlying as? (any ExportablePlugin) }
     }
 
     /// Export a single plugin's data and present a save panel
