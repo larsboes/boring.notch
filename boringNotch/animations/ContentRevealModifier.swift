@@ -18,10 +18,13 @@ struct ContentRevealModifier: ViewModifier {
     /// Whether to apply blur (disable for camera to avoid render errors)
     let useBlur: Bool
 
+    @Environment(\.isNotchClosing) private var isClosing
+
     /// Per-element stagger offset (each index delays the start by this amount of progress)
     private let staggerStep: CGFloat = 0.06
 
-    /// This element's effective progress, accounting for stagger
+    /// This element's effective progress, accounting for stagger.
+    /// On close (progress going 1→0), higher-index elements reach 0 first — natural reverse stagger.
     private var elementProgress: CGFloat {
         let offset = CGFloat(staggerIndex) * staggerStep
         let adjusted = (progress - offset) / (1.0 - offset)
@@ -35,14 +38,23 @@ struct ContentRevealModifier: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        let opacity = smoothstep(elementProgress)
-        let scale = 0.94 + 0.06 * smoothstep(elementProgress)
-        let yOffset = (1.0 - smoothstep(elementProgress)) * -3.0
-        let blurRadius = useBlur ? (1.0 - elementProgress) * 8.0 : 0
+        let smooth = smoothstep(elementProgress)
+
+        // Asymmetric open vs close:
+        // Open: gentle grow from 0.94, slide down from notch, blur clears
+        // Close: aggressive compress to 0.80, yank up into notch — fast snap
+        let opacity = smooth
+        let scale = isClosing
+            ? 0.80 + 0.20 * smooth     // Close: 1.0 → 0.80 (20% compress)
+            : 0.94 + 0.06 * smooth     // Open: 0.94 → 1.0 (gentle grow)
+        let yOffset = isClosing
+            ? (1.0 - smooth) * -8.0    // Close: pull up into notch
+            : (1.0 - smooth) * -4.0    // Open: slide down from notch
+        let blurRadius = useBlur ? (1.0 - elementProgress) * (isClosing ? 2.0 : 6.0) : 0
 
         content
             .opacity(opacity)
-            .scaleEffect(scale, anchor: .top)
+            .scaleEffect(scale, anchor: isClosing ? .top : .center)
             .offset(y: yOffset)
             .blur(radius: blurRadius)
     }

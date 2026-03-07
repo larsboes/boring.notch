@@ -13,6 +13,7 @@ extension BoringViewModel {
 
         hoverController.cancelPendingClose()
 
+        // Shell expands (spring)
         withAnimation(StandardAnimations.open) {
             self.notchSize = openNotchSize
             self.phase = .opening
@@ -22,6 +23,11 @@ extension BoringViewModel {
             self.hoverController.setNotchOpen(true)
             self.syncWindowState()
             self.startHoverHeartbeat()
+        }
+
+        // Content reveals independently — shell leads, content follows
+        withAnimation(StandardAnimations.contentReveal) {
+            self.contentRevealProgress = 1
         }
 
         musicService.forceUpdate()
@@ -41,7 +47,13 @@ extension BoringViewModel {
         self.coordinator.sneakPeek.show = false
         self.edgeAutoOpenActive = false
 
-        withAnimation(StandardAnimations.close) {
+        // Content exits first — absorbed back into notch
+        withAnimation(StandardAnimations.contentDismiss) {
+            self.contentRevealProgress = 0
+        }
+
+        // Shell contracts with micro-delay — content visibly leads the shell
+        withAnimation(StandardAnimations.closeShell) {
             self.notchSize = getClosedNotchSize(settings: self.displaySettings, screenUUID: self.screenUUID)
             self.closedNotchSize = self.notchSize
             self.phase = .closing
@@ -66,6 +78,7 @@ extension BoringViewModel {
 
     func closeHello() {
         Task { @MainActor in
+            self.contentRevealProgress = 0
             withAnimation(StandardAnimations.close) {
                 coordinator.helloAnimationRunning = false
                 close()

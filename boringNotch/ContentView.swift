@@ -88,6 +88,7 @@ struct ContentView: View {
                     cornerRadiusInsets: cornerRadiusInsets
                 )
                     .environment(\.contentProgress, contentProgress)
+                    .environment(\.isNotchClosing, vm.phase == .closing)
                     .onAppear {
                         updateStateMachine()
                     }

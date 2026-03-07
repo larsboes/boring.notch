@@ -36,8 +36,14 @@ struct DisplayClosedNotchHeightKey: EnvironmentKey {
 
 struct ContentProgressKey: EnvironmentKey {
     /// Content animation progress (0 = closed, 1 = fully open).
-    /// Remapped from shell animationProgress with content-specific easing.
+    /// Driven by BoringViewModel.contentRevealProgress with independent curves.
     static let defaultValue: CGFloat = 0.0
+}
+
+struct IsNotchClosingKey: EnvironmentKey {
+    /// Whether the notch is currently in its closing transition.
+    /// ContentRevealModifier uses this for asymmetric close effects.
+    static let defaultValue: Bool = false
 }
 
 struct CornerRadiusScaleFactorKey: EnvironmentKey {
@@ -73,6 +79,11 @@ extension EnvironmentValues {
     var contentProgress: CGFloat {
         get { self[ContentProgressKey.self] }
         set { self[ContentProgressKey.self] = newValue }
+    }
+
+    var isNotchClosing: Bool {
+        get { self[IsNotchClosingKey.self] }
+        set { self[IsNotchClosingKey.self] = newValue }
     }
 
     var cornerRadiusScaleFactor: CGFloat? {

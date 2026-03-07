@@ -37,14 +37,13 @@ extension ContentView {
         return t * t * (3 - 2 * t)
     }
 
-    /// Content-specific progress — shell-first timeline.
-    /// Shell expands first → content fades in after shell is visibly expanding → controls last.
+    /// Content-specific progress — decoupled from shell spring.
+    /// Driven by vm.contentRevealProgress which has independent animation curves:
+    /// - Open: easeOut(0.28s) with 0.08s delay — shell leads, content follows
+    /// - Close: easeIn(0.15s) — content exits before shell finishes contracting
     /// Apple Dynamic Island pattern: shape morphs alone, then content reveals.
     var contentProgress: CGFloat {
-        let p = animationProgress
-        // Content starts at 30% of shell expansion and reaches full at 90%.
-        // The 30% delay creates a visible "shell leads" effect.
-        return smoothstep(0.30, 0.90, p)
+        vm.contentRevealProgress
     }
 
     var cornerRadiusScaleFactor: CGFloat? {

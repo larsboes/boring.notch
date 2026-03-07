@@ -27,6 +27,9 @@ import SwiftUI
     var contentType: ContentType = .normal
 
     var phase: NotchPhase = .closed
+    /// Decoupled content reveal progress (0→1).
+    /// Animated independently from the shell spring so content can lead/lag the shell.
+    var contentRevealProgress: CGFloat = 0
     var notchState: NotchState {
         phase.isVisible ? .open : .closed
     }

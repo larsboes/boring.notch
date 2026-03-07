@@ -29,13 +29,20 @@ enum StandardAnimations {
     /// Estimated settle duration for the open animation
     static let openDuration: Duration = .milliseconds(300)
 
-    /// Spring animation for closing the notch
+    /// Spring animation for closing the notch (content dismiss, closeHello, etc.)
     /// Quick and decisive — near-critically damped for confident retraction
     static let close = Animation.spring(
         response: 0.26,
         dampingFraction: 0.97,
         blendDuration: 0.02
     )
+    /// Shell close with micro-delay — content visibly exits before shell contracts.
+    /// The 0.05s delay creates the "content absorbed, then shell snaps" sequence.
+    static let closeShell = Animation.spring(
+        response: 0.22,
+        dampingFraction: 0.97,
+        blendDuration: 0.02
+    ).delay(0.05)
     /// Estimated settle duration for the close animation
     static let closeDuration: Duration = .milliseconds(230)
 
@@ -54,13 +61,13 @@ enum StandardAnimations {
     /// Organic timing curve for the hello animation
     static let hello = Animation.timingCurve(0.2, 0.8, 0.2, 1, duration: 3.0)
 
-    // MARK: - Content Transitions
+    // MARK: - Content Transitions (decoupled from shell spring)
 
-    /// Animation for content appearing (fade in with scale)
-    static let contentAppear = Animation.easeOut(duration: 0.22)
+    /// Content reveal on open — shell leads, content follows with gentle delay
+    static let contentReveal = Animation.easeOut(duration: 0.28).delay(0.08)
 
-    /// Animation for content disappearing (quick fade out)
-    static let contentDisappear = Animation.easeIn(duration: 0.15)
+    /// Content exit on close — fast and decisive, content yanked back into notch.
+    static let contentDismiss = Animation.easeIn(duration: 0.12)
 
     /// Staggered animation for sequential content reveals
     /// - Parameter index: The index of the element in the sequence (0 = first)
