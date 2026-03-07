@@ -2,160 +2,175 @@
 //  NotchHoverController.swift
 //  boringNotch
 //
-//  Extracted from BoringViewModel - handles hover interactions and open/close scheduling
+//  Heartbeat-based hover controller. Polls NSEvent.mouseLocation every 16ms
+//  instead of trusting NSTrackingArea events (which fire spuriously during
+//  SwiftUI layout shifts).
 //
 
 import SwiftUI
 
-/// Controller for managing hover-based notch interactions
+// MARK: - Hover State Machine
+
+enum HoverState: Equatable {
+    case outside
+    case entering(since: Date)
+    case inside
+    case exiting(since: Date)
+}
+
+/// Controller for managing hover-based notch interactions via heartbeat polling.
 @MainActor
 @Observable class NotchHoverController {
     // MARK: - Dependencies
 
-    /// Settings provider (injected, not direct Defaults access)
     private let settings: NotchViewModelSettings
-
-    /// Manages hover zone using fixed screen coordinates
     private let hoverZoneManager: any HoverZoneChecking
 
-    /// Closure to check if close should be prevented (replaces SharingStateManager.shared)
+    // MARK: - Callbacks
+
+    var onShouldOpen: (() -> Void)?
+    var onShouldClose: (() -> Void)?
+
+    /// Closure to check if close should be prevented (e.g. sharing active)
     var shouldPreventClose: () -> Bool = { false }
 
     /// Whether battery popover is active (prevents close)
     var isBatteryPopoverActive: Bool = false
 
+    /// Closure to check if shelf is active (uses longer exit delay)
+    var isShelfActive: () -> Bool = { false }
+
     // MARK: - State
 
-    /// Whether mouse is currently inside the notch region
-    private(set) var isHoveringNotch: Bool = false
+    private(set) var state: HoverState = .outside
 
-    // Hover tasks for debouncing
-    private var openTask: Task<Void, Never>?
-    private var closeTask: Task<Void, Never>?
+    var isHoveringNotch: Bool {
+        switch state {
+        case .outside: false
+        case .entering, .inside, .exiting: true
+        }
+    }
 
-    // Hover configuration
-    private let openDelay: Duration = .milliseconds(50)
-    private let closeDelayNormal: Duration = .milliseconds(700)
-    private var closeDelayShelf: Duration { .seconds(settings.shelfHoverDelay) }
+    // MARK: - Timing
+
+    private let enterDelay: TimeInterval = 0.050
+    private let exitDelayNormal: TimeInterval = 0.500
+    private var exitDelayShelf: TimeInterval { settings.shelfHoverDelay }
+
+    private var activeExitDelay: TimeInterval {
+        isShelfActive() ? exitDelayShelf : exitDelayNormal
+    }
+
+    // MARK: - Heartbeat
+
+    private var heartbeat: Task<Void, Never>?
 
     // MARK: - Initialization
 
-    init(settings: NotchViewModelSettings, displaySettings: any DisplaySettings = DefaultsNotchSettings.shared, hoverZoneManager: (any HoverZoneChecking)? = nil) {
+    init(
+        settings: NotchViewModelSettings,
+        displaySettings: any DisplaySettings = DefaultsNotchSettings.shared,
+        hoverZoneManager: (any HoverZoneChecking)? = nil
+    ) {
         self.settings = settings
         self.hoverZoneManager = hoverZoneManager ?? HoverZoneManager(displaySettings: displaySettings)
     }
 
-    // MARK: - Hover Zone Management
+    // MARK: - Hover Zone
 
-    /// Updates the hover zone geometry. Call when screen changes, not during animation.
     func updateHoverZone(screenUUID: String?) {
         hoverZoneManager.updateHoverZone(screenUUID: screenUUID)
     }
 
-    /// Single entry point for hover signals from TrackingAreaView.
-    /// Validates actual mouse position using HoverZoneManager.
-    func handleHoverSignal(
-        _ signal: HoverSignal,
-        currentPhase: NotchPhase,
-        sneakPeekActive: Bool,
-        onOpen: @escaping () -> Void
-    ) {
-        switch signal {
-        case .entered:
-            handleHoverEntered(
-                currentPhase: currentPhase,
-                sneakPeekActive: sneakPeekActive,
-                onOpen: onOpen
-            )
-        case .exited:
-            handleHoverExited()
-        }
-    }
-
-    private func handleHoverEntered(
-        currentPhase: NotchPhase,
-        sneakPeekActive: Bool,
-        onOpen: @escaping () -> Void
-    ) {
-        // Validate: is mouse REALLY in the hover zone?
-        guard hoverZoneManager.isMouseInHoverZone() else { return }
-
-        closeTask?.cancel()
-        closeTask = nil
-        isHoveringNotch = true
-
-        // Only open if currently closed
-        guard currentPhase == .closed else { return }
-
-        // Check if hover-to-open is enabled
-        guard settings.openNotchOnHover && !sneakPeekActive else { return }
-
-        openTask?.cancel()
-        openTask = Task { @MainActor in
-            try? await Task.sleep(for: openDelay)
-            guard !Task.isCancelled else { return }
-
-            // Re-validate before opening
-            if self.isHoveringNotch,
-               self.hoverZoneManager.isMouseInHoverZone(),
-               currentPhase == .closed {
-                onOpen()
-            }
-        }
-    }
-
-    private func handleHoverExited() {
-        openTask?.cancel()
-        openTask = nil
-
-        // Validate: is mouse REALLY outside the hover zone?
-        guard !hoverZoneManager.isMouseInHoverZone() else { return }
-
-        isHoveringNotch = false
-    }
-
-    /// Schedule a close after the appropriate delay
-    func scheduleClose(
-        currentPhase: NotchPhase,
-        currentView: NotchViews,
-        onClose: @escaping () -> Void
-    ) {
-        // Check if close should be prevented
-        let shouldPrevent = isBatteryPopoverActive || shouldPreventClose()
-        guard !shouldPrevent else { return }
-        guard currentPhase == .open else { return }
-
-        closeTask?.cancel()
-        closeTask = Task { @MainActor in
-            let delay = currentView == .shelf ? closeDelayShelf : closeDelayNormal
-            try? await Task.sleep(for: delay)
-            guard !Task.isCancelled else { return }
-
-            // Final validation
-            let stillShouldPrevent = self.isBatteryPopoverActive || self.shouldPreventClose()
-            if !self.isHoveringNotch && !stillShouldPrevent && currentPhase == .open {
-                // Double-check mouse position using hover zone
-                if !self.hoverZoneManager.isMouseInHoverZone() {
-                    onClose()
-                }
-            }
-        }
-    }
-
-    /// Cancel pending close task
-    func cancelPendingClose() {
-        closeTask?.cancel()
-        closeTask = nil
-    }
-
-    /// Cancel pending open task
-    func cancelPendingOpen() {
-        openTask?.cancel()
-        openTask = nil
-    }
-
-    /// Check if mouse is in hover zone
     func isMouseInHoverZone() -> Bool {
         hoverZoneManager.isMouseInHoverZone()
+    }
+
+    func setNotchOpen(_ open: Bool) {
+        hoverZoneManager.isNotchOpen = open
+    }
+
+    // MARK: - Heartbeat Control
+
+    func startHeartbeat() {
+        guard heartbeat == nil else { return }
+        heartbeat = Task { [weak self] in
+            while !Task.isCancelled {
+                self?.tick()
+                try? await Task.sleep(for: .milliseconds(16))
+            }
+        }
+    }
+
+    func stopHeartbeat() {
+        heartbeat?.cancel()
+        heartbeat = nil
+        state = .outside
+    }
+
+    // MARK: - Core Tick
+
+    func tick(now: Date = Date()) {
+        let isInside = hoverZoneManager.isMouseInHoverZone()
+
+        switch state {
+        case .outside:
+            if isInside {
+                state = .entering(since: now)
+            }
+
+        case .entering(let since):
+            if !isInside {
+                state = .outside
+            } else if now.timeIntervalSince(since) >= enterDelay {
+                state = .inside
+                onShouldOpen?()
+            }
+
+        case .inside:
+            if !isInside {
+                let shouldPrevent = isBatteryPopoverActive || shouldPreventClose()
+                if shouldPrevent {
+                    // Stay inside — close is blocked
+                } else {
+                    state = .exiting(since: now)
+                }
+            }
+
+        case .exiting(let since):
+            if isInside {
+                state = .inside
+            } else if now.timeIntervalSince(since) >= activeExitDelay {
+                state = .outside
+                onShouldClose?()
+            }
+        }
+    }
+
+    // MARK: - Event Hints
+
+    /// Called by TrackingAreaView for low-latency response.
+    /// Triggers an immediate tick and ensures the heartbeat is running.
+    func handleHoverHint(_ signal: HoverSignal) {
+        tick()
+        if case .entering = state {
+            startHeartbeat()
+        }
+    }
+
+    // MARK: - Legacy API
+
+    /// Cancel pending close (transitions exiting → inside)
+    func cancelPendingClose() {
+        if case .exiting = state {
+            state = .inside
+        }
+    }
+
+    /// Cancel pending open (transitions entering → outside)
+    func cancelPendingOpen() {
+        if case .entering = state {
+            state = .outside
+        }
     }
 }

@@ -18,7 +18,7 @@ import Combine
 
 @MainActor
 @Observable
-final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin {
+final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, ExportablePlugin {
 
     // MARK: - NotchPlugin
 
@@ -184,6 +184,31 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin {
         )
     }
 
+    // MARK: - ExportablePlugin
+
+    var supportedExportFormats: [ExportFormat] { [.json] }
+
+    func exportData(format: ExportFormat) async throws -> Data {
+        guard format == .json else {
+            throw PluginError.exportFailed("Unsupported format: \(format.displayName)")
+        }
+        guard let service = musicService else {
+            throw PluginError.exportFailed("Music service unavailable")
+        }
+        let snapshot = MusicExportSnapshot(
+            track: service.currentTrack,
+            isPlaying: service.playbackState.isPlaying,
+            progress: service.progress,
+            volume: service.volume,
+            isShuffled: service.isShuffled,
+            exportedAt: Date()
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        return try encoder.encode(snapshot)
+    }
+
     // MARK: - Private Methods
 
     private func loadSettings() {
@@ -221,6 +246,17 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin {
             }
             .store(in: &cancellables)
     }
+}
+
+// MARK: - Export DTO
+
+private struct MusicExportSnapshot: Codable {
+    let track: TrackInfo?
+    let isPlaying: Bool
+    let progress: Double
+    let volume: Double
+    let isShuffled: Bool
+    let exportedAt: Date
 }
 
 // MARK: - View Wrappers

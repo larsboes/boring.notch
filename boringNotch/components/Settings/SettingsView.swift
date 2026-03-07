@@ -57,6 +57,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
+                NavigationLink(value: "Data") {
+                    Label("Data & Privacy", systemImage: "externaldrive")
+                }
                 NavigationLink(value: "Advanced") {
                     Label("Advanced", systemImage: "gearshape.2")
                 }
@@ -95,6 +98,8 @@ struct SettingsView: View {
                     Shelf()
                 case "Shortcuts":
                     Shortcuts()
+                case "Data":
+                    DataPortabilityView()
                 case "Advanced":
                     Advanced()
                 case "About":

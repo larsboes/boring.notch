@@ -149,6 +149,9 @@ import SwiftUI
             self?.sharingService.preventNotchClose ?? false
         }
 
+        // Configure hover callbacks (open/close/shelf)
+        configureHoverCallbacks()
+
         setupDragDropCallbacks()
 
         self.screenUUID = screenUUID

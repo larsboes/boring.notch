@@ -43,6 +43,11 @@ final class PluginManager {
         pluginOrder
     }
 
+    /// All registered plugins (ordered)
+    var allPlugins: [AnyNotchPlugin] {
+        pluginOrder.compactMap { plugins[$0] }
+    }
+
     /// All active (enabled and activated) plugins
     var activePlugins: [AnyNotchPlugin] {
         pluginOrder

@@ -11,7 +11,7 @@ import Combine
 
 @MainActor
 @Observable
-final class ShelfPlugin: NotchPlugin {
+final class ShelfPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - NotchPlugin
     
@@ -71,5 +71,55 @@ final class ShelfPlugin: NotchPlugin {
     
     func settingsContent() -> AnyView? {
         AnyView(Shelf())
+    }
+
+    // MARK: - ExportablePlugin
+
+    var supportedExportFormats: [ExportFormat] { [.json, .csv] }
+
+    func exportData(format: ExportFormat) async throws -> Data {
+        guard let items = shelfService?.items else {
+            throw PluginError.exportFailed("No shelf data available")
+        }
+
+        switch format {
+        case .json:
+            return try exportJSON(items: items)
+        case .csv:
+            return exportCSV(items: items)
+        default:
+            throw PluginError.exportFailed("Unsupported format: \(format.displayName)")
+        }
+    }
+
+    private func exportJSON(items: [ShelfItem]) throws -> Data {
+        let entries: [[String: Any]] = items.map { item in
+            [
+                "id": item.id.uuidString,
+                "name": item.displayName,
+                "type": item.kindLabel,
+                "isTemporary": item.isTemporary
+            ]
+        }
+        return try JSONSerialization.data(withJSONObject: entries, options: [.prettyPrinted, .sortedKeys])
+    }
+
+    private func exportCSV(items: [ShelfItem]) -> Data {
+        var csv = "id,name,type,temporary\n"
+        for item in items {
+            let name = item.displayName.replacingOccurrences(of: ",", with: ";")
+            csv += "\(item.id),\(name),\(item.kindLabel),\(item.isTemporary)\n"
+        }
+        return Data(csv.utf8)
+    }
+}
+
+extension ShelfItem {
+    var kindLabel: String {
+        switch kind {
+        case .file: "file"
+        case .text: "text"
+        case .link: "link"
+        }
     }
 }

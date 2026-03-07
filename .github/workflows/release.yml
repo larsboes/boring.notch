@@ -236,6 +236,7 @@ jobs:
             Release/
 
       - name: Commit appcast
+        id: commit_appcast
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -243,7 +244,17 @@ jobs:
           if [[ "${IS_BETA}" == "false" ]]; then
             git add updater/appcast.xml
             git commit -m "Update version to v${VERSION} and appcast" || true
+            RELEASE_SHA=$(git rev-parse HEAD)
+            echo "release_sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
             git push origin "HEAD:${HEAD_REF}" || true
+            # Also push appcast to main so GitHub Pages deploys the Sparkle feed
+            cp updater/appcast.xml "$RUNNER_TEMP/appcast.xml"
+            git fetch origin main
+            git checkout FETCH_HEAD
+            cp "$RUNNER_TEMP/appcast.xml" updater/appcast.xml
+            git add updater/appcast.xml
+            git commit -m "Update appcast for v${VERSION}" || echo "appcast already up to date"
+            git push origin HEAD:main
           else
             # Save generated appcast, switch to main, apply and push
             cp updater/appcast.xml "$RUNNER_TEMP/appcast.xml"
@@ -252,6 +263,7 @@ jobs:
             cp "$RUNNER_TEMP/appcast.xml" updater/appcast.xml
             git add updater/appcast.xml
             git commit -m "Update appcast with beta release for v${VERSION}" || true
+            echo "release_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
             git push origin main
           fi
 
@@ -260,6 +272,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TITLE: ${{ needs.preparation.outputs.title }}
           NOTES: ${{ needs.preparation.outputs.release_notes_github }}
+          RELEASE_SHA: ${{ steps.commit_appcast.outputs.release_sha }}
         run: |
           RELEASE_FLAGS=()
           if [[ "${IS_BETA}" == "true" ]]; then
@@ -268,6 +281,7 @@ jobs:
           gh release create "v${VERSION}" Release/boringNotch.dmg \
             --title "v${VERSION} - ${TITLE}" \
             --notes "$NOTES" \
+            --target "${RELEASE_SHA}" \
             "${RELEASE_FLAGS[@]}"
 
   upgrade-brew:
