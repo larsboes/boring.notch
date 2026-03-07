@@ -24,8 +24,9 @@ class ServiceDelegate: NSObject, NSXPCListenerDelegate {
         newConnection.exportedObject = exportedObject
         
         // Clean up when connection is invalidated to release the exported object
-        newConnection.invalidationHandler = { [weak self] in
-            self?.activeConnections.remove(newConnection)
+        newConnection.invalidationHandler = { [weak self, weak newConnection] in
+            guard let connection = newConnection else { return }
+            self?.activeConnections.remove(connection)
         }
         
         activeConnections.add(newConnection)
