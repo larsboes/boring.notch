@@ -27,7 +27,7 @@ enum StandardAnimations {
         blendDuration: 0.1
     )
     /// Estimated settle duration for the open animation
-    static let openDuration: Duration = .milliseconds(400)
+    static let openDuration: Duration = .milliseconds(350)
 
     /// Spring animation for closing the notch
     /// Quick and decisive with slight softness
@@ -37,7 +37,7 @@ enum StandardAnimations {
         blendDuration: 0.08
     )
     /// Estimated settle duration for the close animation
-    static let closeDuration: Duration = .milliseconds(350)
+    static let closeDuration: Duration = .milliseconds(300)
 
     /// Bouncy spring for playful animations
     @available(macOS 14.0, *)

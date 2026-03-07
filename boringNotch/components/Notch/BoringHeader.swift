@@ -28,6 +28,7 @@ struct BoringHeader: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
+            .animation(StandardAnimations.staggered(index: 1), value: vm.notchState)
             .zIndex(2)
 
             // Only show black notch overlay when Liquid Glass effect is DISABLED and on screens with hardware notch
@@ -115,6 +116,7 @@ struct BoringHeader: View {
             .padding(.trailing, 8)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
+            .animation(StandardAnimations.staggered(index: 2), value: vm.notchState)
             .zIndex(2)
         }
         .foregroundColor(.gray)
