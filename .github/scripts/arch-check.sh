@@ -28,13 +28,16 @@ done < <(find "$SRC" -name '*.swift' -type f)
 echo "--- Checking Defaults[ access ---"
 ALLOWED_DEFAULTS=(
     "DefaultsNotchSettings.swift"
+    "DefaultsNotchSettings+HUD.swift"
+    "DefaultsNotchSettings+Display.swift"
+    "DefaultsNotchSettings+Music.swift"
+    "DefaultsNotchSettings+Plugins.swift"
     "PluginSettings.swift"
     "matters.swift"          # intentional write-back
     "WeatherService.swift"   # API key access
     "CalendarService.swift"  # calendar selection state
     "DefaultsKeys.swift"     # key definitions
     "NavigationState.swift"  # Defaults.updates() — accepted exception
-    "ScreenSelectionService.swift"  # Defaults.updates() — accepted exception
 )
 
 while IFS= read -r file; do
@@ -93,6 +96,19 @@ if [ -n "$SHARED_HITS" ]; then
         echo "WARN: potential banned .shared — $line"
     done <<< "$SHARED_HITS"
     echo "(Review warnings above — false positives possible)"
+fi
+
+# --- 6. Force unwraps in core runtime code ---
+echo "--- Checking force unwraps in core runtime code ---"
+FORCE_UNWRAP_HITS=$(grep -rnE 'pluginManager!|services!' "$SRC/Core" "$SRC/ContentView.swift" "$SRC/ContentView+Appearance.swift" \
+    --include='*.swift' \
+    || true)
+
+if [ -n "$FORCE_UNWRAP_HITS" ]; then
+    while IFS= read -r line; do
+        echo "FAIL: force unwrap found — $line"
+        ERRORS=$((ERRORS + 1))
+    done <<< "$FORCE_UNWRAP_HITS"
 fi
 
 # --- Summary ---
