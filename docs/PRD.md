@@ -33,13 +33,19 @@
 ## Current State (2026-03-07)
 
 **Working branch:** `refactor/singleton-elimination-tier3`
-**All branches synced:** `main` = `developer` = working branch
+**Branch sync:** `developer` = working branch (`refactor/singleton-elimination-tier3`), `main` may differ
 
 | Phase | Status | Summary |
 |-------|--------|---------|
 | 1, 1b, 2, 3, 5, 6, 6b, 7, 8 | ✅ Shipped | Core plugins, API Hardening, AI Assist, Automation, Battery & Export |
 | 4 — Animation + Arch Debt | **Active** | 15+ items done. Remaining: spring tuning, album art morph, gesture-driven open. |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
+
+**Latest architecture hardening commits:**
+- `d277bd4` — snapshot before cleanup
+- `0d7bd2b` — DI tightening + unsafe force-unwrap removal + singleton elimination work
+- `89661d5` — project build wiring repair for LocalAPI/private sources
+- `0b881d7` — architecture gate update for split settings files + core force-unwrap checks
 
 ---
 
@@ -61,6 +67,12 @@
 | 4.12 | DI | `QuickLookService` injected via `QuickLookServiceProtocol` — was concrete dependency. |
 | 4.13 | Docs | CLAUDE.md DDD table updated: `Plugins/Core/` reclassified as Application layer. |
 | 4.14 | Cleanup | `sneakPeek` → `SneakPeek` case rename for Swift naming conventions. |
+| 4.15 | Safety | Removed force-unwrap usage in core runtime UI paths (`ContentView`, `ContentView+Appearance`) and switched to safe optional handling. |
+| 4.16 | DI | View layer no longer constructs fallback music services; `ContentView` now consumes injected `vm.musicService`. |
+| 4.17 | DI / SOLID | `NotchServiceProvider` now exposes protocol-typed notes/clipboard/bluetooth services instead of concrete managers; consumers updated accordingly. |
+| 4.18 | Architecture | Removed `NotchStateMachine.shared` and reduced singleton-default constructor usage in coordinator/view-model/service paths. |
+| 4.19 | Build | Repaired Xcode target source wiring for LocalAPI/private files to keep build reproducible and green. |
+| 4.20 | CI | Updated architecture check script allowlist for split settings files and added force-unwrap guardrails in core runtime paths. |
 | 5.1 | API | **Loopback binding** — `LocalAPIServer` now binds `127.0.0.1` only via `NWParameters.requiredLocalEndpoint`. |
 | 5.2 | API | **Dynamic routing** — `APIRouteRegistrar` protocol (own file) enables plugins to register/unregister REST routes at runtime. Path params (`/plugins/{id}`) with proper 404 vs 405. |
 | 5.3 | API | **Auth middleware** — Keychain-backed Bearer token in `APIAuthMiddleware` (`@unchecked Sendable`, `NSLock`). Denies on keychain failure (secure default). Enforced on all POST endpoints. |
