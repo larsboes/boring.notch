@@ -2128,6 +2128,9 @@
         }
       }
     },
+    "AI processing…" : {
+
+    },
     "All-day" : {
       "localizations" : {
         "ar" : {
@@ -5165,6 +5168,9 @@
       }
     },
     "Clear" : {
+
+    },
+    "Clear script" : {
 
     },
     "Clear slot" : {
@@ -14641,6 +14647,9 @@
     "No plugins with exportable data." : {
 
     },
+    "No script loaded" : {
+
+    },
     "No weather data" : {
 
     },
@@ -15774,6 +15783,12 @@
         }
       }
     },
+    "Paste from clipboard" : {
+
+    },
+    "Paste or type your script…" : {
+
+    },
     "Pause at paragraph breaks" : {
 
     },
@@ -16597,9 +16612,6 @@
           }
         }
       }
-    },
-    "Ready" : {
-
     },
     "Release name" : {
       "localizations" : {
@@ -17887,9 +17899,6 @@
           }
         }
       }
-    },
-    "Scrolling" : {
-
     },
     "Search SF Symbols" : {
 
@@ -20430,6 +20439,7 @@
 
     },
     "Speed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -20630,6 +20640,9 @@
       }
     },
     "Standard" : {
+
+    },
+    "Start" : {
 
     },
     "Status" : {

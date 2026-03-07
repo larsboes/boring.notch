@@ -60,7 +60,7 @@ struct PluginMusicControlsView: View {
 
     @ViewBuilder
     private func lyricsView(width: CGFloat) -> some View {
-        TimelineView(.animation(minimumInterval: 0.25)) { timeline in
+        TimelineView(.animation(minimumInterval: 0.5)) { timeline in
             let currentElapsed: Double = {
                 guard service.playbackState.isPlaying else { return service.elapsedTime }
                 let delta = timeline.date.timeIntervalSince(service.timestampDate)
@@ -98,7 +98,7 @@ struct PluginMusicControlsView: View {
     }
 
     private var musicSliderWithTimes: some View {
-        TimelineView(.animation(minimumInterval: service.playbackRate > 0 ? 0.1 : nil)) { timeline in
+        TimelineView(.animation(minimumInterval: service.playbackRate > 0 ? 0.5 : nil)) { timeline in
             HStack(spacing: 8) {
                 Text(timeString(from: sliderValue))
                     .font(.caption2)

@@ -11,7 +11,7 @@ import SwiftUI
 class AudioSpectrum: NSView {
     private var barLayers: [CAGradientLayer] = []
     private var isPlaying = false
-    private var tintColor: NSColor = .systemBlue
+    private(set) var currentTintColor: NSColor = .systemBlue
     
     private let barWidth: CGFloat = 2
     private let barCount = 4
@@ -47,7 +47,7 @@ class AudioSpectrum: NSView {
             barLayer.shouldRasterize = false
             barLayer.startPoint = CGPoint(x: 0.5, y: 0)
             barLayer.endPoint = CGPoint(x: 0.5, y: 1)
-            barLayer.colors = [tintColor.withAlphaComponent(0.6).cgColor, tintColor.cgColor]
+            barLayer.colors = [currentTintColor.withAlphaComponent(0.6).cgColor, currentTintColor.cgColor]
             barLayer.transform = CATransform3DMakeScale(1.0, 0.3, 1.0)
             layer?.addSublayer(barLayer)
             barLayers.append(barLayer)
@@ -112,7 +112,7 @@ class AudioSpectrum: NSView {
     }
 
     func setTintColor(_ color: NSColor) {
-        tintColor = color
+        currentTintColor = color
         let colors = [color.withAlphaComponent(0.6).cgColor, color.cgColor]
         barLayers.forEach { $0.colors = colors }
     }
@@ -121,17 +121,22 @@ class AudioSpectrum: NSView {
 struct AudioSpectrumView: NSViewRepresentable {
     let isPlaying: Bool
     let tintColor: Color
-    
+
     func makeNSView(context: Context) -> AudioSpectrum {
         let spectrum = AudioSpectrum()
         spectrum.setTintColor(NSColor(tintColor))
         spectrum.setPlaying(isPlaying)
         return spectrum
     }
-    
+
     func updateNSView(_ nsView: AudioSpectrum, context: Context) {
-        nsView.setTintColor(NSColor(tintColor))
         nsView.setPlaying(isPlaying)
+        let newColor = NSColor(tintColor)
+        // Only update gradient colors when tint actually changes to avoid
+        // redundant CALayer updates that cause PlatformViewRepresentableAdaptor spam.
+        if !newColor.isClose(to: nsView.currentTintColor) {
+            nsView.setTintColor(newColor)
+        }
     }
 }
 

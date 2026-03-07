@@ -44,6 +44,9 @@ import SwiftUI
 
     var hideOnClosed: Bool = true
 
+    /// Optional plugin-requested height override for closed notch (e.g. teleprompter needs double height)
+    var pluginPreferredHeight: CGFloat?
+
     var edgeAutoOpenActive: Bool = false
     var isHoveringCalendar: Bool = false
 
@@ -266,7 +269,8 @@ import SwiftUI
             sneakPeekActive: coordinator.sneakPeek.show,
             expandingViewActive: coordinator.expandingView.show,
             expandingViewType: coordinator.expandingView.type,
-            coordinator: coordinator
+            coordinator: coordinator,
+            pluginPreferredHeight: pluginPreferredHeight
         )
     }
 

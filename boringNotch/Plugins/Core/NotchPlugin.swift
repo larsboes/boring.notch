@@ -64,6 +64,14 @@ struct DisplayRequest: Equatable, Sendable {
     let priority: DisplayPriority
     /// Optional context to help the state machine decide (e.g., "music", "timer")
     let category: DisplayCategory
+    /// Optional preferred closed notch height (e.g. teleprompter needs double height for text below camera)
+    let preferredHeight: CGFloat?
+
+    init(priority: DisplayPriority, category: DisplayCategory, preferredHeight: CGFloat? = nil) {
+        self.priority = priority
+        self.category = category
+        self.preferredHeight = preferredHeight
+    }
 
     static let music = DisplayCategory(rawValue: "music")
     static let notification = DisplayCategory(rawValue: "notification")

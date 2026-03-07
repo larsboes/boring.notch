@@ -66,13 +66,19 @@ import SwiftUI
         sneakPeekActive: Bool,
         expandingViewActive: Bool,
         expandingViewType: SneakContentType?,
-        coordinator: BoringViewCoordinator
+        coordinator: BoringViewCoordinator,
+        pluginPreferredHeight: CGFloat? = nil
     ) -> CGFloat {
         let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
         let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
 
         if noNotchAndFullscreen {
             return 0
+        }
+
+        // Plugin with explicit height preference takes priority (e.g. teleprompter needs double height)
+        if let preferred = pluginPreferredHeight {
+            return preferred
         }
 
         // Check if any live activity is active

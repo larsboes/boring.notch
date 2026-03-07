@@ -240,6 +240,15 @@ struct ContentView: View {
     }
 
     private func updateStateMachine() {
+        // Sync plugin preferred height for notch sizing
+        if let activePluginId = pluginManager?.highestPriorityClosedNotchPlugin(),
+           let plugin = pluginManager?.plugin(id: activePluginId),
+           let preferredHeight = plugin.displayRequest?.preferredHeight {
+            vm.pluginPreferredHeight = preferredHeight
+        } else {
+            vm.pluginPreferredHeight = nil
+        }
+
         let input = NotchStateMachine.createInput(
             notchState: vm.notchState,
             currentView: coordinator.currentView,
@@ -250,9 +259,6 @@ struct ContentView: View {
             settings: settings
         )
         stateMachine.update(with: input)
-
-        // DEBUG: Trace state changes
-        // print("DEBUG: notchState=\(vm.notchState), currentView=\(coordinator.currentView), displayState=\(stateMachine.displayState)")
     }
 
     @ViewBuilder

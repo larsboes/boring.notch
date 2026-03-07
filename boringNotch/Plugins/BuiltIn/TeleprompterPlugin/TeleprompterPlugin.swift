@@ -121,7 +121,13 @@ final class TeleprompterPlugin: NotchPlugin {
     }
     
     var displayRequest: DisplayRequest? {
-        guard !teleState.text.isEmpty else { return nil }
-        return DisplayRequest(priority: teleState.isScrolling ? .high : .normal, category: DisplayRequest.utility)
+        guard teleState.isScrolling else { return nil }
+        // Request double the physical notch height — text goes in the bottom half, below the camera
+        let physicalHeight = getRealNotchHeight()
+        return DisplayRequest(
+            priority: .critical,
+            category: DisplayRequest.utility,
+            preferredHeight: physicalHeight * 2
+        )
     }
 }

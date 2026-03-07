@@ -57,6 +57,15 @@ extension NSColor {
         return NSColor.controlAccentColor
     }
 
+    /// Approximate equality check to avoid redundant CALayer updates.
+    func isClose(to other: NSColor, threshold: CGFloat = 0.02) -> Bool {
+        guard let a = usingColorSpace(.deviceRGB), let b = other.usingColorSpace(.deviceRGB) else { return false }
+        return abs(a.redComponent - b.redComponent) < threshold
+            && abs(a.greenComponent - b.greenComponent) < threshold
+            && abs(a.blueComponent - b.blueComponent) < threshold
+            && abs(a.alphaComponent - b.alphaComponent) < threshold
+    }
+
     /// Returns a darker version of the accent color as NSColor suitable for backgrounds
     @MainActor static func effectiveAccentBackground(from settings: any DisplaySettings) -> NSColor {
         if settings.useCustomAccentColor,
