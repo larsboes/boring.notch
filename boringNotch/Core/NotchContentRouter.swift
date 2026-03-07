@@ -118,7 +118,7 @@ struct NotchContentRouter: View {
             HStack(alignment: .center) {
                 Image(systemName: "music.note")
                 GeometryReader { geo in
-                    if let musicPlugin = pluginManager?.plugin(id: "com.boringnotch.music", as: MusicPlugin.self),
+                    if let musicPlugin = pluginManager?.plugin(id: PluginID.music, as: MusicPlugin.self),
                        let track = musicPlugin.musicService?.currentTrack {
                         MarqueeText(
                             track.title + " - " + track.artist,
@@ -146,7 +146,7 @@ struct NotchContentRouter: View {
                     // Route HUD value changes through PluginEventBus instead of direct service access
                     pluginManager.eventBus.emit(
                         HUDValueChangeEvent(
-                            sourcePluginId: "com.boringnotch.system.hud",
+                            sourcePluginId: PluginID.System.hud,
                             hudType: type,
                             newValue: newVal
                         )
@@ -179,18 +179,18 @@ struct NotchContentRouter: View {
                     .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity, alignment: .top)
             case .shelf:
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.shelf")
+                    pluginManager.expandedPanelView(for: PluginID.shelf)
                         .environment(vm)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             case .notifications:
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.notifications")
+                    pluginManager.expandedPanelView(for: PluginID.notifications)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             case .clipboard:
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.clipboard")
+                    pluginManager.expandedPanelView(for: PluginID.clipboard)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             case .notes:
@@ -200,17 +200,17 @@ struct NotchContentRouter: View {
                 }
             case .habitTracker:
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.habittracker")
+                    pluginManager.expandedPanelView(for: PluginID.habitTracker)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             case .pomodoro:
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.pomodoro")
+                    pluginManager.expandedPanelView(for: PluginID.pomodoro)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             case .teleprompter:
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.teleprompter")
+                    pluginManager.expandedPanelView(for: PluginID.teleprompter)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }

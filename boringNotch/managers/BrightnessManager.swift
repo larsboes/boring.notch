@@ -42,7 +42,7 @@ import AppKit
 				refresh()
 			}
 			eventBus.emit(SneakPeekRequestedEvent(
-			sourcePluginId: "com.boringnotch.system.brightness",
+			sourcePluginId: PluginID.System.brightness,
 			request: SneakPeekRequest(style: .standard, type: .brightness, value: CGFloat(target))
 		))
 		}
@@ -108,7 +108,7 @@ import AppKit
 				refresh()
 			}
 			eventBus.emit(SneakPeekRequestedEvent(
-				sourcePluginId: "com.boringnotch.system.backlight",
+				sourcePluginId: PluginID.System.backlight,
 				request: SneakPeekRequest(style: .standard, type: .backlight, value: CGFloat(target))
 			))
 		}

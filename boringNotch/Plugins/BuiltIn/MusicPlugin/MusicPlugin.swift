@@ -22,7 +22,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
 
     // MARK: - NotchPlugin
 
-    let id = "com.boringnotch.music"
+    let id = PluginID.music
 
     let metadata = PluginMetadata(
         name: "Music",

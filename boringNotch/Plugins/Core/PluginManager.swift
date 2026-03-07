@@ -230,17 +230,7 @@ final class PluginManager {
 
     /// Get the plugin ID that has the highest priority request to be displayed
     func highestPriorityClosedNotchPlugin() -> String? {
-        // Collect all requests from active plugins
-        let requests = activePlugins.compactMap { plugin -> (id: String, request: DisplayRequest)? in
-            guard let request = plugin.displayRequest else { return nil }
-            return (plugin.id, request)
-        }
-
-        // Sort by priority (descending)
-        // If priorities are equal, stability is not guaranteed (could add timestamp later)
-        let sorted = requests.sorted { $0.request.priority > $1.request.priority }
-
-        return sorted.first?.id
+        DisplayPrioritizer.highestPriority(among: activePlugins)
     }
 }
 

@@ -269,7 +269,7 @@ final class MediaKeyInterceptor {
 
     private func emitSneakPeek(type: SneakContentType, value: CGFloat) {
         eventBus.emit(SneakPeekRequestedEvent(
-            sourcePluginId: "com.boringnotch.system.mediakeys",
+            sourcePluginId: PluginID.System.mediaKeys,
             request: SneakPeekRequest(style: .standard, type: type, value: value)
         ))
     }

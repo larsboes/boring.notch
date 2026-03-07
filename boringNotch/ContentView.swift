@@ -102,61 +102,9 @@ struct ContentView: View {
                     )
                     .padding([.horizontal, .bottom], lerp(0, 12, animationProgress))
                     .clipShape(currentNotchShape)
-                    .background {
-                        ZStack {
-                            if settings.liquidGlassEffect {
-                                // Metal capture logic removed - using SwiftGlass
-                                Rectangle()
-                                    .swiftGlassEffect(
-                                        isEnabled: true,
-                                        tintColor: musicService.playbackState.isPlaying ? Color(nsColor: musicService.avgColor).opacity(0.3) : nil
-                                    )
-                            } else {
-                                Color.black
-                            }
-                            
-                            if vm.isHoveringNotch || vm.notchState == .open, let hoverImage = vm.backgroundImage {
-                                Image(nsImage: hoverImage)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .clipped()
-                            }
-                        }
-                        .clipShape(currentNotchShape)
-                        .shadow(
-                            // Late-onset shadow — appears after notch has mostly expanded
-                            color: (animationProgress > 0.3 && settings.enableShadow)
-                                ? .black.opacity(0.7 * pow(animationProgress, 2.5)) : .clear, radius: 6
-                        )
-                    }
-                    .overlay {
-                        // Luminous border for liquid glass effect (works in both states)
-                        if settings.liquidGlassEffect {
-                            // Smoothly interpolate border opacity (0.6 closed → 1.0 open)
-                            // sqrt curve makes border linger longer on close (fast rise, slow fade)
-                            let borderMultiplier = lerp(0.6, 1.0, sqrt(animationProgress))
-                            currentNotchShape
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [
-                                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * borderMultiplier),
-                                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * 0.3 * borderMultiplier),
-                                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * 0.5 * borderMultiplier)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: settings.liquidGlassStyle.configuration.borderWidth
-                                )
-                        }
-                    }
-                    .overlay(alignment: .top) {
-                        displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
-                            : Rectangle()
-                                .fill(settings.liquidGlassEffect ? .clear : .black)
-                                .frame(height: 1)
-                                .padding(.horizontal, topCornerRadius)
-                    }
+                    .background { notchBackground }
+                    .overlay { glassOverlay }
+                    .overlay(alignment: .top) { topEdgeLine }
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                     .frame(height: isDisplayStateOpen ? vm.notchSize.height : nil)
                     // Single animation for phase transitions (animations handled in ViewModel)
@@ -281,6 +229,67 @@ struct ContentView: View {
     func doOpen() {
         withAnimation(StandardAnimations.interactive) {
             vm.open()
+        }
+    }
+}
+
+// MARK: - Extracted Sub-Views
+
+extension ContentView {
+    @ViewBuilder
+    var notchBackground: some View {
+        ZStack {
+            if settings.liquidGlassEffect {
+                Rectangle()
+                    .swiftGlassEffect(
+                        isEnabled: true,
+                        tintColor: musicService.playbackState.isPlaying ? Color(nsColor: musicService.avgColor).opacity(0.3) : nil
+                    )
+            } else {
+                Color.black
+            }
+
+            if vm.isHoveringNotch || vm.notchState == .open, let hoverImage = vm.backgroundImage {
+                Image(nsImage: hoverImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .clipped()
+            }
+        }
+        .clipShape(currentNotchShape)
+        .shadow(
+            color: (animationProgress > 0.3 && settings.enableShadow)
+                ? .black.opacity(0.7 * pow(animationProgress, 2.5)) : .clear, radius: 6
+        )
+    }
+
+    @ViewBuilder
+    var glassOverlay: some View {
+        if settings.liquidGlassEffect {
+            let borderMultiplier = lerp(0.6, 1.0, sqrt(animationProgress))
+            currentNotchShape
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * borderMultiplier),
+                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * 0.3 * borderMultiplier),
+                            .white.opacity(settings.liquidGlassStyle.configuration.borderOpacity * 0.5 * borderMultiplier)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: settings.liquidGlassStyle.configuration.borderWidth
+                )
+        }
+    }
+
+    @ViewBuilder
+    var topEdgeLine: some View {
+        if !(displayClosedNotchHeight.isZero && vm.notchState == .closed) {
+            Rectangle()
+                .fill(settings.liquidGlassEffect ? .clear : .black)
+                .frame(height: 1)
+                .padding(.horizontal, topCornerRadius)
         }
     }
 }

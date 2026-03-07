@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 final class DisplaySurfacePlugin: NotchPlugin {
-    let id = "com.boringnotch.display-surface"
+    let id = PluginID.displaySurface
     let metadata = PluginMetadata(
         name: "Display Surface",
         description: "Generic ambient display for remote triggers",

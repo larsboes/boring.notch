@@ -18,6 +18,13 @@ enum SneakContentType {
     case mic
     case battery
     case download
+
+    var isHUD: Bool {
+        switch self {
+        case .volume, .brightness, .backlight, .mic: true
+        default: false
+        }
+    }
 }
 
 struct SneakPeek {

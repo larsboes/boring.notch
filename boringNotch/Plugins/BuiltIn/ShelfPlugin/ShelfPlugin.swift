@@ -15,7 +15,7 @@ final class ShelfPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.shelf"
+    let id = PluginID.shelf
     
     let metadata = PluginMetadata(
         name: "Shelf",

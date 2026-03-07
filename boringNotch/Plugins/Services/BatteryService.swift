@@ -188,7 +188,7 @@ class BatteryService: BatteryServiceProtocol {
                 }
                 
                 eventBus.emit(SneakPeekRequestedEvent(
-                    sourcePluginId: "com.boringnotch.system.battery",
+                    sourcePluginId: PluginID.System.battery,
                     request: SneakPeekRequest(style: .expanding, type: .battery)
                 ))
                 
@@ -200,7 +200,7 @@ class BatteryService: BatteryServiceProtocol {
                 // Standard power status notification
                 let soundToPlay = settings.powerStatusNotificationSound
                 eventBus.emit(SneakPeekRequestedEvent(
-                    sourcePluginId: "com.boringnotch.system.battery",
+                    sourcePluginId: PluginID.System.battery,
                     request: SneakPeekRequest(style: .expanding, type: .battery)
                 ))
                 

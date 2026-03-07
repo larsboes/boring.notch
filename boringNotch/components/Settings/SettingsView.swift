@@ -93,13 +93,13 @@ struct SettingsView: View {
                     WeatherSettings()
                 case "Habit Tracker":
                     if let pm = pluginManager {
-                        pm.settingsView(for: "com.boringnotch.habittracker")
+                        pm.settingsView(for: PluginID.habitTracker)
                     } else {
                         Text("Plugin Manager unavailable")
                     }
                 case "Pomodoro":
                     if let pm = pluginManager {
-                        pm.settingsView(for: "com.boringnotch.pomodoro")
+                        pm.settingsView(for: PluginID.pomodoro)
                     } else {
                         Text("Plugin Manager unavailable")
                     }

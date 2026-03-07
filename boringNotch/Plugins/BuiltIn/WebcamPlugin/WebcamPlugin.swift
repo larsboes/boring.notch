@@ -15,7 +15,7 @@ final class WebcamPlugin: NotchPlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.webcam"
+    let id = PluginID.webcam
     
     let metadata = PluginMetadata(
         name: "Webcam Mirror",

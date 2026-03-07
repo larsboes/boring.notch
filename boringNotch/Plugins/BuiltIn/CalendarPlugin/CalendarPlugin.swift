@@ -15,7 +15,7 @@ final class CalendarPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.calendar"
+    let id = PluginID.calendar
     
     let metadata = PluginMetadata(
         name: "Calendar",

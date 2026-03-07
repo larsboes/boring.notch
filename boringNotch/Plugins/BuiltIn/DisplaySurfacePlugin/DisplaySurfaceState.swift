@@ -5,19 +5,24 @@ import Observation
 @Observable
 final class DisplaySurfaceState {
     var content: DisplayContent = .clear
-    var ttlTask: Task<Void, Never>?
-    
+    private var ttlTask: Task<Void, Never>?
+
     func setContent(_ content: DisplayContent, ttl: TimeInterval? = nil) {
         self.content = content
-        
+
         ttlTask?.cancel()
         if let ttl = ttl {
-            ttlTask = Task {
+            ttlTask = Task { [weak self] in
                 try? await Task.sleep(nanoseconds: UInt64(ttl * 1_000_000_000))
-                if !Task.isCancelled {
-                    self.content = .clear
-                }
+                guard !Task.isCancelled else { return }
+                self?.content = .clear
             }
         }
+    }
+
+    func clear() {
+        ttlTask?.cancel()
+        ttlTask = nil
+        content = .clear
     }
 }

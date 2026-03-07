@@ -195,7 +195,7 @@ import Foundation
 
     private func emitSneakPeek(value: CGFloat) {
         eventBus.emit(SneakPeekRequestedEvent(
-            sourcePluginId: "com.boringnotch.system.volume",
+            sourcePluginId: PluginID.System.volume,
             request: SneakPeekRequest(style: .standard, type: .volume, value: value)
         ))
     }

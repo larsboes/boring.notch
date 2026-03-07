@@ -3,7 +3,7 @@ import Combine
 
 @MainActor
 final class TeleprompterPlugin: NotchPlugin {
-    let id = "com.boringnotch.teleprompter"
+    let id = PluginID.teleprompter
     let metadata = PluginMetadata(
         name: "Teleprompter",
         description: "Eye-contact friendly teleprompter",

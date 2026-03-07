@@ -15,7 +15,7 @@ final class WeatherPlugin: NotchPlugin, PositionedPlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.weather"
+    let id = PluginID.weather
     
     let metadata = PluginMetadata(
         name: "Weather",

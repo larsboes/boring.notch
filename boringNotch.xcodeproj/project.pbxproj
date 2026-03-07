@@ -147,6 +147,7 @@
 		20AD9CCE8934B96D524C73FD /* NotchHoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D01104225AEAADF0C129C4A /* NotchHoverController.swift */; };
 		221E2BF61BFFA731348AA879 /* ShelfImageConversionDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB4B38961CF880DB0D77E75 /* ShelfImageConversionDialog.swift */; };
 		2366C78544EFA3F2F86534D0 /* MusicPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A2434E0A7AFD3298FA102E /* MusicPlugin.swift */; };
+		263BED99EDA77061A2878EA5 /* TeleprompterTimerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0584151BEB524DE9C5F5812B /* TeleprompterTimerManager.swift */; };
 		29BF83E61E28405682127614 /* ProviderBackedAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33014323C244FA1BC29AFF9 /* ProviderBackedAIService.swift */; };
 		2CA2A25368299F10E7B536DF /* YouTubeMusicController+PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFCD351BD11B3AB4E1048A8 /* YouTubeMusicController+PlaybackState.swift */; };
 		312FE24D4629E8B2C243E9DD /* NotchVolumeControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11C468AF4F351C6BC408CD9 /* NotchVolumeControl.swift */; };
@@ -207,6 +208,7 @@
 		8B8F1DAFD1E84227AF9B187D /* ContentView+Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B93B5B036643D6AEF311DD /* ContentView+Appearance.swift */; };
 		8C4013DEB6ED977737000001 /* XPCHelperServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4013DEB6ED977737000002 /* XPCHelperServiceProtocol.swift */; };
 		8CC02C3D020EE844C4963942 /* ImageProcessingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21F04E8146DC07A8A4D520F /* ImageProcessingModels.swift */; };
+		8EE62D772092B788D8EE4195 /* PluginID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163CF41605DF5E0D50FECD13 /* PluginID.swift */; };
 		91304C605C5798DCA5DB88EA /* BrowserExtensionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63DD2AB955CB497BA0ACD61 /* BrowserExtensionModels.swift */; };
 		914B183904FCABE089C9E486 /* ShelfFileHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9352235724B3B3ABCDB187 /* ShelfFileHandler.swift */; };
 		93D024BC47CD687EDC2B7001 /* PluginSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB48750D2215B0E835773A42 /* PluginSettings.swift */; };
@@ -244,6 +246,7 @@
 		A1B2C3D4E5F601000000000C /* CGSSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B2C3D4E5F601000000000C /* CGSSpace.swift */; };
 		A1B2C3D4E5F60718293A4B5C /* NotchCameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C60798E1F2A3B4 /* NotchCameraController.swift */; };
 		A2F8AA9B3873EE62A781AE40 /* PluginMusicControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CB69289C85341C9CBCD4AA /* PluginMusicControlsView.swift */; };
+		A35AAA291299810766302F2C /* HeaderButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE3995BD473E0A8C585A63F /* HeaderButton.swift */; };
 		A586125A1FACADE16F1739FB /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28F91445E8D5B3F781EC0C6 /* ServiceContainer.swift */; };
 		A685D05F9F9DF984E020668F /* WebcamPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3B53CD55F2D18D3E7E8D43 /* WebcamPlugin.swift */; };
 		A8C3C75AC97AF614FBD8C2BA /* ShelfImageProcessorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E761B75A325145648DAD23 /* ShelfImageProcessorProtocol.swift */; };
@@ -276,6 +279,7 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		B3C58FEAD0776223DEA709DB /* BoringAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49CA0BEB7AAC63E91195B276 /* BoringAppState.swift */; };
+		B4B157C96138237D277EB2D0 /* DisplayPrioritizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E4AC0B8664F66A3C8B7BCC /* DisplayPrioritizer.swift */; };
 		B5FC8A4044A1D1DAE4EB79A4 /* HabitStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A2682D569DF986298A41601 /* HabitStore.swift */; };
 		BAA7AF39257A101CDCA86D82 /* BrightnessServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF97E971A6C5DED2CE3683B4 /* BrightnessServiceProtocol.swift */; };
 		BB521C5EB6C85C08B0373B9A /* PomodoroPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC179645AFA5229399BDD45 /* PomodoroPlugin.swift */; };
@@ -388,6 +392,7 @@
 		03E761B75A325145648DAD23 /* ShelfImageProcessorProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfImageProcessorProtocol.swift; path = boringNotch/Plugins/Services/ShelfImageProcessorProtocol.swift; sourceTree = "<group>"; };
 		0439C9731AD7320E6E80B439 /* DefaultsNotchSettings+Music.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "boringNotch/Core/DefaultsNotchSettings+Music.swift"; sourceTree = SOURCE_ROOT; };
 		04F57440ED49A9EFC6952A58 /* NotificationsPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationsPlugin.swift; path = boringNotch/Plugins/BuiltIn/NotificationsPlugin/NotificationsPlugin.swift; sourceTree = "<group>"; };
+		0584151BEB524DE9C5F5812B /* TeleprompterTimerManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TeleprompterTimerManager.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/TeleprompterTimerManager.swift; sourceTree = SOURCE_ROOT; };
 		0603643D654C74C555862767 /* HabitClosedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HabitClosedView.swift; path = boringNotch/Plugins/BuiltIn/HabitTrackerPlugin/HabitClosedView.swift; sourceTree = "<group>"; };
 		074800A0A6A43BF72038648F /* MusicService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicService.swift; path = boringNotch/Plugins/Services/MusicService.swift; sourceTree = "<group>"; };
 		08186422A6054FE4510EEEBF /* TemporaryFileStorageServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TemporaryFileStorageServiceProtocol.swift; path = boringNotch/Plugins/Services/TemporaryFileStorageServiceProtocol.swift; sourceTree = "<group>"; };
@@ -517,7 +522,9 @@
 		14E9FEA92C70BF610062E83F /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
+		163CF41605DF5E0D50FECD13 /* PluginID.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginID.swift; path = boringNotch/Plugins/Core/PluginID.swift; sourceTree = SOURCE_ROOT; };
 		1889C6F8871C876D25CADD60 /* ServiceContainer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServiceContainer.swift; path = boringNotch/Plugins/Services/ServiceContainer.swift; sourceTree = "<group>"; };
+		18E4AC0B8664F66A3C8B7BCC /* DisplayPrioritizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DisplayPrioritizer.swift; path = boringNotch/Plugins/Core/DisplayPrioritizer.swift; sourceTree = SOURCE_ROOT; };
 		1A1816D9AB5342A8918BF82F /* DisplaySurfaceClosedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DisplaySurfaceClosedView.swift; path = boringNotch/Plugins/BuiltIn/DisplaySurfacePlugin/Views/DisplaySurfaceClosedView.swift; sourceTree = SOURCE_ROOT; };
 		1AE1CD63669B40658BB453AA /* TeleprompterExpandedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TeleprompterExpandedView.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/Views/TeleprompterExpandedView.swift; sourceTree = SOURCE_ROOT; };
 		1D8C2670F1A8320273B9ACF8 /* WindowCoordinator+MultiDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WindowCoordinator+MultiDisplay.swift"; sourceTree = "<group>"; };
@@ -573,6 +580,7 @@
 		684BD5824285F6635ABC1AA7 /* DefaultsNotchSettings+Display.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "boringNotch/Core/DefaultsNotchSettings+Display.swift"; sourceTree = SOURCE_ROOT; };
 		6A2682D569DF986298A41601 /* HabitStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HabitStore.swift; path = boringNotch/Plugins/BuiltIn/HabitTrackerPlugin/HabitStore.swift; sourceTree = "<group>"; };
 		6C19C5AA1D42422A94A2ABF5 /* PluginManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginManager.swift; path = boringNotch/Plugins/Core/PluginManager.swift; sourceTree = "<group>"; };
+		6CE3995BD473E0A8C585A63F /* HeaderButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HeaderButton.swift; sourceTree = "<group>"; };
 		6CF5C4C63E0F27E2A6677E18 /* BatteryService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BatteryService.swift; path = boringNotch/Plugins/Services/BatteryService.swift; sourceTree = "<group>"; };
 		6DE74DBE80CC6312C6CF24B5 /* BrowserExtensionServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserExtensionServer.swift; sourceTree = "<group>"; };
 		6E13568776669AA2F49C92C7 /* WeatherService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeatherService.swift; path = boringNotch/Plugins/Services/WeatherService.swift; sourceTree = "<group>"; };
@@ -1208,6 +1216,7 @@
 				96B1D6AE6745B7F2144DA65E /* Services */,
 				E2D4033201AF6140F0261846 /* Core */,
 				BD193CCD52EEC12FE9F16190 /* UI */,
+				80587B12D274B1A8E4AFE6CA /* BuiltIn */,
 			);
 			name = Plugins;
 			sourceTree = "<group>";
@@ -1284,6 +1293,24 @@
 				6477CA8CD665D8AA43BAF4D3 /* WeatherData.swift */,
 			);
 			name = models;
+			sourceTree = "<group>";
+		};
+		7CDA284481F20DA8F990D739 /* TeleprompterPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				0584151BEB524DE9C5F5812B /* TeleprompterTimerManager.swift */,
+			);
+			name = TeleprompterPlugin;
+			path = TeleprompterPlugin;
+			sourceTree = "<group>";
+		};
+		80587B12D274B1A8E4AFE6CA /* BuiltIn */ = {
+			isa = PBXGroup;
+			children = (
+				7CDA284481F20DA8F990D739 /* TeleprompterPlugin */,
+			);
+			name = BuiltIn;
+			path = BuiltIn;
 			sourceTree = "<group>";
 		};
 		8B8DCFA6F7AB8979C99CD5BD /* OS X */ = {
@@ -1473,6 +1500,7 @@
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
+				6CE3995BD473E0A8C585A63F /* HeaderButton.swift */,
 			);
 			path = Notch;
 			sourceTree = "<group>";
@@ -1638,6 +1666,8 @@
 			isa = PBXGroup;
 			children = (
 				DF41C8F8C9011789D192F4C7 /* NotchServiceProvider.swift */,
+				18E4AC0B8664F66A3C8B7BCC /* DisplayPrioritizer.swift */,
+				163CF41605DF5E0D50FECD13 /* PluginID.swift */,
 			);
 			name = Core;
 			sourceTree = "<group>";
@@ -2161,6 +2191,10 @@
 				9E5F727A9CB5475DB5108D20 /* BrowserExtensionServer.swift in Sources */,
 				91304C605C5798DCA5DB88EA /* BrowserExtensionModels.swift in Sources */,
 				FFCA15E9DB3AAC5EA8F853DF /* BrowserMediaController.swift in Sources */,
+				263BED99EDA77061A2878EA5 /* TeleprompterTimerManager.swift in Sources */,
+				A35AAA291299810766302F2C /* HeaderButton.swift in Sources */,
+				B4B157C96138237D277EB2D0 /* DisplayPrioritizer.swift in Sources */,
+				8EE62D772092B788D8EE4195 /* PluginID.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -13,7 +13,7 @@ final class ClipboardPlugin: NotchPlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.clipboard"
+    let id = PluginID.clipboard
     
     let metadata = PluginMetadata(
         name: "Clipboard",

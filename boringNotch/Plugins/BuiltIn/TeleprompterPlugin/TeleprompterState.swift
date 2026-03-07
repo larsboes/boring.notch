@@ -6,40 +6,62 @@ import Observation
 final class TeleprompterState {
     var text: String = ""
     var config = TeleprompterScrollEngine.Config(
-        speed: 30, // px/s
+        speed: 30,
         fontSize: 16,
         pauseAtParagraph: true,
         pauseDuration: 2.0
     )
 
     var textColor: PrompterColor = .white
-    var countdownDuration: Int = 3 // 0 = off, 3 or 5
+    var countdownDuration: Int = 3
     let countdownState = CountdownState()
     var scrollPosition: Double = 0
+
     var isScrolling: Bool = false {
         didSet { updateTimerState() }
     }
-    
-    // Hover pause mechanic
+
     var isHovering: Bool = false {
         didSet { updateTimerState() }
     }
-    
-    
-    // Content metrics for auto-stopping
+
     var contentHeight: Double = 0
-    
+
     var isAtEnd: Bool {
-        // Assume physical notch height is ~30px, buffer 40px to stop right around the last line
-        contentHeight > 0 && scrollPosition >= (contentHeight - 40)
+        contentHeight > 0 && scrollPosition >= maxScroll
     }
-    
-    // Voice Feedback
-    let micMonitor = MicrophoneMonitor()
+
+    // MARK: - Timer Manager (extracted resource lifecycle)
+
+    let timerManager = TeleprompterTimerManager()
+
+    /// Convenience accessor for views that read mic level.
+    var micMonitor: MicrophoneMonitor { timerManager.micMonitor }
 
     private var engine = TeleprompterScrollEngine()
-    private var lastUpdate: Date?
-    private var timer: Timer?
+
+    // MARK: - Constants
+
+    /// Buffer pixels before content end to trigger auto-stop.
+    private static let endBuffer: Double = 40
+    /// Speed adjustment step.
+    private static let speedStep: Double = 10
+    private static let speedMin: Double = 10
+    private static let speedMax: Double = 150
+
+    private var maxScroll: Double {
+        contentHeight > 0 ? (contentHeight - Self.endBuffer) : .infinity
+    }
+
+    // MARK: - Init
+
+    init() {
+        timerManager.onTick = { [weak self] now in
+            self?.update(now: now)
+        }
+    }
+
+    // MARK: - Controls
 
     func toggleScrolling() {
         isScrolling.toggle()
@@ -48,26 +70,23 @@ final class TeleprompterState {
     func reset() {
         isScrolling = false
         scrollPosition = 0
-        lastUpdate = nil
+        timerManager.resetLastUpdate()
     }
-    
-    // MARK: - Minimalist Controls
-    
+
     func goHome() {
         scrollPosition = 0
-        lastUpdate = (isScrolling && !isHovering) ? Date() : nil
+        timerManager.resetLastUpdate()
     }
-    
+
     func increaseSpeed() {
-        config.speed = min(config.speed + 10, 150)
+        config.speed = min(config.speed + Self.speedStep, Self.speedMax)
     }
-    
+
     func decreaseSpeed() {
-        config.speed = max(config.speed - 10, 10)
+        config.speed = max(config.speed - Self.speedStep, Self.speedMin)
     }
 
     /// Start presentation: countdown first (if enabled), then begin scrolling.
-    /// The caller is responsible for closing the notch before calling this.
     func startPresentation() {
         if isAtEnd {
             scrollPosition = 0
@@ -99,76 +118,48 @@ final class TeleprompterState {
         self.reset()
     }
 
-    func update(now: Date = Date()) {
-        guard isScrolling, !isHovering else {
-            // Keep lastUpdate fresh while paused so it doesn't jump when resumed
-            lastUpdate = now
-            return 
-        }
+    // MARK: - Scroll Update
+
+    private func update(now: Date) {
+        guard isScrolling, !isHovering else { return }
 
         let state = TeleprompterScrollEngine.State(
             scrollPosition: scrollPosition,
             isScrolling: isScrolling,
-            lastUpdate: lastUpdate
+            lastUpdate: timerManager.lastUpdate
         )
 
         let newPosition = engine.calculatePosition(in: state, config: config, now: now)
-        
-        // Stop automatically if we've scrolled past the content
-        let maxScroll = contentHeight > 0 ? (contentHeight - 40) : .infinity
-        
+
         if newPosition >= maxScroll {
-            // Reached the end
             isScrolling = false
             scrollPosition = maxScroll
             return
         }
 
         scrollPosition = newPosition
-        lastUpdate = now
     }
 
-    // MARK: - Timer Management
-    
+    // MARK: - Timer State Coordination
+
     private func updateTimerState() {
         if isScrolling {
             if !isHovering {
-                micMonitor.startMonitoring()
+                timerManager.micMonitor.startMonitoring()
             } else {
-                micMonitor.stopMonitoring()
+                timerManager.micMonitor.stopMonitoring()
             }
-            
-            // We keep the timer running even when hovering to keep `lastUpdate` fresh,
-            // so we resume smoothly.
-            if timer == nil {
-                lastUpdate = Date()
-                startTimer()
+
+            if !timerManager.isRunning {
+                timerManager.start()
             }
         } else {
-            stopTimer()
-            micMonitor.stopMonitoring()
+            timerManager.stop()
         }
-    }
-
-    private func startTimer() {
-        guard timer == nil else { return }
-        timer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.update() }
-        }
-    }
-
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-
-    deinit {
-        // Timer is already invalidated by stopTimer() when isScrolling is set to false.
-        // This is a safety net — Timer.invalidate() is thread-safe.
     }
 }
 
-// MARK: - AI Action Enum (type-safe, no raw strings)
+// MARK: - AI Action Enum
 
 enum TeleprompterAIAction: String, Codable, Sendable {
     case refine
@@ -176,7 +167,7 @@ enum TeleprompterAIAction: String, Codable, Sendable {
     case draftIntro = "draft-intro"
 }
 
-// MARK: - Prompter Text Color (Foundation-only, SwiftUI Color extension in Views/)
+// MARK: - Prompter Text Color
 
 enum PrompterColor: String, CaseIterable, Codable, Sendable {
     case white, warmWhite, yellow, green, cyan

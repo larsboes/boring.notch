@@ -185,7 +185,7 @@ struct MusicPlaybackChangedEvent: PluginEvent {
 
     init(isPlaying: Bool, track: TrackInfo?) {
         self.type = isPlaying ? .musicPlaybackStarted : .musicPlaybackPaused
-        self.sourcePluginId = "com.boringnotch.music"
+        self.sourcePluginId = PluginID.music
         self.timestamp = Date()
         self.isPlaying = isPlaying
         self.track = track
@@ -195,7 +195,7 @@ struct MusicPlaybackChangedEvent: PluginEvent {
 /// Music track changed event
 struct MusicTrackChangedEvent: PluginEvent {
     let type = PluginEventType.musicTrackChanged
-    let sourcePluginId = "com.boringnotch.music"
+    let sourcePluginId = PluginID.music
     let timestamp = Date()
     let previousTrack: TrackInfo?
     let newTrack: TrackInfo?
@@ -209,7 +209,7 @@ struct MusicTrackChangedEvent: PluginEvent {
 /// Calendar event starting soon
 struct CalendarEventStartingSoonEvent: PluginEvent {
     let type = PluginEventType.calendarEventStartingSoon
-    let sourcePluginId = "com.boringnotch.calendar"
+    let sourcePluginId = PluginID.calendar
     let timestamp = Date()
     let event: EventModel
     let startsIn: TimeInterval
@@ -223,7 +223,7 @@ struct CalendarEventStartingSoonEvent: PluginEvent {
 /// Shelf item added event
 struct ShelfItemAddedEvent: PluginEvent {
     let type = PluginEventType.shelfItemAdded
-    let sourcePluginId = "com.boringnotch.shelf"
+    let sourcePluginId = PluginID.shelf
     let timestamp = Date()
     let item: ShelfItem
 
@@ -235,7 +235,7 @@ struct ShelfItemAddedEvent: PluginEvent {
 /// Battery state changed event
 struct BatteryStateChangedEvent: PluginEvent {
     let type: PluginEventType
-    let sourcePluginId = "com.boringnotch.battery"
+    let sourcePluginId = PluginID.battery
     let timestamp = Date()
     let level: Double
     let isCharging: Bool
@@ -251,7 +251,7 @@ struct BatteryStateChangedEvent: PluginEvent {
 /// Note: Uses existing NotchDisplayState from NotchStateMachine.swift
 struct NotchStateChangedEvent: PluginEvent {
     let type: PluginEventType
-    let sourcePluginId = "com.boringnotch.core"
+    let sourcePluginId = PluginID.System.core
     let timestamp = Date()
     let state: NotchDisplayState
 

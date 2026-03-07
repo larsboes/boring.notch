@@ -15,7 +15,7 @@ final class NotificationsPlugin: NotchPlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.notifications"
+    let id = PluginID.notifications
     
     let metadata = PluginMetadata(
         name: "Notifications",

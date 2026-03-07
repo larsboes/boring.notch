@@ -82,7 +82,7 @@ final class MicrophoneMonitor {
     }
     
     deinit {
-        // Cleanup handled by stopMonitoring(); Timer and AVAudioRecorder
-        // release their resources when deallocated.
+        // Timer uses [weak self] — fires harmlessly after dealloc.
+        // Normal cleanup path: stopMonitoring() called by TeleprompterTimerManager.stop().
     }
 }

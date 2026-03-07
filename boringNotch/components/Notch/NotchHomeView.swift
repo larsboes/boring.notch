@@ -64,13 +64,13 @@ struct NotchHomeView: View {
         HStack(alignment: .top, spacing: additionalItemsCount >= 2 ? 10 : 15) {
             // Render Music Plugin
             if let pluginManager {
-                pluginManager.expandedPanelView(for: "com.boringnotch.music")
+                pluginManager.expandedPanelView(for: PluginID.music)
                     .contentReveal(progress: contentProgress, staggerIndex: 0)
             }
 
             if shouldShowCalendar {
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.calendar")
+                    pluginManager.expandedPanelView(for: PluginID.calendar)
                         .frame(width: itemWidth)
                         .onHover { isHovering in
                             vm.isHoveringCalendar = isHovering
@@ -82,7 +82,7 @@ struct NotchHomeView: View {
 
             if shouldShowWeather {
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.weather")
+                    pluginManager.expandedPanelView(for: PluginID.weather)
                         .frame(width: itemWidth)
                         .environment(vm)
                         .contentReveal(progress: contentProgress, staggerIndex: 2)
@@ -91,7 +91,7 @@ struct NotchHomeView: View {
 
             if shouldShowCamera {
                 if let pluginManager {
-                    pluginManager.expandedPanelView(for: "com.boringnotch.webcam")
+                    pluginManager.expandedPanelView(for: PluginID.webcam)
                         .scaledToFit()
                         .contentReveal(progress: contentProgress, staggerIndex: 3, useBlur: false)
                 }

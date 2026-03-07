@@ -18,180 +18,119 @@ struct BoringHeader: View {
     var body: some View {
         @Bindable var coordinator = coordinator
         HStack(spacing: 0) {
-            HStack {
-                if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
-                    TabSelectionView()
-                        .padding(.leading, 8)
-                } else if vm.phase == .open {
-                    EmptyView()
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentReveal(progress: contentProgress, staggerIndex: 0)
-            .zIndex(2)
+            leadingContent
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentReveal(progress: contentProgress, staggerIndex: 0)
+                .zIndex(2)
 
-            // Only show black notch overlay when Liquid Glass effect is DISABLED and on screens with hardware notch
-            // When Liquid Glass is enabled, this black shape conflicts with the glass appearance
-            let currentScreen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
-            let hasHardwareNotch = (currentScreen?.safeAreaInsets.top ?? 0) > 0
-            
-            if vm.phase == .open && hasHardwareNotch {
-                if !settings.liquidGlassEffect {
-                    Rectangle()
-                        .fill(.black)
-                        .frame(width: vm.closedNotchSize.width)
-                        .mask {
-                            NotchShape()
-                        }
-                        .allowsHitTesting(false)
-                } else {
-                    // Invisible spacer to maintain layout when Liquid Glass is enabled
-                    // Only on screens WITH hardware notch where we need to leave space for it
-                    Color.clear
-                        .frame(width: vm.closedNotchSize.width, height: 1)
-                        .allowsHitTesting(false)
-                }
-            }
+            notchOverlay
 
-            HStack(spacing: 4) {
-                // Gate controls on phase == .open (not notchState == .open).
-                // phase == .open fires AFTER the animation completes,
-                // preventing accidental taps and visual flicker during transition.
-                if vm.phase == .open {
-                    if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && settings.showOpenNotchHUD {
-                        OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
-                            .transition(.scale(scale: 0.8).combined(with: .opacity))
-                            .padding(.trailing, 8)
-                    } else {
-                        if settings.showHabitTracker {
-                            Button(action: {
-                                withAnimation(.smooth) {
-                                    coordinator.currentView = coordinator.currentView == .habitTracker ? .home : .habitTracker
-                                }
-                            }) {
-                                ZStack {
-                                    Color.black.opacity(0.001)
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(coordinator.currentView == .habitTracker ? .white : .gray)
-                                        .imageScale(.medium)
-                                        .frame(width: 30, height: 30)
-                                        .background(
-                                            Capsule().fill(coordinator.currentView == .habitTracker ? Color(nsColor: .secondarySystemFill) : .black)
-                                        )
-                                }
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        if settings.showPomodoro {
-                            Button(action: {
-                                withAnimation(.smooth) {
-                                    coordinator.currentView = coordinator.currentView == .pomodoro ? .home : .pomodoro
-                                }
-                            }) {
-                                ZStack {
-                                    Color.black.opacity(0.001)
-                                    Image(systemName: "timer")
-                                        .foregroundColor(coordinator.currentView == .pomodoro ? .white : .gray)
-                                        .imageScale(.medium)
-                                        .frame(width: 30, height: 30)
-                                        .background(
-                                            Capsule().fill(coordinator.currentView == .pomodoro ? Color(nsColor: .secondarySystemFill) : .black)
-                                        )
-                                }
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        if settings.showTeleprompter {
-                            Button(action: {
-                                withAnimation(.smooth) {
-                                    coordinator.currentView = coordinator.currentView == .teleprompter ? .home : .teleprompter
-                                }
-                            }) {
-                                ZStack {
-                                    Color.black.opacity(0.001)
-                                    Image(systemName: "text.justify.left")
-                                        .foregroundColor(coordinator.currentView == .teleprompter ? .white : .gray)
-                                        .imageScale(.medium)
-                                        .frame(width: 30, height: 30)
-                                        .background(
-                                            Capsule().fill(coordinator.currentView == .teleprompter ? Color(nsColor: .secondarySystemFill) : .black)
-                                        )
-                                }
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        if settings.showMirror {
-                            Button(action: {
-                                vm.toggleCameraPreview()
-                            }) {
-                                ZStack {
-                                    Color.black.opacity(0.001)
-                                    Image(systemName: "web.camera")
-                                        .foregroundColor(.white)
-                                        .imageScale(.medium)
-                                        .frame(width: 30, height: 30)
-                                        .background(Capsule().fill(.black))
-                                }
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        if settings.settingsIconInNotch {
-                            Button(action: {
-                                showSettingsWindow()
-                            }) {
-                                ZStack {
-                                    Color.black.opacity(0.001)
-                                    Image(systemName: "gear")
-                                        .foregroundColor(.white)
-                                        .imageScale(.medium)
-                                        .frame(width: 30, height: 30)
-                                        .background(Capsule().fill(.black))
-                                }
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        if settings.showBatteryIndicator, let batteryService = pluginManager?.services.battery {
-                            BoringBatteryView(
-                                batteryWidth: 30,
-                                isCharging: batteryService.isCharging,
-                                isInLowPowerMode: batteryService.isInLowPowerMode,
-                                isPluggedIn: batteryService.isPluggedIn,
-                                levelBattery: batteryService.levelBattery,
-                                maxCapacity: batteryService.maxCapacity,
-                                timeToFullCharge: batteryService.timeToFullCharge,
-                                isForNotification: false
-                            )
-                        }
-                    }
-                }
-            }
-            .padding(4)
-            .font(.system(.headline, design: .rounded))
-            .frame(maxWidth: .infinity, alignment: .trailing)
-            .padding(.trailing, 8)
-            .contentReveal(progress: contentProgress, staggerIndex: 1)
-            .zIndex(2)
+            trailingControls
+                .padding(4)
+                .font(.system(.headline, design: .rounded))
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 8)
+                .contentReveal(progress: contentProgress, staggerIndex: 1)
+                .zIndex(2)
         }
         .foregroundColor(.gray)
         .environment(vm)
     }
 
-    func isHUDType(_ type: SneakContentType) -> Bool {
-        switch type {
-        case .volume, .brightness, .backlight, .mic:
-            return true
-        default:
-            return false
+    // MARK: - Leading
+
+    @ViewBuilder
+    private var leadingContent: some View {
+        if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
+            TabSelectionView()
+                .padding(.leading, 8)
+        } else if vm.phase == .open {
+            EmptyView()
+        }
+    }
+
+    // MARK: - Notch Overlay
+
+    @ViewBuilder
+    private var notchOverlay: some View {
+        let currentScreen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
+        let hasHardwareNotch = (currentScreen?.safeAreaInsets.top ?? 0) > 0
+
+        if vm.phase == .open && hasHardwareNotch {
+            if !settings.liquidGlassEffect {
+                Rectangle()
+                    .fill(.black)
+                    .frame(width: vm.closedNotchSize.width)
+                    .mask { NotchShape() }
+                    .allowsHitTesting(false)
+            } else {
+                Color.clear
+                    .frame(width: vm.closedNotchSize.width, height: 1)
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+
+    // MARK: - Trailing Controls
+
+    @ViewBuilder
+    private var trailingControls: some View {
+        @Bindable var coordinator = coordinator
+        if vm.phase == .open {
+            if coordinator.sneakPeek.type.isHUD && coordinator.sneakPeek.show && settings.showOpenNotchHUD {
+                OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+                    .padding(.trailing, 8)
+            } else {
+                headerButtons
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var headerButtons: some View {
+        if settings.showHabitTracker {
+            HeaderButton(icon: "checkmark.circle.fill", isActive: coordinator.currentView == .habitTracker) {
+                withAnimation(.smooth) {
+                    coordinator.currentView = coordinator.currentView == .habitTracker ? .home : .habitTracker
+                }
+            }
+        }
+        if settings.showPomodoro {
+            HeaderButton(icon: "timer", isActive: coordinator.currentView == .pomodoro) {
+                withAnimation(.smooth) {
+                    coordinator.currentView = coordinator.currentView == .pomodoro ? .home : .pomodoro
+                }
+            }
+        }
+        if settings.showTeleprompter {
+            HeaderButton(icon: "text.justify.left", isActive: coordinator.currentView == .teleprompter) {
+                withAnimation(.smooth) {
+                    coordinator.currentView = coordinator.currentView == .teleprompter ? .home : .teleprompter
+                }
+            }
+        }
+        if settings.showMirror {
+            HeaderActionButton(icon: "web.camera") {
+                vm.toggleCameraPreview()
+            }
+        }
+        if settings.settingsIconInNotch {
+            HeaderActionButton(icon: "gear") {
+                showSettingsWindow()
+            }
+        }
+        if settings.showBatteryIndicator, let batteryService = pluginManager?.services.battery {
+            BoringBatteryView(
+                batteryWidth: 30,
+                isCharging: batteryService.isCharging,
+                isInLowPowerMode: batteryService.isInLowPowerMode,
+                isPluggedIn: batteryService.isPluggedIn,
+                levelBattery: batteryService.levelBattery,
+                maxCapacity: batteryService.maxCapacity,
+                timeToFullCharge: batteryService.timeToFullCharge,
+                isForNotification: false
+            )
         }
     }
 }

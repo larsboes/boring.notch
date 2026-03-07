@@ -13,7 +13,8 @@ import SwiftUI
 @MainActor
 final class SpotifyController: MediaControllerProtocol {
     func setFavorite(_ favorite: Bool) async {
-        // Placeholder
+        // Spotify does not expose favorite toggling via AppleScript.
+        // Callers must check `supportsFavorite` before invoking.
     }
 
     // MARK: - Properties

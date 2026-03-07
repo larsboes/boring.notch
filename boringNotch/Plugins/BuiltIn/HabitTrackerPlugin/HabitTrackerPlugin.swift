@@ -15,7 +15,7 @@ final class HabitTrackerPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.habittracker"
+    let id = PluginID.habitTracker
     
     let metadata = PluginMetadata(
         name: "Habit Tracker",

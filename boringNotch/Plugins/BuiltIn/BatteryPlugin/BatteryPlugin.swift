@@ -15,7 +15,7 @@ final class BatteryPlugin: NotchPlugin, PositionedPlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.battery"
+    let id = PluginID.battery
     
     let metadata = PluginMetadata(
         name: "Battery",

@@ -15,7 +15,7 @@ final class PomodoroPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - NotchPlugin
     
-    let id = "com.boringnotch.pomodoro"
+    let id = PluginID.pomodoro
     
     let metadata = PluginMetadata(
         name: "Pomodoro Timer",

@@ -56,7 +56,7 @@ final class KeyboardShortcutCoordinator {
         if settings.sneakPeekStyles == .inline {
             if !coordinator.expandingView.show {
                 eventBus.emit(SneakPeekRequestedEvent(
-                    sourcePluginId: "com.boringnotch.system.keyboard",
+                    sourcePluginId: PluginID.System.keyboard,
                     request: SneakPeekRequest(style: .inline, type: .music)
                 ))
             } else {
@@ -65,7 +65,7 @@ final class KeyboardShortcutCoordinator {
         } else {
             if !coordinator.sneakPeek.show {
                 eventBus.emit(SneakPeekRequestedEvent(
-                    sourcePluginId: "com.boringnotch.system.keyboard",
+                    sourcePluginId: PluginID.System.keyboard,
                     request: SneakPeekRequest(style: .standard, type: .music)
                 ))
             } else {
