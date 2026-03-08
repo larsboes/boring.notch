@@ -16,22 +16,20 @@ struct BoringHeader: View {
     @Environment(\.contentProgress) var contentProgress
 
     var body: some View {
-        @Bindable var coordinator = coordinator
         HStack(spacing: 0) {
+            Spacer()
+            
             leadingContent
-                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentReveal(progress: contentProgress, staggerIndex: 0)
-                .zIndex(2)
-
+            
             notchOverlay
-
+            
             trailingControls
                 .padding(4)
                 .font(.system(.headline, design: .rounded))
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.trailing, 8)
                 .contentReveal(progress: contentProgress, staggerIndex: 1)
-                .zIndex(2)
+            
+            Spacer()
         }
         .foregroundColor(.gray)
         .environment(vm)
@@ -60,12 +58,12 @@ struct BoringHeader: View {
             if !settings.liquidGlassEffect {
                 Rectangle()
                     .fill(.black)
-                    .frame(width: vm.closedNotchSize.width + 32) // Added 32pt safety margin (16pt each side)
+                    .frame(width: vm.closedNotchSize.width + 64) // Added 64pt safety margin (32pt each side)
                     .mask { NotchShape() }
                     .allowsHitTesting(false)
             } else {
                 Color.clear
-                    .frame(width: vm.closedNotchSize.width + 32, height: 1)
+                    .frame(width: vm.closedNotchSize.width + 64, height: 1)
                     .allowsHitTesting(false)
             }
         }

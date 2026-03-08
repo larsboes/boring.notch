@@ -50,6 +50,7 @@ struct TabSelectionView: View {
                     }
             }
         }
+        .padding(.horizontal, 4)
         .clipShape(Capsule())
     }
 }
