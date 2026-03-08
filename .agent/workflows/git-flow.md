@@ -28,9 +28,9 @@ When work is complete and verified:
 // turbo
 5. `git push origin developer`
 
-## 4. Cleanup
-After successful integration into `developer`:
-1. Delete the local topic branch: `git branch -D [topic-branch]`
+## 4. Cleanup (Optional)
+If you prefer to keep your workspace clean after integration:
+1. Delete the local topic branch: `git branch -d [topic-branch]` (Use `-d` for safe deletion)
 2. Delete the remote topic branch: `git push origin --delete [topic-branch]`
 
 ## 4. Release to Main
