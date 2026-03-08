@@ -15,7 +15,11 @@
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
+  <a href="docs/images/demo.mov">
+    <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo" width="700" />
+  </a>
+  <br>
+  <em>Click to watch the demo video</em>
 </p>
 
 ---
@@ -84,6 +88,7 @@ Cherry-picked and adapted the best community contributions that were pending on 
 
 - **macOS 14 or later**
 - **Xcode 16 or later**
+- A free **Apple Developer account** (for code signing)
 
 ### Steps
 
@@ -93,18 +98,25 @@ Cherry-picked and adapted the best community contributions that were pending on 
    cd boring.notch
    ```
 
-2. **Resolve packages:**
-   ```bash
-   xcodebuild -resolvePackageDependencies -project boringNotch.xcodeproj -scheme boringNotch
-   ```
-
-3. **Open and run:**
+2. **Open the project:**
    ```bash
    open boringNotch.xcodeproj
    ```
-   Press `Cmd + R` to build and run.
+   Xcode will automatically resolve Swift Package dependencies on first open. If it doesn't, go to **File → Packages → Resolve Package Versions**.
 
-> **Note:** If Xcode shows "Missing package product" errors, close and reopen the project after resolving packages. The CLI resolution works — Xcode's GUI cache is just slow.
+3. **Fix code signing** (required — the project ships with the maintainer's team/bundle ID):
+   - Select the **boringNotch** project in the sidebar
+   - For **each target** (`boringNotch`, `BoringNotchXPCHelper`, `boringNotchTests`):
+     1. Go to the **Signing & Capabilities** tab
+     2. Check **Automatically manage signing**
+     3. Change **Team** to your personal team
+     4. Change **Bundle Identifier** to something unique (e.g., `com.yourname.boringnotch`)
+
+   <img src="docs/images/signing-setup.png" alt="Xcode Signing Setup" width="700" />
+
+4. **Build and run:** Press `Cmd + R`.
+
+> **Note:** If Xcode shows "Missing package product" errors, close and reopen the project. The package cache can be slow to sync on first open.
 
 ---
 
