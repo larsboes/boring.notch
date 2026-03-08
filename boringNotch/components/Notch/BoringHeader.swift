@@ -17,19 +17,19 @@ struct BoringHeader: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Spacer()
-            
             leadingContent
+                .frame(maxWidth: .infinity, alignment: .trailing)
                 .contentReveal(progress: contentProgress, staggerIndex: 0)
+                .zIndex(2)
             
             notchOverlay
             
             trailingControls
                 .padding(4)
                 .font(.system(.headline, design: .rounded))
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentReveal(progress: contentProgress, staggerIndex: 1)
-            
-            Spacer()
+                .zIndex(2)
         }
         .foregroundColor(.gray)
         .environment(vm)
@@ -41,7 +41,7 @@ struct BoringHeader: View {
     private var leadingContent: some View {
         if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
             TabSelectionView()
-                .padding(.leading, 8)
+                .padding(.trailing, 8)
         } else if vm.phase.isVisible {
             EmptyView()
         }
@@ -58,12 +58,12 @@ struct BoringHeader: View {
             if !settings.liquidGlassEffect {
                 Rectangle()
                     .fill(.black)
-                    .frame(width: vm.closedNotchSize.width + 64) // Added 64pt safety margin (32pt each side)
+                    .frame(width: vm.closedNotchSize.width + 96) // Added 96pt safety margin (48pt each side)
                     .mask { NotchShape() }
                     .allowsHitTesting(false)
             } else {
                 Color.clear
-                    .frame(width: vm.closedNotchSize.width + 64, height: 1)
+                    .frame(width: vm.closedNotchSize.width + 96, height: 1)
                     .allowsHitTesting(false)
             }
         }

@@ -97,12 +97,8 @@ struct ContentView: View {
                     .onChange(of: currentStateSnapshot) { _, _ in updateStateMachine() }
                     .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
                     .frame(alignment: .top)
-                    // Smoothly interpolate padding based on animation progress
-                    .padding(
-                        .horizontal,
-                        lerp(cornerRadiusInsets.closed.bottom, cornerRadiusInsets.opened.top, animationProgress)
-                    )
-                    .padding([.horizontal, .bottom], lerp(0, 12, animationProgress))
+                    // Smoothly interpolate bottom padding based on animation progress
+                    .padding(.bottom, lerp(0, 12, animationProgress))
                     .clipShape(currentNotchShape)
                     .background { notchBackground }
                     .overlay { glassOverlay }
