@@ -15,11 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/images/demo.mov">
-    <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo" width="700" />
-  </a>
-  <br>
-  <em>Click to watch the demo video</em>
+  <video src="https://github.com/user-attachments/assets/b8912856-6c8c-48bd-9d0c-16ab084ddd59" width="700" autoplay loop muted></video>
 </p>
 
 ---
