@@ -32,8 +32,8 @@
 
 ## Current State (2026-03-08)
 
-**Working branch:** `perf/phase2-efficiency`
-**Branch sync:** `developer` = `dev`, `main` may differ
+**Working branch:** `developer`
+**Branch sync:** `developer` = `origin/developer`, `main` = stable
 
 | Phase | Status | Summary |
 |-------|--------|---------|
