@@ -24,6 +24,19 @@ struct MusicLiveActivity: View {
     // In the original, gestureProgress affected the width of the spectrum container
     var gestureProgress: CGFloat = 0
 
+    private var closedNotchTopRadius: CGFloat {
+        let base = cornerRadiusInsets.closed.top
+        if let scale = cornerRadiusScaleFactor {
+            return max(0, base * scale)
+        }
+        return max(0, base)
+    }
+
+    // Keep media content away from the curved notch shoulders to avoid clipping.
+    private var edgeSafeInset: CGFloat {
+        max(0, closedNotchTopRadius + 2)
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
@@ -67,11 +80,12 @@ struct MusicLiveActivity: View {
                 width: scaledArtSize,
                 height: scaledArtSize
             )
+            .padding(.leading, 10)
 
             // Fixed-width middle section matching physical notch width
             Rectangle()
                 .fill(Color.clear)
-                .frame(width: vm.closedNotchSize.width)
+                .frame(width: max(0, vm.closedNotchSize.width - self.edgeSafeInset * 2))
 
             HStack {
                 AudioSpectrumView(
@@ -96,6 +110,7 @@ struct MusicLiveActivity: View {
             )
             .padding(.trailing, 10)
         }
+        .padding(.horizontal, self.edgeSafeInset)
         .frame(
             height: displayClosedNotchHeight,
             alignment: .center

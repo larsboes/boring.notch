@@ -44,6 +44,8 @@
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
 | 10 — Teleprompter Pro | **Active** | 10.0/10.4/10.7/10.8 shipped. Remaining: script library, voice scrolling, enhanced editor, display customization, closed display polish, screen sharing, detachable mode |
 | 11 — Foundation Models | Planned | On-device AI via Apple FoundationModels (macOS 26+), streaming, structured generation |
+| 12 — Audio Visualizer | Planned | Real audio-reactive visualization extending closed notch. ScreenCaptureKit + FFT. |
+| 13 — Notch Video Player | Planned (Long-term) | PiP-style video player as extended notch. AVPlayer + browser integration. |
 
 **Latest architecture hardening commits:**
 - `d277bd4` — snapshot before cleanup
@@ -753,6 +755,384 @@ Prioritized by user impact and dependency chain:
 
 ---
 
+## Phase 12 — Audio Visualizer (Extended Notch)
+
+**Goal:** Replace the fake 4-bar spectrum with a real, audio-reactive visualizer that extends the closed notch downward. Beautiful enough that users leave it on permanently.
+
+**Why:** The current `AudioSpectrum` is a `CAKeyframeAnimation` with random values — not connected to audio at all. macOS's own notch music indicator is similarly basic. A real audio-reactive visualization is the single highest-impact visual upgrade for the most-used plugin (Music).
+
+**Design Principle:** The notch should feel alive when music plays — like the music is physically emanating from it. Not a gimmick, an ambient display that rewards peripheral attention.
+
+### Architecture
+
+```
+ScreenCaptureKit (system audio)
+        │ CMSampleBuffer (audio frames)
+        ▼
+AudioCaptureService (protocol-based)
+        │ Float array (raw PCM)
+        ▼
+AudioFFTProcessor (Accelerate vDSP)
+        │ [Float] frequency magnitudes (32-64 bands)
+        ▼
+AudioVisualizerPlugin
+        │ VisualizationMode enum
+        ▼
+VisualizerRenderer (Metal / Core Animation)
+        │ Rendered frames
+        ▼
+closedNotchContent() → extended notch view
+```
+
+### 12.1 — Audio Capture Service
+
+**Status:** Planned | **Priority:** P0
+
+**Protocol:**
+```swift
+protocol AudioCaptureServiceProtocol: Sendable {
+    var audioBuffer: AsyncStream<[Float]> { get }
+    var isCapturing: Bool { get }
+    func startCapture() async throws
+    func stopCapture() async
+}
+```
+
+**Implementation:** `ScreenCaptureKitAudioService`
+- Uses `SCStreamConfiguration` with `capturesAudio = true`, `excludesCurrentProcessAudio = false`
+- Video capture disabled (`width = 2, height = 2, minimumFrameInterval = CMTime(1, 1)`) — audio-only workaround since SCK requires a display
+- `SCStreamOutput` delegate receives `CMSampleBuffer` → extract `AudioBufferList` → convert to `[Float]`
+- One-time `SCShareableContent.current` to pick default display (required by API, but we only want audio)
+- Permission: system dialog on first use. No entitlement needed for own audio capture
+- Publishes raw PCM frames via `AsyncStream` at audio sample rate
+
+**Fallback:** If user denies screen recording permission, `MockAudioCaptureService` publishes energy-based random data (current behavior, elevated slightly). Existing `AudioSpectrum` still works.
+
+**Key constraint:** `ScreenCaptureKit` requires macOS 13+. On macOS 12, fall back to fake animation silently.
+
+### 12.2 — FFT Processor
+
+**Status:** Planned | **Priority:** P0
+
+```swift
+@MainActor
+final class AudioFFTProcessor {
+    private let fftSetup: vDSP_DFT_Setup
+    private let bandCount: Int
+
+    func process(_ samples: [Float]) -> [Float]  // Returns normalized magnitudes per band
+}
+```
+
+- Uses `vDSP_DFT_zop_CreateSetup` for FFT (1024-sample window, Hann windowing)
+- Maps FFT output to `bandCount` frequency bands (default 32, configurable 16/32/64)
+- Logarithmic frequency scaling (more resolution in bass/mids, less in highs — matches human perception)
+- Temporal smoothing: `newValue = α * raw + (1 - α) * previous` (α = 0.3, configurable)
+- Peak detection with decay: peaks hold for ~200ms then fall at constant rate
+- Output: `[Float]` array of 0.0–1.0 normalized magnitudes
+- Processing on background thread, results delivered to MainActor
+
+### 12.3 — Visualization Modes
+
+**Status:** Planned | **Priority:** P1
+
+**Enum:**
+```swift
+enum VisualizationMode: String, Codable, CaseIterable {
+    case spectrumBars    // Classic equalizer bars
+    case waveform        // Oscilloscope-style continuous line
+    case flowingGradient // Abstract color gradient morphing with audio
+    case radialSpectrum  // Circular arrangement around notch center
+}
+```
+
+**Spectrum Bars (default):**
+- 16–32 vertical bars across notch width, rounded caps
+- Height maps to frequency magnitude
+- Gradient color: album art dominant color → accent color fallback
+- Smooth spring animation between values (not jerky)
+- Bar width and gap auto-calculated from available width
+
+**Waveform:**
+- Continuous `Path` representing audio waveform
+- Centered horizontally, amplitude maps to vertical displacement
+- Stroke with gradient (album art colors)
+- Smooth interpolation between sample points (Catmull-Rom)
+
+**Flowing Gradient:**
+- `MeshGradient` (macOS 15+) or layered `LinearGradient` fallback
+- Control points shift based on frequency band energy
+- Low frequencies drive slow, large movements; highs drive small, fast ripples
+- Colors extracted from album art via `ColorThief`-style dominant color extraction
+- Most ambient/subtle mode — designed for peripheral attention
+
+**Radial Spectrum:**
+- Frequency bars arranged in a semicircle emanating from notch center bottom
+- Inner radius = notch corner radius, outer radius = inner + magnitude * maxHeight
+- Each bar is a wedge/arc segment
+- Looks like sound waves radiating from the notch
+
+### 12.4 — Extended Notch Display
+
+**Status:** Planned | **Priority:** P0
+
+The visualizer extends the closed notch downward by a configurable height (20–60px, default 30px).
+
+**Integration with existing architecture:**
+- `AudioVisualizerPlugin.displayRequest` sets `preferredHeight` when music is playing
+- `NotchStateMachine` already supports variable closed-notch height via display requests
+- The extension area renders below the standard notch content (album art, controls)
+- Smooth height animation when visualizer activates/deactivates (spring curve matching Phase 4 values)
+
+**Layout:**
+```
+┌──────────────────────┐
+│   ▓▓▓▓ NOTCH ▓▓▓▓   │  ← Standard closed notch (album art, title, controls)
+├──────────────────────┤
+│ ▎▌█▌▎▍▊▎▌█▌▎▍▊▎▌█▌ │  ← Extended area: visualizer (20-60px)
+└──────────────────────┘
+```
+
+**Renderer choice:**
+- **Primary:** `CALayer`-based (Core Animation) — matches existing `AudioSpectrum` pattern, good performance
+- **Upgrade path:** Metal shader for Flowing Gradient and Radial modes (GPU-accelerated, <1% CPU)
+- **Not SwiftUI:** Too expensive for 30fps continuous animation
+
+### 12.5 — Album Art Color Extraction
+
+**Status:** Planned | **Priority:** P2
+
+Extract dominant colors from current album art for visualizer theming.
+
+```swift
+protocol ColorExtractionServiceProtocol {
+    func dominantColors(from image: NSImage, count: Int) async -> [NSColor]
+}
+```
+
+- K-means clustering on downscaled image (32x32) for speed
+- Cache per track (invalidate on track change)
+- Returns ordered by prominence: primary, secondary, accent
+- Fallback: system accent color when no album art
+
+### 12.6 — Visualizer Settings
+
+**Status:** Planned | **Priority:** P1
+
+In Music plugin settings section (not a separate settings page):
+
+| Setting | Type | Default | Range |
+|---------|------|---------|-------|
+| Visualizer enabled | Toggle | On | — |
+| Mode | Picker | Spectrum Bars | 4 modes |
+| Extended height | Slider | 30px | 20–60px |
+| Color source | Picker | Album Art | Album Art / Accent / Custom |
+| Sensitivity | Slider | 0.5 | 0.0–1.0 |
+| Show when paused | Toggle | Off | — |
+| Band count | Stepper | 32 | 16/32/64 (Spectrum Bars only) |
+
+**API endpoints (self-registered):**
+```
+GET  /api/v1/visualizer/state     → { mode, isActive, sensitivity }
+POST /api/v1/visualizer/mode      → { mode: "spectrumBars" | "waveform" | ... }
+POST /api/v1/visualizer/toggle
+```
+
+### 12.7 — Performance Budget
+
+| Component | CPU Target | Notes |
+|-----------|-----------|-------|
+| Audio capture | <0.5% | ScreenCaptureKit is hardware-accelerated |
+| FFT processing | <0.5% | 1024-sample vDSP FFT is trivial |
+| Visualization render | <2% | CALayer at 30fps; Metal if needed |
+| **Total** | **<3%** | Acceptable for always-on ambient display |
+
+- 30fps default, 60fps optional toggle for smoothness addicts
+- All processing paused when music is paused (unless "Show when paused" enabled)
+- Visualizer hidden when notch is expanded (full panel open)
+- `BackgroundServiceRestartable` conformance for phase-based suspension
+
+---
+
+## Phase 13 — Notch Video Player (Long-Term)
+
+**Goal:** Small PiP-style video player extending the notch for ambient video viewing. YouTube playing in your notch while you code.
+
+**Status:** Concept — needs research spike before committing to architecture.
+
+**Design Principle:** The notch becomes a viewport. Not a replacement for full-screen video — an ambient companion for content you're half-watching. Lectures, tutorials, live streams, music videos.
+
+### Architecture (Proposed)
+
+```
+Video Source
+├── AVPlayer (local files, direct URLs, HLS/DASH streams)
+├── yt-dlp extraction (YouTube → stream URL → AVPlayer)
+└── ScreenCaptureKit window capture (any app, future)
+        │
+        ▼
+VideoPlayerPlugin
+├── VideoSourceService (protocol)
+├── VideoPlayerState (@Observable)
+└── VideoPlayerRenderer (AVPlayerLayer)
+        │
+        ▼
+closedNotchContent() → extended notch video viewport
+```
+
+### 13.1 — Video Source Service
+
+**Status:** Concept | **Priority:** Research spike
+
+```swift
+protocol VideoSourceServiceProtocol {
+    func loadURL(_ url: URL) async throws -> VideoSource
+    func loadFile(_ path: URL) async throws -> VideoSource
+}
+
+enum VideoSource {
+    case avPlayer(AVPlayer)          // Direct playback
+    case streamURL(URL, format: StreamFormat)  // HLS/DASH
+}
+```
+
+**Source strategies (ordered by feasibility):**
+
+| Source | Feasibility | Approach | DRM Risk |
+|--------|------------|----------|----------|
+| Local files (.mp4, .mov) | Easy | `AVPlayer(url:)` | None |
+| Direct video URLs | Easy | `AVPlayer(url:)` | None |
+| YouTube | Medium | `yt-dlp` extracts stream URL → `AVPlayer` | Low (yt-dlp handles) |
+| Browser tab video | Hard | Browser extension `captureStream()` + WebRTC → native | High (DRM blocks) |
+| Any window capture | Hard | `ScreenCaptureKit` window filter | Medium |
+
+**MVP strategy:** Start with AVPlayer (local + direct URL) + yt-dlp YouTube extraction. Browser integration deferred.
+
+### 13.2 — Extended Notch Video Viewport
+
+**Status:** Concept | **Priority:** P1 (after 13.1 research)
+
+**Dimensions:**
+- Notch width: ~200px (varies by MacBook model)
+- 16:9 aspect at 200px wide = ~112px tall
+- 4:3 aspect at 200px wide = ~150px tall
+- Configurable: fit (letterbox) vs fill (crop)
+
+**Layout:**
+```
+┌──────────────────────┐
+│   ▓▓▓▓ NOTCH ▓▓▓▓   │  ← Camera + notch hardware
+├──────────────────────┤
+│                      │
+│   ┌──────────────┐   │  ← Video viewport (16:9)
+│   │  ▶ VIDEO     │   │     AVPlayerLayer renders here
+│   └──────────────┘   │
+│                      │
+└──────────────────────┘
+```
+
+**Renderer:** `AVPlayerLayer` wrapped in `NSViewRepresentable`. Not SwiftUI `VideoPlayer` (too heavy for notch constraints).
+
+### 13.3 — Playback Controls
+
+**Status:** Concept | **Priority:** P1
+
+**Closed notch (hover-to-reveal):**
+- Play/pause (center)
+- Volume (left, mini slider)
+- Close (right, X button)
+- Progress bar (bottom edge, thin)
+- Click video → expand notch to show full controls
+
+**Expanded panel:**
+- Full playback controls (play, pause, seek, volume, speed)
+- URL input field (paste YouTube/video URL)
+- File picker button (local files)
+- Video queue / history
+- Picture-in-Picture breakout button (detach to native macOS PiP)
+- Aspect ratio toggle (fit/fill)
+
+### 13.4 — YouTube Integration via yt-dlp
+
+**Status:** Concept | **Priority:** P2
+
+```swift
+struct YTDLPExtractor {
+    func extractStreamURL(from youtubeURL: URL) async throws -> URL
+}
+```
+
+- Shell out to `yt-dlp --get-url --format "best[height<=720]"` (720p max for notch-sized viewport)
+- Requires `yt-dlp` installed (`brew install yt-dlp`)
+- Cache extracted URLs (they expire, typically ~6h)
+- Graceful error: "Install yt-dlp for YouTube support" in settings
+- Future: bundle `yt-dlp` binary or use Swift port
+
+### 13.5 — Browser Extension Enhancement (Future)
+
+**Status:** Deferred — research needed
+
+Extend the existing browser extension to support video frame streaming:
+- Detect `<video>` elements on active tab
+- Send video metadata (title, duration, current time) — **already exists**
+- New: "Play in Notch" button overlay on detected videos
+- New: extract video source URL when not DRM-protected → send to native `AVPlayer`
+- DRM content (Netflix, Disney+): not supported, show clear message
+
+### 13.6 — Video Player Settings
+
+| Setting | Type | Default |
+|---------|------|---------|
+| Video player enabled | Toggle | On |
+| Default aspect ratio | Picker | Fit (letterbox) |
+| Auto-pause on expand | Toggle | On |
+| Playback speed | Picker | 1.0x |
+| Volume | Slider | System |
+| yt-dlp path | Text field | Auto-detect |
+| Max resolution | Picker | 720p |
+
+**API endpoints (self-registered):**
+```
+POST /api/v1/video/load          → { url: "https://..." }
+POST /api/v1/video/play-pause
+POST /api/v1/video/seek          → { position: 0.5 }
+GET  /api/v1/video/state         → { url, isPlaying, position, duration }
+POST /api/v1/video/close
+```
+
+### 13.7 — Research Spike Checklist
+
+Before committing to implementation, validate:
+
+- [ ] `ScreenCaptureKit` audio-only capture works reliably (Phase 12 prerequisite validates this)
+- [ ] `AVPlayerLayer` renders correctly in notch window (window level, compositing)
+- [ ] `yt-dlp` stream URL extraction is fast enough (<2s) and reliable
+- [ ] Video playback CPU/GPU impact at 720p in 200px viewport
+- [ ] Memory footprint of AVPlayer with HLS stream
+- [ ] macOS PiP API (`AVPictureInPictureController`) integration from custom window
+- [ ] Browser extension `captureStream()` DRM limitations on major sites
+
+---
+
+## Phase 12/13 Implementation Order
+
+| Priority | Task | Depends On | Impact |
+|----------|------|------------|--------|
+| **P0** | 12.1 Audio Capture Service | — | Foundation for all visualizer work |
+| **P0** | 12.2 FFT Processor | 12.1 | Turns raw audio into usable data |
+| **P0** | 12.4 Extended Notch Display | — | Rendering surface for visualizer |
+| **P1** | 12.3 Visualization Modes (Spectrum Bars) | 12.1, 12.2, 12.4 | MVP visualizer |
+| **P1** | 12.6 Visualizer Settings | 12.3 | User customization |
+| **P2** | 12.3 Visualization Modes (Waveform, Gradient, Radial) | 12.3 | Additional modes |
+| **P2** | 12.5 Album Art Color Extraction | — | Visual polish |
+| **P3** | 13.1 Video Source Service (research spike) | — | Validate feasibility |
+| **P3** | 13.2 Video Viewport | 13.1 | Core video display |
+| **P3** | 13.3 Playback Controls | 13.2 | Basic usability |
+| **P3** | 13.4 YouTube/yt-dlp Integration | 13.2 | Key use case |
+| **Future** | 13.5 Browser Extension Enhancement | 13.2 | DRM research needed |
+
+---
+
 ## Vision: The Notch as Ambient Display Platform
 
 ```
@@ -769,9 +1149,11 @@ Prioritized by user impact and dependency chain:
 ┌──────────────────────────▼──────────────────────────────────────┐
 │                    Plugin Layer                                   │
 │  ┌──────────┐ ┌──────────────┐ ┌────────────┐ ┌─────────────┐  │
+│  ┌──────────┐ ┌──────────────┐ ┌────────────┐ ┌─────────────┐  │
 │  │ Music    │ │ Teleprompter │ │ Display    │ │ Calendar    │  │
 │  │ Battery  │ │ Pomodoro     │ │ Surface    │ │ Shelf       │  │
 │  │ Webcam   │ │ HabitTracker │ │ (generic)  │ │ Clipboard   │  │
+│  │Visualizer│ │ VideoPlayer  │ │            │ │             │  │
 │  └──────────┘ └──────────────┘ └────────────┘ └─────────────┘  │
 │        Built-in              API-powered         Built-in        │
 └──────────────────────────┬──────────────────────────────────────┘
@@ -799,3 +1181,5 @@ Prioritized by user impact and dependency chain:
 | 9 | External plugin loads from ~/Library/Application Support/boringNotch/Plugins/. |
 | 10 | Expanded panel uses full 740px with two-column layout (editor + controls). Script library persists named scripts. Countdown timer works. Keyboard shortcuts for hands-free control. Closed display shows 2–3 lines with karaoke fade, progress bar, elapsed/remaining time. Voice-driven scrolling as optional Flow Mode. Screen sharing safety via `sharingType = .none`. Detachable floating window for external displays. Creator-daily-driver quality. |
 | 11 | `FoundationModelsProvider` is sole default provider on macOS 26+. AI features work with zero external dependencies. Ollama available as opt-in Advanced option only. Streaming AI responses in teleprompter UI. Structured generation via `@Generable`. On macOS <26: AI features cleanly absent (no broken states). |
+| 12 | Real audio-reactive visualizer responds to actual system audio. Spectrum bars mode as MVP. Extended notch height configurable (20–60px). Album art color extraction for theming. <3% CPU. Permission denial degrades gracefully to fake animation. |
+| 13 | Video plays in notch viewport via AVPlayer. YouTube URLs load via yt-dlp. Hover reveals mini controls. Expanded panel has full controls + URL input. <5% CPU at 720p. Browser extension video integration validated or descoped. |

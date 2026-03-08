@@ -13,26 +13,34 @@ import CoreGraphics
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     
     @objc func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void) {
-        reply(AXIsProcessTrusted())
+        autoreleasepool {
+            reply(AXIsProcessTrusted())
+        }
     }
 
     @objc func requestAccessibilityAuthorization() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
+        autoreleasepool {
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            AXIsProcessTrustedWithOptions(options)
+        }
     }
 
     @objc func ensureAccessibilityAuthorization(_ promptIfNeeded: Bool, with reply: @escaping (Bool) -> Void) {
-        if AXIsProcessTrusted() {
-            reply(true)
-            return
-        }
+        autoreleasepool {
+            if AXIsProcessTrusted() {
+                reply(true)
+                return
+            }
 
-        if promptIfNeeded {
-            requestAccessibilityAuthorization()
-        }
+            if promptIfNeeded {
+                requestAccessibilityAuthorization()
+            }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            reply(AXIsProcessTrusted())
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                autoreleasepool {
+                    reply(AXIsProcessTrusted())
+                }
+            }
         }
     }
     
@@ -89,30 +97,38 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     private static let keyboardClient = KeyboardBrightnessClient()
 
     @objc func isKeyboardBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
-        reply(Self.keyboardClient.isAvailable)
+        autoreleasepool {
+            reply(Self.keyboardClient.isAvailable)
+        }
     }
 
     @objc func currentKeyboardBrightness(with reply: @escaping (NSNumber?) -> Void) {
-        reply(Self.keyboardClient.currentBrightness().map { NSNumber(value: $0) })
+        autoreleasepool {
+            reply(Self.keyboardClient.currentBrightness().map { NSNumber(value: $0) })
+        }
     }
 
     @objc func setKeyboardBrightness(_ value: Float, with reply: @escaping (Bool) -> Void) {
-        reply(Self.keyboardClient.setBrightness(value))
+        autoreleasepool {
+            reply(Self.keyboardClient.setBrightness(value))
+        }
     }
     // MARK: - Screen Brightness (moved from client app into helper)
 
     @objc func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
-        var b: Float = 0
-        if displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) {
-            reply(true)
-            return
-        }
-        
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
-            IOObjectRelease(io)
-            reply(true)
-        } else {
-            reply(false)
+        autoreleasepool {
+            var b: Float = 0
+            if displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) {
+                reply(true)
+                return
+            }
+            
+            if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+                IOObjectRelease(io)
+                reply(true)
+            } else {
+                reply(false)
+            }
         }
     }
 
@@ -196,30 +212,32 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     @objc func getBluetoothDeviceMinorClass(with deviceName: String, with reply: @escaping (String?) -> Void) {
-        var iterator: io_iterator_t = 0
-        let matchingDict = IOServiceMatching("IOBluetoothDevice")
-        let result = IOServiceGetMatchingServices(kIOMainPortDefault, matchingDict, &iterator)
-        
-        guard result == kIOReturnSuccess else {
-            reply(nil)
-            return
-        }
-        
-        defer { IOObjectRelease(iterator) }
-        
-        while case let service = IOIteratorNext(iterator), service != 0 {
-            defer { IOObjectRelease(service) }
+        autoreleasepool {
+            var iterator: io_iterator_t = 0
+            let matchingDict = IOServiceMatching("IOBluetoothDevice")
+            let result = IOServiceGetMatchingServices(kIOMainPortDefault, matchingDict, &iterator)
             
-            if let name = IORegistryEntryCreateCFProperty(service, "DeviceName" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? String,
-               name == deviceName {
-                if let minorClass = IORegistryEntryCreateCFProperty(service, "DeviceMinorClass" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? NSNumber {
-                    reply(minorClass.stringValue)
-                    return
+            guard result == kIOReturnSuccess else {
+                reply(nil)
+                return
+            }
+            
+            defer { IOObjectRelease(iterator) }
+            
+            while case let service = IOIteratorNext(iterator), service != 0 {
+                defer { IOObjectRelease(service) }
+                
+                if let name = IORegistryEntryCreateCFProperty(service, "DeviceName" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? String,
+                   name == deviceName {
+                    if let minorClass = IORegistryEntryCreateCFProperty(service, "DeviceMinorClass" as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() as? NSNumber {
+                        reply(minorClass.stringValue)
+                        return
+                    }
                 }
             }
+            
+            reply(nil)
         }
-        
-        reply(nil)
     }
 
     // MARK: - Helper handle for private framework

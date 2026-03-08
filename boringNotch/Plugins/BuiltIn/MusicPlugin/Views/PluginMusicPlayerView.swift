@@ -14,13 +14,18 @@ struct PluginMusicPlayerView: View {
     let plugin: MusicPlugin
     let albumArtNamespace: Namespace.ID?
     @Environment(BoringViewModel.self) var vm
+    @Environment(\.cornerRadiusInsets) var cornerRadiusInsets
+
+    private var openEdgeSafeInset: CGFloat {
+        max(10, cornerRadiusInsets.opened.top + 4)
+    }
 
     var body: some View {
         if let service = plugin.musicService {
             HStack(spacing: 14) {
                 PluginAlbumArtView(service: service, albumArtNamespace: albumArtNamespace)
                     .frame(width: 120, height: 120)
-                    .padding(.leading, 10)
+                    .padding(.leading, openEdgeSafeInset)
 
                 PluginMusicControlsView(service: service, plugin: plugin)
             }

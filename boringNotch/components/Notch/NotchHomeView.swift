@@ -51,8 +51,10 @@ struct NotchHomeView: View {
     }
     
     private var itemWidth: CGFloat {
-        // Very basic width calculation to prevent overflow
-        let maxAvailableWidth: CGFloat = 640 - 100 // 100 for music
+        // Space reserved for the music player + controls
+        let musicPlayerReservedWidth: CGFloat = 420
+        // Calculate max width for side-plugins before overflowing the 740 maximum notch mask
+        let maxAvailableWidth: CGFloat = 640 - musicPlayerReservedWidth
         if additionalItemsCount == 0 { return maxAvailableWidth }
         
         // Base width, clamped to ensure it doesn't get too small or too large
