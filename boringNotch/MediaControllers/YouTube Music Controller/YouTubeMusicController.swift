@@ -20,14 +20,14 @@ final class YouTubeMusicController: MediaControllerProtocol {
         didSet { _playbackStateSubject.send(playbackState) }
     }
 
-    private(set) var currentTime: Double = 0 {
+    var currentTime: Double = 0 {
         didSet { _progressSubject.send((currentTime, duration)) }
     }
-    private(set) var duration: Double = 0 {
+    var duration: Double = 0 {
         didSet { _progressSubject.send((currentTime, duration)) }
     }
 
-    private var artworkFetchTask: Task<Void, Never>?
+    var artworkFetchTask: Task<Void, Never>?
 
     @ObservationIgnored
     private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
