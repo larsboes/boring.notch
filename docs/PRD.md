@@ -35,6 +35,7 @@
 
 **Working branch:** `developer`
 **Branch sync:** `developer` = `origin/developer`, `main` = stable
+**PR Status:** PR #1 Closed (Legacy). A new consolidated PR is pending architecture refinements.
 
 | Phase | Status | Summary |
 |-------|--------|---------|
