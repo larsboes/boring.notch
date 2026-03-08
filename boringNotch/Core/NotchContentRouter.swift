@@ -77,6 +77,7 @@ struct NotchContentRouter: View {
         case .plugin(let id):
             if let pluginManager {
                 pluginManager.closedNotchView(for: id)
+                    .frame(height: closedNotchHeight)
             }
 
         case .face:

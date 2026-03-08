@@ -44,7 +44,7 @@ struct BoringHeader: View {
         if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
             TabSelectionView()
                 .padding(.leading, 8)
-        } else if vm.phase == .open {
+        } else if vm.phase.isVisible {
             EmptyView()
         }
     }
@@ -56,16 +56,16 @@ struct BoringHeader: View {
         let currentScreen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
         let hasHardwareNotch = (currentScreen?.safeAreaInsets.top ?? 0) > 0
 
-        if vm.phase == .open && hasHardwareNotch {
+        if vm.phase.isVisible && hasHardwareNotch {
             if !settings.liquidGlassEffect {
                 Rectangle()
                     .fill(.black)
-                    .frame(width: vm.closedNotchSize.width)
+                    .frame(width: vm.closedNotchSize.width + 32) // Added 32pt safety margin (16pt each side)
                     .mask { NotchShape() }
                     .allowsHitTesting(false)
             } else {
                 Color.clear
-                    .frame(width: vm.closedNotchSize.width, height: 1)
+                    .frame(width: vm.closedNotchSize.width + 32, height: 1)
                     .allowsHitTesting(false)
             }
         }
@@ -76,13 +76,14 @@ struct BoringHeader: View {
     @ViewBuilder
     private var trailingControls: some View {
         @Bindable var coordinator = coordinator
-        if vm.phase == .open {
+        if vm.phase.isVisible {
             if coordinator.sneakPeek.type.isHUD && coordinator.sneakPeek.show && settings.showOpenNotchHUD {
                 OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
                     .transition(.scale(scale: 0.8).combined(with: .opacity))
                     .padding(.trailing, 8)
             } else {
                 headerButtons
+                    .padding(.leading, 12) // Extra buffer from the notch area
             }
         }
     }
