@@ -59,10 +59,8 @@ extension YouTubeMusicController {
             }
             guard let newPosition = position else { return }
 
-            var copied = playbackState
-            copied.currentTime = newPosition
-            copied.lastUpdated = Date()
-            if copied != playbackState { playbackState = copied }
+            self.currentTime = newPosition
+            playbackState.lastUpdated = Date()
 
         case .repeatChanged:
             guard let data = message.extractData() else { return }
