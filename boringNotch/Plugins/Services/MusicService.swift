@@ -102,7 +102,8 @@ final class MusicService: MusicServiceProtocol {
             self.artwork = manager.albumArt
         }
 
-        self.progress = state.duration > 0 ? state.currentTime / state.duration : 0
+        let songDuration = manager.songDuration
+        self.progress = songDuration > 0 ? manager.elapsedTime / songDuration : 0
         self.volume = state.volume
         self.isShuffled = state.isShuffled
         self.repeatMode = state.repeatMode
@@ -134,8 +135,8 @@ final class MusicService: MusicServiceProtocol {
     }
 
     func seek(to progress: Double) async {
-        let duration = playbackState.duration
-        let time = duration * progress
+        let songDuration = manager.songDuration
+        let time = songDuration * progress
         manager.seek(to: time)
     }
 
