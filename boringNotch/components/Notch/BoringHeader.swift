@@ -18,7 +18,7 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             leadingContent
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .contentReveal(progress: contentProgress, staggerIndex: 0)
                 .zIndex(2)
             
@@ -27,12 +27,14 @@ struct BoringHeader: View {
             trailingControls
                 .padding(4)
                 .font(.system(.headline, design: .rounded))
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .trailing)
                 .contentReveal(progress: contentProgress, staggerIndex: 1)
                 .zIndex(2)
         }
+        .padding(.horizontal, 24)
         .foregroundColor(.gray)
         .environment(vm)
+        .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
     }
 
     // MARK: - Leading
@@ -41,7 +43,7 @@ struct BoringHeader: View {
     private var leadingContent: some View {
         if let shelf = pluginManager?.services.shelf, (!shelf.isEmpty || coordinator.alwaysShowTabs) && settings.boringShelf {
             TabSelectionView()
-                .padding(.trailing, 8)
+                .padding(.leading, 8)
         } else if vm.phase.isVisible {
             EmptyView()
         }
@@ -58,12 +60,12 @@ struct BoringHeader: View {
             if !settings.liquidGlassEffect {
                 Rectangle()
                     .fill(.black)
-                    .frame(width: vm.closedNotchSize.width + 96) // Added 96pt safety margin (48pt each side)
+                    .frame(width: vm.closedNotchSize.width + 64) // Added 64pt safety margin (32pt each side)
                     .mask { NotchShape() }
                     .allowsHitTesting(false)
             } else {
                 Color.clear
-                    .frame(width: vm.closedNotchSize.width + 96, height: 1)
+                    .frame(width: vm.closedNotchSize.width + 64, height: 1)
                     .allowsHitTesting(false)
             }
         }
@@ -130,6 +132,7 @@ struct BoringHeader: View {
                 timeToFullCharge: batteryService.timeToFullCharge,
                 isForNotification: false
             )
+            .padding(.trailing, 10) // Equal Abstand to right border as home tab has to left
         }
     }
 }

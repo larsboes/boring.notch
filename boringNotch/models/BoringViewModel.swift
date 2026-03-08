@@ -30,6 +30,8 @@ import SwiftUI
         didSet {
             guard phase != oldValue else { return }
             
+            syncAnimationState(animated: true)
+            
             // Back off background services when closed to save battery
             if phase.isVisible {
                 // Resume polling if available
@@ -53,6 +55,11 @@ import SwiftUI
     /// Decoupled content reveal progress (0→1).
     /// Animated independently from the shell spring so content can lead/lag the shell.
     var contentRevealProgress: CGFloat = 0
+
+    /// Shell expansion progress (0→1).
+    /// Driven by StandardAnimations.open/close to ensure smooth corner radius transitions.
+    var shellAnimationProgress: CGFloat = 0
+
     var notchState: NotchState {
         phase.isVisible ? .open : .closed
     }
@@ -304,6 +311,23 @@ import SwiftUI
             boringWindow.isNotchOpen = phase.isInteractive
         } else if let skyLightWindow = window as? BoringNotchSkyLightWindow {
             skyLightWindow.isNotchOpen = phase.isInteractive
+        }
+    }
+
+    /// Ensures progress variables match the current phase.
+    /// Acts as a safety fallback for interrupted animations.
+    func syncAnimationState(animated: Bool = false) {
+        let targetProgress: CGFloat = phase.isVisible ? 1 : 0
+        
+        if animated {
+            let animation = phase.isVisible ? StandardAnimations.open : StandardAnimations.close
+            withAnimation(animation) {
+                self.shellAnimationProgress = targetProgress
+                self.contentRevealProgress = targetProgress
+            }
+        } else {
+            self.shellAnimationProgress = targetProgress
+            self.contentRevealProgress = targetProgress
         }
     }
 

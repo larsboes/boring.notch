@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct HabitExpandedView: View {
+    @Environment(BoringViewCoordinator.self) var coordinator
     let plugin: HabitTrackerPlugin
     private var store: HabitStore { plugin.store }
     
@@ -37,7 +38,7 @@ struct HabitExpandedView: View {
                 .padding(.vertical, 16)
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         ForEach(activeHabits) { habit in
                             HabitRow(habit: habit, store: store, isHovered: hoveredHabitId == habit.id)
                                 .onHover { hovering in
@@ -45,14 +46,21 @@ struct HabitExpandedView: View {
                                 }
                         }
                     }
-                    .padding(.horizontal, 4)
-                    .padding(.bottom, 8)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 16)
                 }
-                .frame(maxHeight: 250)
+                .frame(maxWidth: .infinity)
             }
         }
-        .padding(12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
         .frame(maxWidth: .infinity)
+        .onAppear {
+            coordinator.isScrollableViewPresented = true
+        }
+        .onDisappear {
+            coordinator.isScrollableViewPresented = false
+        }
     }
 }
 

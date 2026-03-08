@@ -9,7 +9,8 @@ import SwiftUI
 
 extension BoringViewModel {
     func open() {
-        guard phase == .closed else { return }
+        // Allow opening if closed OR if we are currently closing (interrupt)
+        guard phase == .closed || phase == .closing else { return }
 
         hoverController.cancelPendingClose()
 
@@ -17,6 +18,7 @@ extension BoringViewModel {
         withAnimation(StandardAnimations.open) {
             self.notchSize = openNotchSize
             self.phase = .opening
+            self.shellAnimationProgress = 1
         } completion: {
             guard self.phase == .opening else { return }
             self.phase = .open
@@ -36,7 +38,8 @@ extension BoringViewModel {
     func close(force: Bool = false) {
         if services.sharing.preventNotchClose { return }
         if !force && isHoveringNotch && phase == .open { return }
-        guard phase == .open || force else { return }
+        // Allow closing if open OR if we are currently opening (interrupt)
+        guard phase == .open || phase == .opening || force else { return }
 
         hoverController.cancelPendingOpen()
         hoverController.setNotchOpen(false)
@@ -47,13 +50,11 @@ extension BoringViewModel {
         self.coordinator.sneakPeek.show = false
         self.edgeAutoOpenActive = false
 
-        // Content exits first — absorbed back into notch
-        withAnimation(StandardAnimations.contentDismiss) {
+        // Content and Shell exit together for a unified, clean contraction
+        // Unified animation block ensures all properties settle on the same frame.
+        withAnimation(StandardAnimations.close) {
             self.contentRevealProgress = 0
-        }
-
-        // Shell contracts with micro-delay — content visibly leads the shell
-        withAnimation(StandardAnimations.closeShell) {
+            self.shellAnimationProgress = 0
             self.notchSize = getClosedNotchSize(settings: self.displaySettings, screenUUID: self.screenUUID)
             self.closedNotchSize = self.notchSize
             self.phase = .closing

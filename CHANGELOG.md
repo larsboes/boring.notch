@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🎨 UI & Animation Polish
+*   **Wider, Cleaner Layout**: Increased notch width (`740pt` → `860pt`) for better spacing.
+*   **Unified Animations**: Rearchitected open/close animations for a smoother, interruptible, and more cohesive feel. Content and shell now animate together.
+*   **Refined Header**: Redesigned header with better padding, alignment, and a more compact tab selection view.
+*   **Improved Gestures**: Pan gestures for opening/closing the notch are now disabled when interacting with scrollable content, preventing accidental closures.
+*   **Consistent Padding**: Standardized padding and spacing across all notch components for a cleaner look.
+*   **Aggressive Content Absorption**: Content exit animation is now much more aggressive, creating a satisfying "absorbed into the notch" effect.
+
+### 🐛 Bug Fixes & Refinements
+*   **Project Structure**: Massive project file cleanup and reorganization. Moved dozens of files into a more logical structure, improving maintainability.
+*   **Animation Glitches**: Fixed a visual bug where the notch corners would not be rounded correctly during animations.
+*   **Gesture Conflicts**: Resolved gesture conflicts between the notch and scrollable content within plugins.
+*   **Removed Build Artifacts**: Deleted stale build output files from the repository.
+
 ### 🏗 Architecture Overhaul (Plugin System)
 Completion of massive architectural refactoring ("Phase 5"). Monolithic singleton-based design → modular, plugin-first architecture.
 

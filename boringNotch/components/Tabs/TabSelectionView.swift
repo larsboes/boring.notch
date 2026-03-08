@@ -27,13 +27,15 @@ struct TabSelectionView: View {
     @Namespace var animation
     
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             ForEach(baseTabs) { tab in
                     TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view
                         }
                     }
+                    .padding(.leading, tab.view == .home ? 4 : 0)
+                    .padding(.trailing, tab.view == baseTabs.last?.view ? 4 : 0)
                     .frame(height: 26)
                     .foregroundStyle(tab.view == coordinator.currentView ? .white : .gray)
                     .background {

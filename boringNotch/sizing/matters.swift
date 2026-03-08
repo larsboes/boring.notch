@@ -13,7 +13,7 @@ let downloadSneakSize: CGSize = .init(width: 65, height: 1)
 let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let shadowPadding: CGFloat = 20
-let openNotchSize: CGSize = .init(width: 740, height: 210)
+let openNotchSize: CGSize = .init(width: 860, height: 250)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
 struct CornerRadiusInsets {
     var opened: (top: CGFloat, bottom: CGFloat)
@@ -88,7 +88,7 @@ enum MusicPlayerImageSizes {
 
 @MainActor func getClosedNotchSize(settings: any DisplaySettings, screenUUID: String? = nil, hasLiveActivity: Bool = false) -> CGSize {
     var notchHeight: CGFloat = settings.nonNotchHeight
-    var notchWidth: CGFloat = 185
+    var notchWidth: CGFloat = 220
 
     var selectedScreen = NSScreen.main
 
@@ -102,11 +102,11 @@ enum MusicPlayerImageSizes {
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
            let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width,
            topLeftNotchpadding > 100, topRightNotchpadding > 100 { // Ensure reasonable padding
-            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
+            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 12
         } else {
             // Fallback for screens where auxiliary area is not reported correctly
             // or for screens without a notch
-            notchWidth = 185
+            notchWidth = 220
         }
 
         // Check if the Mac has a notch
@@ -143,7 +143,7 @@ enum MusicPlayerImageSizes {
 
 @MainActor func getInactiveNotchSize(settings: any DisplaySettings, screenUUID: String? = nil) -> CGSize {
     let notchHeight: CGFloat = settings.inactiveNotchHeight
-    var notchWidth: CGFloat = 185
+    var notchWidth: CGFloat = 220
 
     var selectedScreen = NSScreen.main
 
@@ -154,7 +154,7 @@ enum MusicPlayerImageSizes {
     if let screen = selectedScreen {
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
            let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
-            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
+            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 12
         }
     }
 

@@ -22,14 +22,14 @@ struct PluginMusicPlayerView: View {
 
     var body: some View {
         if let service = plugin.musicService {
-            HStack(spacing: 14) {
+            HStack(spacing: 10) {
                 PluginAlbumArtView(service: service, albumArtNamespace: albumArtNamespace)
-                    .frame(width: 120, height: 120)
+                    .frame(width: 100, height: 100)
                     .padding(.leading, openEdgeSafeInset)
 
                 PluginMusicControlsView(service: service, plugin: plugin)
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
         } else {
             Text("Music Service Unavailable")
                 .foregroundStyle(.secondary)

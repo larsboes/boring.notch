@@ -164,7 +164,7 @@ struct NotchContentRouter: View {
 
     @ViewBuilder
     private func openContent(_ view: NotchViews) -> some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 12) {
             // Header should just clear the physical notch
             BoringHeader()
                 .frame(height: max(
@@ -174,47 +174,55 @@ struct NotchContentRouter: View {
                         ?? 0) + 10 // Add some breathing room
                 ))
 
-            switch view {
-            case .home:
-                NotchHomeView(albumArtNamespace: albumArtNamespace)
-                    .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity, alignment: .top)
-            case .shelf:
-                if let pluginManager {
-                    pluginManager.expandedPanelView(for: PluginID.shelf)
-                        .environment(vm)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            case .notifications:
-                if let pluginManager {
-                    pluginManager.expandedPanelView(for: PluginID.notifications)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            case .clipboard:
-                if let pluginManager {
-                    pluginManager.expandedPanelView(for: PluginID.clipboard)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            case .notes:
-                if let pluginManager {
-                    NotesView(manager: pluginManager.services.notesManager)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            case .habitTracker:
-                if let pluginManager {
-                    pluginManager.expandedPanelView(for: PluginID.habitTracker)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            case .pomodoro:
-                if let pluginManager {
-                    pluginManager.expandedPanelView(for: PluginID.pomodoro)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            case .teleprompter:
-                if let pluginManager {
-                    pluginManager.expandedPanelView(for: PluginID.teleprompter)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Content area with padding to avoid notch-edge clipping
+            Group {
+                switch view {
+                case .home:
+                    NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        .frame(maxWidth: CGFloat.infinity, maxHeight: CGFloat.infinity, alignment: .top)
+                case .shelf:
+                    if let pluginManager {
+                        pluginManager.expandedPanelView(for: PluginID.shelf)
+                            .environment(vm)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                case .notifications:
+                    if let pluginManager {
+                        pluginManager.expandedPanelView(for: PluginID.notifications)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                case .clipboard:
+                    if let pluginManager {
+                        pluginManager.expandedPanelView(for: PluginID.clipboard)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                case .notes:
+                    if let pluginManager {
+                        NotesView(manager: pluginManager.services.notesManager)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                case .habitTracker:
+                    if let pluginManager {
+                        pluginManager.expandedPanelView(for: PluginID.habitTracker)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                case .pomodoro:
+                    if let pluginManager {
+                        pluginManager.expandedPanelView(for: PluginID.pomodoro)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                case .teleprompter:
+                    if let pluginManager {
+                        pluginManager.expandedPanelView(for: PluginID.teleprompter)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure content area is flexible
+            .contentReveal(progress: vm.contentRevealProgress, staggerIndex: 2) // Unified transition for ALL plugins
+            .padding(.horizontal, 32) // Match header padding (32) to stay inside rounded corners
+            .padding(.bottom, 16)      // Bottom padding to avoid bottom-corner clipping
+            .clipped()                 // Clip content at padding boundary, not at notch edge
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

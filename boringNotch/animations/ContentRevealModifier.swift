@@ -26,6 +26,8 @@ struct ContentRevealModifier: ViewModifier {
     /// This element's effective progress, accounting for stagger.
     /// On close (progress going 1→0), higher-index elements reach 0 first — natural reverse stagger.
     private var elementProgress: CGFloat {
+        // Subtle stagger during both open and close for a choreographed feel.
+        // Higher-index elements reach 0 first on close — natural reverse stagger.
         let offset = CGFloat(staggerIndex) * staggerStep
         let adjusted = (progress - offset) / (1.0 - offset)
         return max(0, min(1, adjusted))
@@ -42,15 +44,16 @@ struct ContentRevealModifier: ViewModifier {
 
         // Asymmetric open vs close:
         // Open: gentle grow from 0.94, slide down from notch, blur clears
-        // Close: aggressive compress to 0.80, yank up into notch — fast snap
-        let opacity = smooth
+        // Close: aggressive fade out, compress to 0.70, yank up into notch — "absorbed" feel
+        let opacity = isClosing ? pow(smooth, 2.0) : smooth
         let scale = isClosing
-            ? 0.80 + 0.20 * smooth     // Close: 1.0 → 0.80 (20% compress)
+            ? 0.70 + 0.30 * smooth     // Close: 1.0 → 0.70 (30% compress, much more aggressive)
             : 0.94 + 0.06 * smooth     // Open: 0.94 → 1.0 (gentle grow)
         let yOffset = isClosing
-            ? (1.0 - smooth) * -8.0    // Close: pull up into notch
+            ? (1.0 - smooth) * -20.0   // Close: pull significantly up into notch for absorption
             : (1.0 - smooth) * -4.0    // Open: slide down from notch
-        let blurRadius = useBlur ? (1.0 - elementProgress) * (isClosing ? 2.0 : 6.0) : 0
+
+        let blurRadius = useBlur ? (1.0 - elementProgress) * (isClosing ? 1.0 : 6.0) : 0
 
         content
             .opacity(opacity)

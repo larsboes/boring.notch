@@ -21,7 +21,7 @@ struct HeaderButton: View {
                         Capsule().fill(isActive ? Color(nsColor: .secondarySystemFill) : .black)
                     )
             }
-            .frame(width: 44, height: 44)
+            .frame(width: 38, height: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
@@ -46,7 +46,7 @@ struct HeaderActionButton: View {
                     .frame(width: 30, height: 30)
                     .background(Capsule().fill(.black))
             }
-            .frame(width: 44, height: 44)
+            .frame(width: 38, height: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())

@@ -96,7 +96,7 @@ struct ContentView: View {
                     }
                     .onChange(of: currentStateSnapshot) { _, _ in updateStateMachine() }
                     .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
-                    .frame(alignment: .top)
+                    .frame(width: computedChinWidth, alignment: .top)
                     // Smoothly interpolate bottom padding based on animation progress
                     .padding(.bottom, lerp(0, 12, animationProgress))
                     .clipShape(currentNotchShape)
@@ -113,17 +113,11 @@ struct ContentView: View {
                             vm.handleHoverSignal(signal)
                         }
                     }
-                    .conditionalModifier(settings.enableGestures) { view in
-                        view
-                            .panGesture(direction: .down) { translation, phase in
-                                handleDownGesture(translation: translation, phase: phase)
-                            }
+                    .panGesture(direction: .down, disabled: !settings.enableGestures || coordinator.isScrollableViewPresented) { translation, phase in
+                        handleDownGesture(translation: translation, phase: phase)
                     }
-                    .conditionalModifier(settings.closeGestureEnabled && settings.enableGestures) { view in
-                        view
-                            .panGesture(direction: .up) { translation, phase in
-                                handleUpGesture(translation: translation, phase: phase)
-                            }
+                    .panGesture(direction: .up, disabled: !settings.closeGestureEnabled || !settings.enableGestures || coordinator.isScrollableViewPresented) { translation, phase in
+                        handleUpGesture(translation: translation, phase: phase)
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         // Cancel any pending close when sharing finishes

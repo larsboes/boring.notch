@@ -56,6 +56,7 @@ struct ExpandedItem {
 @MainActor
 @Observable class BoringViewCoordinator: NotchAnimationStateProviding {
     var currentView: NotchViews = .home
+    var isScrollableViewPresented: Bool = false
     var helloAnimationRunning: Bool = false
     private(set) var sneakPeekDispatch: DispatchWorkItem?
     private(set) var expandingViewDispatch: DispatchWorkItem?

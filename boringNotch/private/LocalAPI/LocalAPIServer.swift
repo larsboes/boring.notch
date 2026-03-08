@@ -21,7 +21,7 @@ final class LocalAPIServer {
 
         let nwPort = NWEndpoint.Port(rawValue: port) ?? 19384
         let params = NWParameters.tcp
-        params.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: nwPort)
+        params.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: .any)
         let listener = try NWListener(using: params, on: nwPort)
 
         listener.newConnectionHandler = { [weak self] connection in

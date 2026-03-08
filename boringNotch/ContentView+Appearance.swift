@@ -15,14 +15,18 @@ extension ContentView {
     var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
     var animationProgress: CGFloat {
-        let closedWidth = vm.closedNotchSize.width
-        let openWidth = openNotchSize.width
-        let currentWidth = vm.notchSize.width
-
-        guard openWidth > closedWidth else { return 0 }
-
-        let progress = (currentWidth - closedWidth) / (openWidth - closedWidth)
-        return max(0, min(1, progress))
+        // Robustness: Prefer explicitly managed shellProgress, 
+        // but fallback to actual height-based calculation if we detect a discrepancy.
+        // This prevents "sharp corners on a tall notch" (the black rectangle glitch).
+        let currentHeight = vm.notchSize.height
+        let openHeight = openNotchSize.height
+        let closedHeight = displayClosedNotchHeight
+        
+        let heightProgress = max(0, min(1, (currentHeight - closedHeight) / (openHeight - closedHeight)))
+        
+        // If shellProgress is stuck at 0 but height is > 50% expanded, something is wrong.
+        // Use the higher of the two to ensure corners are ALWAYS rounded when notch is large.
+        return max(vm.shellAnimationProgress, heightProgress)
     }
 
     func lerp(_ a: CGFloat, _ b: CGFloat, _ t: CGFloat) -> CGFloat {
@@ -83,6 +87,12 @@ extension ContentView {
     }
 
     var computedChinWidth: CGFloat {
+        if vm.phase.isVisible {
+            // During opening, open, and closing phases, we follow the animated notch size.
+            // This prevents the "huge black rectangle" during closing transitions.
+            return vm.notchSize.width
+        }
+
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
         if coordinator.expandingView.type == .battery && coordinator.expandingView.show

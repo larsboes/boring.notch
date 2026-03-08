@@ -52,9 +52,9 @@ struct NotchHomeView: View {
     
     private var itemWidth: CGFloat {
         // Space reserved for the music player + controls
-        let musicPlayerReservedWidth: CGFloat = 420
-        // Calculate max width for side-plugins before overflowing the 740 maximum notch mask
-        let maxAvailableWidth: CGFloat = 640 - musicPlayerReservedWidth
+        let musicPlayerReservedWidth: CGFloat = 330
+        // Calculate max width for side-plugins before overflowing the 860 total width
+        let maxAvailableWidth: CGFloat = 860 - 64 - musicPlayerReservedWidth // 860 width, 64 total padding (32 each side)
         if additionalItemsCount == 0 { return maxAvailableWidth }
         
         // Base width, clamped to ensure it doesn't get too small or too large
@@ -99,7 +99,7 @@ struct NotchHomeView: View {
                 }
             }
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 32)
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
     }
 }
