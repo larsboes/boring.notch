@@ -54,7 +54,6 @@ class BoringNotchSkyLightWindow: NSPanel {
         )
         
         configureWindow()
-        configureWindow()
         setupObservers()
     }
     
@@ -114,13 +113,14 @@ class BoringNotchSkyLightWindow: NSPanel {
             .canJoinAllSpaces,
             .ignoresCycle
         ]
-        
+
         let hasNotch = (self.screen?.safeAreaInsets.top ?? 0) > 0
-        
-        if settings.hideNonNotchedFromMissionControl && !hasNotch {
-            newBehavior.insert(.transient)
-        }
-        
+
+        // NOTE: .transient is intentionally NOT used here. On macOS 16+, .transient
+        // can cause windows to be hidden on external displays when combined with
+        // CGSSpace management. Mission Control hiding is handled via window level instead.
+        _ = hasNotch // Silence unused warning; screen type may be used for future per-display behavior
+
         collectionBehavior = newBehavior
     }
     

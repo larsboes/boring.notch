@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 *   **Aggressive Content Absorption**: Content exit animation is now much more aggressive, creating a satisfying "absorbed into the notch" effect.
 
 ### 🐛 Bug Fixes & Refinements
+*   **External display fix**: Fixed notch not appearing on external (non-notch) displays when "Show on all displays" is enabled. The `.transient` collection behavior caused macOS to hide windows on non-notch screens.
+*   **Duplicate init call**: Removed duplicate `configureWindow()` call in `BoringNotchSkyLightWindow` init.
 *   **Build regressions**: Fixed MusicService, SpotifyController, YouTubeMusicController, NowPlayingController, and PlaybackState regressions after efficiency refactor.
 *   **UI regressions**: Fixed clipping, shape integrity, and header alignment issues in open/closed notch states.
 *   **Centered layout**: Implemented centered 'hugging' layout with proper home tab visibility.
