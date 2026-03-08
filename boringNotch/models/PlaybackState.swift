@@ -19,8 +19,6 @@ struct PlaybackState {
     var title: String = "I'm Handsome"
     var artist: String = "Me"
     var album: String = "Self Love"
-    var currentTime: Double = 0
-    var duration: Double = 0
     var playbackRate: Double = 1
     var isShuffled: Bool = false
     var repeatMode: RepeatMode = .off
@@ -37,8 +35,6 @@ extension PlaybackState: Equatable {
             && lhs.title == rhs.title
             && lhs.artist == rhs.artist
             && lhs.album == rhs.album
-            && lhs.currentTime == rhs.currentTime
-            && lhs.duration == rhs.duration
             && lhs.isShuffled == rhs.isShuffled
             && lhs.repeatMode == rhs.repeatMode
             && lhs.artwork == rhs.artwork

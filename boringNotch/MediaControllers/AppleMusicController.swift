@@ -20,13 +20,27 @@ final class AppleMusicController: MediaControllerProtocol {
         didSet { _playbackStateSubject.send(playbackState) }
     }
 
+    private(set) var currentTime: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+    private(set) var duration: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+
     @ObservationIgnored
     private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
         PlaybackState(bundleIdentifier: "com.apple.Music", playbackRate: 1)
     )
 
+    @ObservationIgnored
+    private let _progressSubject = PassthroughSubject<(currentTime: Double, duration: Double), Never>()
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         _playbackStateSubject.eraseToAnyPublisher()
+    }
+
+    var progressPublisher: AnyPublisher<(currentTime: Double, duration: Double), Never> {
+        _progressSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {
@@ -146,8 +160,11 @@ final class AppleMusicController: MediaControllerProtocol {
         updatedState.title = descriptor.atIndex(2)?.stringValue ?? "Unknown"
         updatedState.artist = descriptor.atIndex(3)?.stringValue ?? "Unknown"
         updatedState.album = descriptor.atIndex(4)?.stringValue ?? "Unknown"
-        updatedState.currentTime = descriptor.atIndex(5)?.doubleValue ?? 0
-        updatedState.duration = descriptor.atIndex(6)?.doubleValue ?? 0
+        
+        // Update high-frequency properties separately
+        self.currentTime = descriptor.atIndex(5)?.doubleValue ?? 0
+        self.duration = descriptor.atIndex(6)?.doubleValue ?? 0
+        
         updatedState.isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
         let repeatModeValue = descriptor.atIndex(8)?.int32Value ?? 0
         updatedState.repeatMode = RepeatMode(rawValue: Int(repeatModeValue)) ?? .off

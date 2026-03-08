@@ -107,6 +107,16 @@ final class MusicPlaybackController {
                     self.updateFromPlaybackState(state)
                 }
                 .store(in: &controllerCancellables)
+
+            controller.progressPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] progress in
+                    guard let self = self,
+                          self.activeController === controller else { return }
+                    if progress.currentTime != self.elapsedTime { self.elapsedTime = progress.currentTime }
+                    if progress.duration != self.songDuration { self.songDuration = progress.duration }
+                }
+                .store(in: &controllerCancellables)
         }
 
         return newController
@@ -162,8 +172,6 @@ final class MusicPlaybackController {
             }
         }
 
-        if state.currentTime != elapsedTime { elapsedTime = state.currentTime }
-        if state.duration != songDuration { songDuration = state.duration }
         if state.playbackRate != playbackRate { playbackRate = state.playbackRate }
         if state.isShuffled != isShuffled { isShuffled = state.isShuffled }
         if state.repeatMode != repeatMode { repeatMode = state.repeatMode }

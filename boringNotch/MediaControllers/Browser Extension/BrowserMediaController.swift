@@ -18,13 +18,27 @@ final class BrowserMediaController: MediaControllerProtocol {
         didSet { _playbackStateSubject.send(playbackState) }
     }
 
+    private(set) var currentTime: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+    private(set) var duration: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+
     @ObservationIgnored
     private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
         PlaybackState(bundleIdentifier: "com.google.Chrome")
     )
     
+    @ObservationIgnored
+    private let _progressSubject = PassthroughSubject<(currentTime: Double, duration: Double), Never>()
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         _playbackStateSubject.eraseToAnyPublisher()
+    }
+
+    var progressPublisher: AnyPublisher<(currentTime: Double, duration: Double), Never> {
+        _progressSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool { false }
@@ -48,8 +62,11 @@ final class BrowserMediaController: MediaControllerProtocol {
         newState.artist = browserState.artist
         newState.album = browserState.album
         newState.isPlaying = !browserState.isPaused
-        newState.currentTime = browserState.currentTime
-        newState.duration = browserState.duration
+        
+        // Update high-frequency properties separately
+        self.currentTime = browserState.currentTime
+        self.duration = browserState.duration
+        
         newState.playbackRate = browserState.playbackRate
         newState.bundleIdentifier = browserState.bundleIdentifier
         newState.lastUpdated = Date()

@@ -26,11 +26,11 @@ extension YouTubeMusicController {
         }
 
         if let elapsed = response.elapsedSeconds {
-            newState.currentTime = elapsed
+            self.currentTime = elapsed
         }
 
         if let duration = response.songDuration {
-            newState.duration = duration
+            self.duration = duration
         }
 
         newState.lastUpdated = Date()

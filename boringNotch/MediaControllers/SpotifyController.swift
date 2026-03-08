@@ -24,13 +24,27 @@ final class SpotifyController: MediaControllerProtocol {
         didSet { _playbackStateSubject.send(playbackState) }
     }
 
+    private(set) var currentTime: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+    private(set) var duration: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+
     @ObservationIgnored
     private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
         PlaybackState(bundleIdentifier: "com.spotify.client")
     )
 
+    @ObservationIgnored
+    private let _progressSubject = PassthroughSubject<(currentTime: Double, duration: Double), Never>()
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         _playbackStateSubject.eraseToAnyPublisher()
+    }
+
+    var progressPublisher: AnyPublisher<(currentTime: Double, duration: Double), Never> {
+        _progressSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {
@@ -124,14 +138,12 @@ final class SpotifyController: MediaControllerProtocol {
         let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
         let artworkURL = descriptor.atIndex(10)?.stringValue ?? ""
         
-        var state = PlaybackState(
+        let state = PlaybackState(
             bundleIdentifier: "com.spotify.client",
             isPlaying: isPlaying,
             title: currentTrack,
             artist: currentTrackArtist,
             album: currentTrackAlbum,
-            currentTime: currentTime,
-            duration: duration,
             playbackRate: 1,
             isShuffled: isShuffled,
             repeatMode: isRepeating ? .all : .off,
@@ -139,6 +151,10 @@ final class SpotifyController: MediaControllerProtocol {
             artwork: nil,
             volume: Double(volumePercentage) / 100.0
         )
+        
+        // Update high-frequency properties separately
+        self.currentTime = currentTime
+        self.duration = duration
 
         if artworkURL == lastArtworkURL, let existingArtwork = self.playbackState.artwork {
             state.artwork = existingArtwork

@@ -32,8 +32,8 @@
 
 ## Current State (2026-03-08)
 
-**Working branch:** `refactor/singleton-elimination-tier3`
-**Branch sync:** `developer` = working branch (`refactor/singleton-elimination-tier3`), `main` may differ
+**Working branch:** `perf/phase2-efficiency`
+**Branch sync:** `developer` = `dev`, `main` may differ
 
 | Phase | Status | Summary |
 |-------|--------|---------|
@@ -126,6 +126,9 @@
 | 4.41 | Performance | **GPU/CoreAnimation backoff** — Heavy `.blur(radius: 35)` and `.blendMode(.screen)` gated behind `!vm.phase.isTransitioning`. |
 | 4.42 | Performance | **Background service suspension** — `BackgroundServiceRestartable` protocol + `BoringViewModel.phase` observer pauses `BatteryService`/`BluetoothManager` polling when notch closed. `NotchServiceProvider` consolidation. |
 | 4.43 | Performance | **Teleprompter off-main parsing** — `TeleprompterState.text` `didSet` now parses sections via `Task.detached`, caching results instead of re-parsing 60× per second on MainActor. |
+| 4.44 | Performance | **Aggressive @Observable Invalidation** — Decoupled high-frequency progress updates (currentTime/duration) into isolated publishers (Phase 2 efficiency). |
+| 4.45 | Performance | **Window Coordinator Geometry** — Replaced 150ms polling loop with `CGDisplayRegisterReconfigurationCallback` hardware event handling. |
+| 4.46 | Performance | **XPC Reconnection Backoff** — Implemented exponential backoff in `XPCHelperClient` to prevent CPU-intensive reconnection loops on crash. |
 
 ---
 
@@ -165,31 +168,6 @@ A timer plugin needing only `sound` + `notifications` must depend on 28 services
 **When to fix:** Next settings refactor pass or when adding new coordinator implementations.
 
 ---
-
-## Known Performance Debt (Tracked)
-
-Issues identified during CPU/Memory/Battery analysis (2026-03-08).
-
-### Aggressive @Observable Invalidation
-
-**Impact:** Medium (CPU) | **Files:** `NotchStateMachine`, `ContentView`
-- **Issue:** `NotchStateInput` is massive. Any property change in `MusicService` or `BoringViewCoordinator` triggers state machine re-evaluation and `ContentView` re-layout.
-- **Fix:** Apply `.onChange` modifiers explicitly or use `access(keyPath:)` to restrict invalidation to actual dependencies, rather than invalidating on any property trigger.
-- **DDD Alignment:** Refines Domain/ViewModel boundaries to prevent UI thrashing.
-
-### Window Coordinator Geometry Polling
-
-**Impact:** Low (CPU) | **Files:** `WindowCoordinator+MultiDisplay`
-- **Issue:** Uses a `Task.sleep(for: .milliseconds(150))` loop to monitor display layout changes, preventing CPU from reaching deep sleep C-states.
-- **Fix:** Replace polling with native `NSApplication.didChangeScreenParametersNotification` or `CGDisplayRegisterReconfigurationCallback`. Wake only when an actual hardware event occurs.
-- **DDD Alignment:** Moves from Infrastructure polling to native Event-Driven Infrastructure.
-
-### BoringNotchXPCHelper Auto-Restart Thrashing
-
-**Impact:** Low (CPU) | **Files:** `XPCHelperClient`
-- **Issue:** Immediate auto-reconnect on XPC crash (`interruptionHandler` / `invalidationHandler`). If a specific action (like parsing a bad Bluetooth packet) causes a crash loop, it spins up the XPC process indefinitely.
-- **Fix:** Implement exponential backoff. E.g., if dropped 3 times in 10s, pause reconnections for 5 minutes.
-- **DDD Alignment:** Enhances Infrastructure resilience without leaking complexity into Domain logic.
 
 ---
 

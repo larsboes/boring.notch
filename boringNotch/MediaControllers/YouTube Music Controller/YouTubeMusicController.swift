@@ -20,15 +20,29 @@ final class YouTubeMusicController: MediaControllerProtocol {
         didSet { _playbackStateSubject.send(playbackState) }
     }
 
-    var artworkFetchTask: Task<Void, Never>?
+    private(set) var currentTime: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+    private(set) var duration: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+
+    private var artworkFetchTask: Task<Void, Never>?
 
     @ObservationIgnored
     private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
         PlaybackState(bundleIdentifier: YouTubeMusicConfiguration.default.bundleIdentifier)
     )
 
+    @ObservationIgnored
+    private let _progressSubject = PassthroughSubject<(currentTime: Double, duration: Double), Never>()
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         _playbackStateSubject.eraseToAnyPublisher()
+    }
+
+    var progressPublisher: AnyPublisher<(currentTime: Double, duration: Double), Never> {
+        _progressSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {

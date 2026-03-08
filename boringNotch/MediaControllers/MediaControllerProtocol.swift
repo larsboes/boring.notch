@@ -13,6 +13,10 @@ import Combine
 @MainActor
 protocol MediaControllerProtocol: AnyObject {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> { get }
+    var progressPublisher: AnyPublisher<(currentTime: Double, duration: Double), Never> { get }
+    
+    var currentTime: Double { get }
+    var duration: Double { get }
     var supportsVolumeControl: Bool { get }
     var supportsFavorite: Bool { get }
     

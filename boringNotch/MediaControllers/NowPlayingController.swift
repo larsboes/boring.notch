@@ -23,13 +23,27 @@ final class NowPlayingController: MediaControllerProtocol {
         didSet { _playbackStateSubject.send(playbackState) }
     }
 
+    private(set) var currentTime: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+    private(set) var duration: Double = 0 {
+        didSet { _progressSubject.send((currentTime, duration)) }
+    }
+
     @ObservationIgnored
     private let _playbackStateSubject = CurrentValueSubject<PlaybackState, Never>(
         .init(bundleIdentifier: "com.apple.Music")
     )
 
+    @ObservationIgnored
+    private let _progressSubject = PassthroughSubject<(currentTime: Double, duration: Double), Never>()
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         _playbackStateSubject.eraseToAnyPublisher()
+    }
+
+    var progressPublisher: AnyPublisher<(currentTime: Double, duration: Double), Never> {
+        _progressSubject.eraseToAnyPublisher()
     }
 
     var supportsVolumeControl: Bool {
@@ -208,19 +222,19 @@ final class NowPlayingController: MediaControllerProtocol {
         newPlaybackState.title = payload.title ?? (diff ? self.playbackState.title : "")
         newPlaybackState.artist = payload.artist ?? (diff ? self.playbackState.artist : "")
         newPlaybackState.album = payload.album ?? (diff ? self.playbackState.album : "")
-        newPlaybackState.duration = payload.duration ?? (diff ? self.playbackState.duration : 0)
+        self.duration = payload.duration ?? (diff ? self.duration : 0)
 
         if let elapsedTime = payload.elapsedTime {
-            newPlaybackState.currentTime = elapsedTime
+            self.currentTime = elapsedTime
         } else if diff {
             if payload.playing == false {
                 let timeSinceLastUpdate = Date().timeIntervalSince(self.playbackState.lastUpdated)
-                newPlaybackState.currentTime = self.playbackState.currentTime + (self.playbackState.playbackRate * timeSinceLastUpdate)
+                self.currentTime = self.currentTime + (self.playbackState.playbackRate * timeSinceLastUpdate)
             } else {
-                newPlaybackState.currentTime = self.playbackState.currentTime
+                self.currentTime = self.currentTime
             }
         } else {
-            newPlaybackState.currentTime = 0
+            self.currentTime = 0
         }
 
         if let shuffleMode = payload.shuffleMode {
@@ -283,8 +297,8 @@ final class NowPlayingController: MediaControllerProtocol {
             newPlaybackState.title = rawTitle
             newPlaybackState.artist = rawArtist
             
-            if newPlaybackState.duration > 0 && abs(newPlaybackState.duration - newPlaybackState.currentTime) < 0.1 {
-                newPlaybackState.duration = 0
+            if self.duration > 0 && abs(self.duration - self.currentTime) < 0.1 {
+                self.duration = 0
             }
         }
 

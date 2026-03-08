@@ -31,6 +31,22 @@ final class WindowCoordinator {
     var onDragDetectorsNeedSetup: (() -> Void)?
     var showSettingsWindow: (() -> Void)?
 
+    // Display Reconfiguration Callback
+    private let displayCallback: CGDisplayReconfigurationCallBack = { display, flags, userInfo in
+        guard let userInfo = userInfo else { return }
+        let coordinator = Unmanaged<WindowCoordinator>.fromOpaque(userInfo).takeUnretainedValue()
+        
+        if flags.contains(.beginConfigurationFlag) {
+            // Potential optimization: could pause layout during reconfiguration
+        } else {
+            // Reconfiguration finished - trigger update
+            Task { @MainActor in
+                coordinator.adjustWindowPosition()
+                coordinator.onDragDetectorsNeedSetup?()
+            }
+        }
+    }
+
     // MARK: - Initialization
     init(
         primaryViewModel: BoringViewModel,
@@ -46,6 +62,13 @@ final class WindowCoordinator {
         self.pluginManager = pluginManager
         self.detector = detector
         self.spaceManager = spaceManager
+        
+        // Register display reconfiguration callback
+        CGDisplayRegisterReconfigurationCallback(displayCallback, Unmanaged.passUnretained(self).toOpaque())
+    }
+    
+    deinit {
+        CGDisplayRemoveReconfigurationCallback(displayCallback, Unmanaged.passUnretained(self).toOpaque())
     }
 
     // MARK: - Window Lifecycle
