@@ -62,3 +62,14 @@ Comprehensive review and refactoring across 34+ files.
 *   **DisplaySurfaceState**: Private `ttlTask`, `[weak self]` capture, explicit `clear()`.
 *   **Named constants**: Magic numbers extracted across teleprompter state.
 *   **SpotifyController.setFavorite()**: LSP contract documented.
+
+### ⚡ Performance
+*   **Background service backoff**: `BackgroundServiceRestartable` protocol pauses `BatteryService`/`BluetoothManager` polling when notch is closed.
+*   **NotchServiceProvider consolidation**: Single DI entry point replaces 8 individual service properties in `BoringViewModel`.
+*   **TimelineView gating**: Music controls switch to static layout when notch is closed (no 60fps background burn).
+*   **AVAudioRecorder lifecycle**: Mic hardware released immediately when teleprompter is paused.
+*   **AnyView elimination**: Plugin views use type-specific wrappers, restoring SwiftUI structural identity.
+*   **High-frequency reader isolation**: `elapsedTime` decoupled into leaf `ScrubberPlayheadView`.
+*   **GPU/CoreAnimation backoff**: Heavy blur/blend gated behind `!vm.phase.isTransitioning`.
+*   **Teleprompter off-main parsing**: Text section parsing offloaded to `Task.detached`.
+*   **Teleprompter closed view**: Wider layout, prominent X button, live speed slider (🐢↔🐇).

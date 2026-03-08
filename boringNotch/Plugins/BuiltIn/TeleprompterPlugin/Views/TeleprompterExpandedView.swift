@@ -17,14 +17,14 @@ struct TeleprompterExpandedView: View {
 
                 // Right: Control Panel (~40%)
                 TeleprompterControlPanel(state: state)
-                    .frame(width: 200)
+                    .frame(width: 250)
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 16)
             .padding(.top, 2)
 
             // MARK: - Bottom Action Bar
             actionBar
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 16)
                 .padding(.bottom, 4)
                 .padding(.top, 2)
         }
@@ -47,29 +47,29 @@ struct TeleprompterExpandedView: View {
 
     private var editorColumn: some View {
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(nsColor: .windowBackgroundColor).opacity(0.3))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
-                )
-
             TextEditor(text: $state.text)
-                .font(.system(size: 14, weight: .regular, design: .serif))
+                .font(.system(size: 13, weight: .regular))
                 .scrollContentBackground(.hidden)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.clear)
+                .textEditorStyle(.plain)
+                .padding(10)
 
             if state.text.isEmpty {
                 Text("Type or paste your script here...")
-                    .font(.system(size: 14, design: .serif))
+                    .font(.system(size: 13))
                     .foregroundStyle(.tertiary)
-                    .padding(.top, 16)
-                    .padding(.leading, 16)
+                    .padding(14)
                     .allowsHitTesting(false)
             }
         }
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(nsColor: .textBackgroundColor).opacity(0.15))
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(Color.white.opacity(0.06), lineWidth: 0.5)
+        )
     }
 
     // MARK: - Action Bar
