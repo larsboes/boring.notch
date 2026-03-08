@@ -57,6 +57,12 @@ Cherry-picked and adapted the best community contributions that were pending on 
 - **`notchctl` CLI** — command-line control of boringNotch via the Local API
 - **App Intents & URL Scheme** — Siri Shortcuts integration + `boringnotch://` deep links
 
+### Performance
+- **Background service backoff** — plugins and services automatically pause polling when the notch is closed (zero idle CPU)
+- **Phase 2 efficiency** — isolated high-frequency progress updates into leaf reader views, event-driven geometry, XPC helper backoff
+- **TimelineView gating** — music controls switch to static layout when closed (no 60fps background burn)
+- **GPU/CoreAnimation backoff** — heavy blur/blend effects gated behind transition state
+
 ### Additional Improvements
 - **Apple-quality animations** — content reveal modifier, shadow easing, spring-tuned open/close choreography
 - **Dual hover zones** — separate closed/open hover detection for accurate mouse tracking

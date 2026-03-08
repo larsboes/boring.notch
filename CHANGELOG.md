@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 *   **Aggressive Content Absorption**: Content exit animation is now much more aggressive, creating a satisfying "absorbed into the notch" effect.
 
 ### 🐛 Bug Fixes & Refinements
+*   **Build regressions**: Fixed MusicService, SpotifyController, YouTubeMusicController, NowPlayingController, and PlaybackState regressions after efficiency refactor.
+*   **UI regressions**: Fixed clipping, shape integrity, and header alignment issues in open/closed notch states.
+*   **Centered layout**: Implemented centered 'hugging' layout with proper home tab visibility.
 *   **Project Structure**: Massive project file cleanup and reorganization. Moved dozens of files into a more logical structure, improving maintainability.
 *   **Animation Glitches**: Fixed a visual bug where the notch corners would not be rounded correctly during animations.
 *   **Gesture Conflicts**: Resolved gesture conflicts between the notch and scrollable content within plugins.
@@ -78,6 +81,7 @@ Comprehensive review and refactoring across 34+ files.
 *   **SpotifyController.setFavorite()**: LSP contract documented.
 
 ### ⚡ Performance
+*   **Phase 2 efficiency**: Isolated high-frequency progress updates into leaf reader views, event-driven geometry calculations replacing polling, XPC helper backoff strategy for reduced IPC overhead.
 *   **Background service backoff**: `BackgroundServiceRestartable` protocol pauses `BatteryService`/`BluetoothManager` polling when notch is closed.
 *   **NotchServiceProvider consolidation**: Single DI entry point replaces 8 individual service properties in `BoringViewModel`.
 *   **TimelineView gating**: Music controls switch to static layout when notch is closed (no 60fps background burn).
@@ -87,3 +91,4 @@ Comprehensive review and refactoring across 34+ files.
 *   **GPU/CoreAnimation backoff**: Heavy blur/blend gated behind `!vm.phase.isTransitioning`.
 *   **Teleprompter off-main parsing**: Text section parsing offloaded to `Task.detached`.
 *   **Teleprompter closed view**: Wider layout, prominent X button, live speed slider (🐢↔🐇).
+*   **Background execution leaks**: Fixed rendering leaks in Teleprompter and Music plugins that burned CPU when notch was closed.
