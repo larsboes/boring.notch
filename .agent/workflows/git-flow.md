@@ -2,35 +2,34 @@
 description: Standardized development workflow for boring.notch
 ---
 
-# Git Flow: Branching & Deployment Strategy
+# /git-flow
 
-To maintain a stable, high-quality codebase, follow this structured branching strategy.
+This workflow guides you through the lifecycle of a feature or fix, from branch creation to integration into the `developer` branch.
 
-## 1. Topic Branch (Active Development)
-**Naming Convention:** `feature/xxx`, `fix/xxx`, `perf/xxx`, `refactor/xxx`
-- Always create a new branch from `developer` for any new work.
-- Perform all research, implementation, and verification within this branch.
-- **Rules:**
-  - Build must stay green.
-  - Zero files > 300 lines.
-  - No new singletons.
-  - Update `task.md` and `walkthrough.md` as you progress.
+## 1. Start Development
+1. Ensure you are on the latest `developer` branch.
+// turbo
+2. `git checkout developer && git pull origin developer`
+3. Create a topic branch: `git checkout -b [type]/[name]` (e.g., `perf/phase3-opt`).
 
-## 2. Integration (`developer`)
-**Role:** The "next release" candidate branch.
-- Once a topic branch is verified and code-reviewed, merge it into `developer`.
-- **Workflow:**
-  1. `git checkout developer`
-  2. `git pull origin developer`
-  3. `git merge [your-branch]`
-  4. `git push origin developer`
+## 2. Implementation & Verification
+1. Implement your changes following the [CONVENTIONS.md](file:///.agent/rules/CONVENTIONS.md).
+2. Run `/build` to verify the project builds correctly.
+3. Update `task.md` and `walkthrough.md` to document progress and proof-of-work.
 
-## 3. Production (`main`)
-**Role:** Stable, public-facing release branch.
-- Merge from `developer` to `main` only when a set of features is fully stable and ready for a public release.
-- Typically happens at the end of a major Phase (e.g., end of Phase 10).
-- **Workflow:**
-  1. `git checkout main`
-  2. `git merge developer`
-  3. `git tag -a vX.Y.Z -m "Release message"`
-  4. `git push origin main --tags`
+## 3. Integration into Developer
+When work is complete and verified:
+1. Commit your changes: `git add . && git commit -m "[type]: [description]"`
+// turbo
+2. `git checkout developer && git pull origin developer`
+// turbo
+3. `git merge [your-topic-branch]`
+4. If there are conflicts, resolve them and commit.
+// turbo
+5. `git push origin developer`
+
+## 4. Release to Main
+(Reserved for production-ready milestones)
+1. `git checkout main && git pull origin main`
+2. `git merge developer`
+3. `git push origin main`

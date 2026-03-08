@@ -18,6 +18,7 @@
 - **Build must stay green** — no broken intermediate commits
 - **One commit per logical unit** — enables rollback
 - **Tests before ship** — every new plugin gets unit tests
+- **Git Flow** — Follow [/git-flow](file:///.agent/workflows/git-flow.md) and [GIT_FLOW.md](file:///.agent/rules/GIT_FLOW.md)
 - **API-first for new plugins** — if a plugin can be API-driven, it should be
 
 ### Files to Not Touch
