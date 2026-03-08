@@ -63,12 +63,14 @@ final class DisplaySurfacePlugin: NotchPlugin {
         context?.services.apiRouteRegistrar?.unregister(path: "/api/v1/display/clear")
     }
     
-    func closedNotchContent() -> AnyView? {
-        AnyView(DisplaySurfaceClosedView(state: displayState))
+    @ViewBuilder
+    func closedNotchContent() -> some View {
+        DisplaySurfaceClosedView(state: displayState)
     }
     
-    func expandedPanelContent() -> AnyView? {
-        AnyView(DisplaySurfaceExpandedView(state: displayState))
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        DisplaySurfaceExpandedView(state: displayState)
     }
     
     var displayRequest: DisplayRequest? {

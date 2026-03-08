@@ -81,11 +81,7 @@ final class AppObjectGraph {
         BoringViewModel(
             coordinator: coordinator,
             detector: fullscreenDetector,
-            webcamService: pluginManager.services.webcam,
-            musicService: pluginManager.services.music,
-            soundService: pluginManager.services.sound,
-            dragDropService: pluginManager.services.dragDrop,
-            sharingService: pluginManager.services.sharing,
+            services: pluginManager.services,
             settings: DefaultNotchViewModelSettings(source: settings),
             displaySettings: settings
         )

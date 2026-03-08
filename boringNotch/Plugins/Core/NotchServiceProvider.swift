@@ -7,6 +7,13 @@ import Foundation
 import CoreBluetooth
 import Observation
 
+/// Protocol for background polling services that can be paused to save battery
+@MainActor
+protocol BackgroundServiceRestartable {
+    func startMonitoring()
+    func stopMonitoring()
+}
+
 /// Protocol providing access to all services available to plugins.
 /// Extracted from ServiceContainer to allow better dependency injection and testing.
 @MainActor

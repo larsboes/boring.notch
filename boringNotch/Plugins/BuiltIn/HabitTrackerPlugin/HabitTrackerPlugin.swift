@@ -57,21 +57,26 @@ final class HabitTrackerPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - UI Slots
     
-    func closedNotchContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        // To be implemented: dots for today's habits
-        return AnyView(HabitClosedView(plugin: self))
+    @ViewBuilder
+    func closedNotchContent() -> some View {
+        if isEnabled, state.isActive {
+            // To be implemented: dots for today's habits
+            HabitClosedView(plugin: self)
+        }
     }
     
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        // To be implemented: list of habits to tick off
-        return AnyView(HabitExpandedView(plugin: self))
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive {
+            // To be implemented: list of habits to tick off
+            HabitExpandedView(plugin: self)
+        }
     }
     
-    func settingsContent() -> AnyView? {
+    @ViewBuilder
+    func settingsContent() -> some View {
         // We always show settings so users can turn it on/off
-        return AnyView(HabitSettingsView(plugin: self))
+        HabitSettingsView(plugin: self)
     }
     
     // MARK: - ExportablePlugin

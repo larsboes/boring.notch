@@ -79,23 +79,17 @@ final class BatteryPlugin: NotchPlugin, PositionedPlugin {
         return nil
     }
 
-    func closedNotchContent() -> AnyView? {
-        guard isEnabled, state.isActive, let service = batteryService else { return nil }
-        
-        return AnyView(
+    @ViewBuilder
+    func closedNotchContent() -> some View {
+        if isEnabled, state.isActive, let service = batteryService {
             PluginBatteryView(service: service)
-        )
+        }
     }
     
-    func expandedPanelContent() -> AnyView? {
-        // Battery doesn't currently have a dedicated expanded panel tab
-        // It's usually shown as a notification or in the header/settings
-        return nil
-    }
-    
-    func settingsContent() -> AnyView? {
+    @ViewBuilder
+    func settingsContent() -> some View {
         // Reuse existing Charge view (BatterySettingsView)
-        return AnyView(Charge())
+        Charge()
     }
 }
 

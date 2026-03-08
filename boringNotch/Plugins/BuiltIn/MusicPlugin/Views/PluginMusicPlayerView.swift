@@ -23,8 +23,6 @@ struct PluginMusicPlayerView: View {
                     .padding(.leading, 10)
 
                 PluginMusicControlsView(service: service, plugin: plugin)
-                    .drawingGroup()
-                    .compositingGroup()
             }
             .padding(.vertical, 8)
         } else {

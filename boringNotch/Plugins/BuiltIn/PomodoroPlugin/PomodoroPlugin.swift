@@ -55,18 +55,23 @@ final class PomodoroPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - UI Slots
     
-    func closedNotchContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        return AnyView(PomodoroClosedView(plugin: self))
+    @ViewBuilder
+    func closedNotchContent() -> some View {
+        if isEnabled, state.isActive {
+            PomodoroClosedView(plugin: self)
+        }
     }
     
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        return AnyView(PomodoroExpandedView(plugin: self))
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive {
+            PomodoroExpandedView(plugin: self)
+        }
     }
     
-    func settingsContent() -> AnyView? {
-        return AnyView(PomodoroSettingsView(plugin: self))
+    @ViewBuilder
+    func settingsContent() -> some View {
+        PomodoroSettingsView(plugin: self)
     }
     
     // MARK: - ExportablePlugin

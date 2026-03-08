@@ -68,16 +68,15 @@ final class WeatherPlugin: NotchPlugin, PositionedPlugin {
     
     // MARK: - UI Slots
     
-    func closedNotchContent() -> AnyView? {
-        return nil
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive {
+            WeatherView()
+        }
     }
     
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        return AnyView(WeatherView())
-    }
-    
-    func settingsContent() -> AnyView? {
-        AnyView(WeatherSettings())
+    @ViewBuilder
+    func settingsContent() -> some View {
+        WeatherSettings()
     }
 }

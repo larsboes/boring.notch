@@ -53,162 +53,26 @@ struct PluginMusicControlsView: View {
                 }
 
                 if settings.enableLyrics {
-                    lyricsView(width: geo.size.width)
+                    IsolatedLyricsView(
+                        service: service,
+                        width: geo.size.width,
+                        isActive: vm.notchState == .open && service.playbackRate > 0
+                    )
                 }
             }
         }
         .frame(height: settings.enableLyrics ? 58 : 42)
     }
 
-    @ViewBuilder
-    private func lyricsView(width: CGFloat) -> some View {
-        if vm.notchState == .open && service.playbackRate > 0 {
-            TimelineView(.animation(minimumInterval: 0.5)) { timeline in
-                let currentElapsed: Double = {
-                    guard service.playbackState.isPlaying else { return service.elapsedTime }
-                    let delta = timeline.date.timeIntervalSince(service.timestampDate)
-                    let progressed = service.elapsedTime + (delta * service.playbackRate)
-                    return min(max(progressed, 0), service.songDuration)
-                }()
-
-                let line: String = {
-                    if service.isFetchingLyrics { return "Loading lyrics..." }
-                    if !service.syncedLyrics.isEmpty {
-                        if let match = service.syncedLyrics.last(where: { $0.time <= currentElapsed }) {
-                            return match.text
-                        }
-                    }
-                    let trimmed = service.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-                    return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
-                }()
-
-                let isPersian = line.unicodeScalars.contains { scalar in
-                    let v = scalar.value
-                    return v >= 0x0600 && v <= 0x06FF
-                }
-
-                MarqueeText(
-                    line,
-                    font: .subheadline,
-                    color: service.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
-                    frameWidth: width
-                )
-                .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
-                .lineLimit(1)
-                .opacity(service.playbackState.isPlaying ? 1 : 0)
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-        } else {
-            let currentElapsed = service.elapsedTime
-            let line: String = {
-                if service.isFetchingLyrics { return "Loading lyrics..." }
-                if !service.syncedLyrics.isEmpty {
-                    if let match = service.syncedLyrics.last(where: { $0.time <= currentElapsed }) {
-                        return match.text
-                    }
-                }
-                let trimmed = service.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-                return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
-            }()
-
-            let isPersian = line.unicodeScalars.contains { scalar in
-                let v = scalar.value
-                return v >= 0x0600 && v <= 0x06FF
-            }
-
-            MarqueeText(
-                line,
-                font: .subheadline,
-                color: service.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
-                frameWidth: width
-            )
-            .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
-            .lineLimit(1)
-            .opacity(service.playbackState.isPlaying ? 1 : 0)
-            .transition(.opacity.combined(with: .move(edge: .top)))
-        }
-    }
-
-    @ViewBuilder
     private var musicSliderWithTimes: some View {
-        if vm.notchState == .open && service.playbackRate > 0 {
-            TimelineView(.animation(minimumInterval: 0.5)) { timeline in
-                HStack(spacing: 8) {
-                    Text(timeString(from: sliderValue))
-                        .font(.caption2)
-                        .foregroundColor(
-                            settings.playerColorTinting
-                            ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
-                        )
-                        .monospacedDigit()
-                        .frame(width: 36, alignment: .trailing)
-
-                    CustomSlider(
-                        value: $sliderValue,
-                        range: 0...service.songDuration,
-                        color: settings.sliderColor == SliderColorEnum.albumArt
-                            ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.8)
-                            : settings.sliderColor == SliderColorEnum.accent ? Color.effectiveAccent(from: settings) : .white,
-                        dragging: $dragging,
-                        lastDragged: $lastDragged,
-                        onValueChange: { newValue in
-                            let progress = service.songDuration > 0 ? newValue / service.songDuration : 0
-                            Task { await service.seek(to: progress) }
-                        }
-                    )
-                    .frame(height: 8)
-
-                    Text(timeString(from: service.songDuration))
-                        .font(.caption2)
-                        .foregroundColor(
-                            settings.playerColorTinting
-                            ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
-                        )
-                        .monospacedDigit()
-                        .frame(width: 36, alignment: .leading)
-                }
-                .onChange(of: timeline.date) {
-                    guard !dragging, service.timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
-                    sliderValue = service.estimatedPlaybackPosition(at: timeline.date)
-                }
-            }
-        } else {
-            HStack(spacing: 8) {
-                Text(timeString(from: sliderValue))
-                    .font(.caption2)
-                    .foregroundColor(
-                        settings.playerColorTinting
-                        ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
-                    )
-                    .monospacedDigit()
-                    .frame(width: 36, alignment: .trailing)
-
-                CustomSlider(
-                    value: $sliderValue,
-                    range: 0...service.songDuration,
-                    color: settings.sliderColor == SliderColorEnum.albumArt
-                        ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.8)
-                        : settings.sliderColor == SliderColorEnum.accent ? Color.effectiveAccent(from: settings) : .white,
-                    dragging: $dragging,
-                    lastDragged: $lastDragged,
-                    onValueChange: { newValue in
-                        let progress = service.songDuration > 0 ? newValue / service.songDuration : 0
-                        Task { await service.seek(to: progress) }
-                    }
-                )
-                .frame(height: 8)
-
-                Text(timeString(from: service.songDuration))
-                    .font(.caption2)
-                    .foregroundColor(
-                        settings.playerColorTinting
-                        ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
-                    )
-                    .monospacedDigit()
-                    .frame(width: 36, alignment: .leading)
-            }
-        }
+        IsolatedScrubberView(
+            service: service,
+            settings: settings,
+            isActive: vm.notchState == .open && service.playbackRate > 0
+        )
     }
+
+    // Removed massive UI methods; they are now standalone views at the bottom.
     private var playbackControls: some View {
         HStack(spacing: 6) {
             AppIcon(for: service.bundleIdentifier ?? "com.apple.Music")
@@ -276,6 +140,125 @@ struct PluginMusicControlsView: View {
         case .off: return "repeat"
         case .all: return "repeat"
         case .one: return "repeat.1"
+        }
+    }
+
+}
+
+struct IsolatedLyricsView: View {
+    let service: any MusicServiceProtocol
+    let width: CGFloat
+    let isActive: Bool
+
+    var body: some View {
+        if isActive {
+            TimelineView(.animation(minimumInterval: 0.5)) { timeline in
+                content(at: timeline.date)
+            }
+        } else {
+            content(at: Date())
+        }
+    }
+    
+    @ViewBuilder
+    private func content(at date: Date) -> some View {
+        let currentElapsed: Double = {
+            guard isActive, service.playbackState.isPlaying else { return service.elapsedTime }
+            let delta = date.timeIntervalSince(service.timestampDate)
+            let progressed = service.elapsedTime + (delta * service.playbackRate)
+            return min(max(progressed, 0), service.songDuration)
+        }()
+
+        let line: String = {
+            if service.isFetchingLyrics { return "Loading lyrics..." }
+            if !service.syncedLyrics.isEmpty {
+                if let match = service.syncedLyrics.last(where: { $0.time <= currentElapsed }) {
+                    return match.text
+                }
+            }
+            let trimmed = service.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+        }()
+
+        let isPersian = line.unicodeScalars.contains { scalar in
+            let v = scalar.value
+            return v >= 0x0600 && v <= 0x06FF
+        }
+
+        MarqueeText(
+            line,
+            font: .subheadline,
+            color: service.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+            frameWidth: width
+        )
+        .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
+        .lineLimit(1)
+        .opacity(service.playbackState.isPlaying ? 1 : 0)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+}
+
+struct IsolatedScrubberView: View {
+    let service: any MusicServiceProtocol
+    let settings: any NotchSettings
+    let isActive: Bool
+
+    @State private var sliderValue: Double = 0
+    @State private var dragging: Bool = false
+    @State private var lastDragged: Date = .distantPast
+
+    var body: some View {
+        if isActive {
+            TimelineView(.animation(minimumInterval: 0.5)) { timeline in
+                content(at: timeline.date)
+            }
+        } else {
+            content(at: Date())
+        }
+    }
+    
+    @ViewBuilder
+    private func content(at date: Date) -> some View {
+        HStack(spacing: 8) {
+            Text(timeString(from: sliderValue))
+                .font(.caption2)
+                .foregroundColor(
+                    settings.playerColorTinting
+                    ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
+                )
+                .monospacedDigit()
+                .frame(width: 36, alignment: .trailing)
+
+            CustomSlider(
+                value: $sliderValue,
+                range: 0...max(service.songDuration, 1),
+                color: settings.sliderColor == SliderColorEnum.albumArt
+                    ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.8)
+                    : settings.sliderColor == SliderColorEnum.accent ? Color.effectiveAccent(from: settings) : .white,
+                dragging: $dragging,
+                lastDragged: $lastDragged,
+                onValueChange: { newValue in
+                    let progress = service.songDuration > 0 ? newValue / service.songDuration : 0
+                    Task { await service.seek(to: progress) }
+                }
+            )
+            .frame(height: 8)
+
+            Text(timeString(from: service.songDuration))
+                .font(.caption2)
+                .foregroundColor(
+                    settings.playerColorTinting
+                    ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
+                )
+                .monospacedDigit()
+                .frame(width: 36, alignment: .leading)
+        }
+        .onChange(of: date) {
+            guard !dragging, service.timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
+            sliderValue = service.estimatedPlaybackPosition(at: date)
+        }
+        .onAppear {
+            sliderValue = service.elapsedTime
         }
     }
 

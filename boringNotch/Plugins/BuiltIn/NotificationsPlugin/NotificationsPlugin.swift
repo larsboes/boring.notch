@@ -58,17 +58,16 @@ final class NotificationsPlugin: NotchPlugin {
     
     // MARK: - UI Slots
     
-    func closedNotchContent() -> AnyView? {
-        return nil
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive {
+            // NotificationsView will be updated to use Environment(\.pluginManager)
+            NotificationsView()
+        }
     }
     
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        // NotificationsView will be updated to use Environment(\.pluginManager)
-        return AnyView(NotificationsView())
-    }
-    
-    func settingsContent() -> AnyView? {
-        AnyView(NotificationsSettingsView())
+    @ViewBuilder
+    func settingsContent() -> some View {
+        NotificationsSettingsView()
     }
 }

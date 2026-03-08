@@ -65,18 +65,17 @@ final class CalendarPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - UI Slots
     
-    func closedNotchContent() -> AnyView? {
-        return nil
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive {
+            // CalendarView uses Environment(\.pluginManager) to access the service
+            CalendarView()
+        }
     }
     
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        // CalendarView uses Environment(\.pluginManager) to access the service
-        return AnyView(CalendarView())
-    }
-    
-    func settingsContent() -> AnyView? {
-        AnyView(CalendarSettings())
+    @ViewBuilder
+    func settingsContent() -> some View {
+        CalendarSettings()
     }
 
     // MARK: - ExportablePlugin

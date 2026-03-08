@@ -22,8 +22,8 @@ final class TeleprompterTimerManager {
             Task { @MainActor in
                 guard let self else { return }
                 let now = Date()
-                self.lastUpdate = now
                 self.onTick?(now)
+                self.lastUpdate = now
             }
         }
     }

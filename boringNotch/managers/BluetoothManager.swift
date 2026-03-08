@@ -4,7 +4,7 @@ import SwiftUI
 import Defaults
 @Observable
 @MainActor
-final class BluetoothManager: NSObject {
+final class BluetoothManager: NSObject, BackgroundServiceRestartable {
 
     var connectedDevices: [BluetoothDevice] = []
     var isScanning = false

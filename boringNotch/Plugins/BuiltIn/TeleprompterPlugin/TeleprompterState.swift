@@ -5,9 +5,18 @@ import Observation
 @Observable
 final class TeleprompterState {
     var text: String = "" {
-        didSet { parsedSections = engine.parseSections(from: text) }
+        didSet {
+            let engine = TeleprompterScrollEngine()
+            let newText = text
+            Task.detached {
+                let sections = engine.parseSections(from: newText)
+                await MainActor.run {
+                    self.parsedSections = sections
+                }
+            }
+        }
     }
-    private(set) var parsedSections: [TeleprompterScrollEngine.Section] = []
+    private var parsedSections: [TeleprompterScrollEngine.Section] = []
     var config = TeleprompterScrollEngine.Config(
         speed: 30,
         fontSize: 16,
@@ -69,7 +78,7 @@ final class TeleprompterState {
     }
 
     var currentSectionTitle: String? {
-        engine.currentSection(
+        return engine.currentSection(
             sections: parsedSections,
             scrollPosition: scrollPosition,
             lineHeight: estimatedLineHeight

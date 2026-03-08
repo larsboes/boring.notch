@@ -58,19 +58,18 @@ final class ShelfPlugin: NotchPlugin, ExportablePlugin {
     
     // MARK: - UI Slots
     
-    func closedNotchContent() -> AnyView? {
-        return nil
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive {
+            // ShelfView uses Environment(\.pluginManager) to access services
+            // It also needs BoringViewModel from environment, which NotchHomeView provides
+            ShelfView()
+        }
     }
     
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        // ShelfView uses Environment(\.pluginManager) to access services
-        // It also needs BoringViewModel from environment, which NotchHomeView provides
-        return AnyView(ShelfView())
-    }
-    
-    func settingsContent() -> AnyView? {
-        AnyView(Shelf())
+    @ViewBuilder
+    func settingsContent() -> some View {
+        Shelf()
     }
 
     // MARK: - ExportablePlugin

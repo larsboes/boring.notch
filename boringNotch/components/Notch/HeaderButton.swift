@@ -7,7 +7,10 @@ struct HeaderButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            NSApp.keyWindow?.makeFirstResponder(nil)
+            action()
+        }) {
             ZStack {
                 Color.black.opacity(0.001)
                 Image(systemName: icon)
@@ -31,7 +34,10 @@ struct HeaderActionButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            NSApp.keyWindow?.makeFirstResponder(nil)
+            action()
+        }) {
             ZStack {
                 Color.black.opacity(0.001)
                 Image(systemName: icon)

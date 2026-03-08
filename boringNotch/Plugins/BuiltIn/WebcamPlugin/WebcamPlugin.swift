@@ -62,18 +62,10 @@ final class WebcamPlugin: NotchPlugin {
     
     // MARK: - UI Slots
     
-    func closedNotchContent() -> AnyView? {
-        return nil
-    }
-    
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive, let service = webcamService else { return nil }
-        return AnyView(CameraPreviewView(webcamManager: service))
-    }
-    
-    func settingsContent() -> AnyView? {
-        // No dedicated settings view yet, relies on General settings (showMirror)
-        // Could return a view that toggles "showMirror" via plugin settings
-        return nil
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive, let service = webcamService {
+            CameraPreviewView(webcamManager: service)
+        }
     }
 }

@@ -37,19 +37,21 @@ protocol NotchPlugin: Identifiable, Observable, AnyObject {
 
     // MARK: - UI Slots
 
+    associatedtype ClosedContent: View
+    associatedtype ExpandedContent: View
+    associatedtype SettingsContent: View
+
     /// Content shown in the closed notch (compact view)
-    /// Return nil if this plugin doesn't show in closed state
     @ViewBuilder
-    func closedNotchContent() -> AnyView?
+    func closedNotchContent() -> ClosedContent
 
     /// Content shown when notch is expanded (full panel)
-    /// Return nil if this plugin doesn't have an expanded view
     @ViewBuilder
-    func expandedPanelContent() -> AnyView?
+    func expandedPanelContent() -> ExpandedContent
 
     /// Settings UI for this plugin
     @ViewBuilder
-    func settingsContent() -> AnyView?
+    func settingsContent() -> SettingsContent
 
     // MARK: - Display Requests
 
@@ -98,13 +100,13 @@ enum DisplayPriority: Int, Comparable, Sendable {
 
 extension NotchPlugin {
     /// Default: no closed notch content
-    func closedNotchContent() -> AnyView? { nil }
+    func closedNotchContent() -> EmptyView { EmptyView() }
 
     /// Default: no expanded panel content
-    func expandedPanelContent() -> AnyView? { nil }
+    func expandedPanelContent() -> EmptyView { EmptyView() }
 
     /// Default: no custom settings (uses auto-generated toggle)
-    func settingsContent() -> AnyView? { nil }
+    func settingsContent() -> EmptyView { EmptyView() }
 
     /// Default: no display request
     var displayRequest: DisplayRequest? { nil }
@@ -219,11 +221,12 @@ struct AnyNotchPlugin: Identifiable {
     private let _state: () -> PluginState
     private let _activate: (PluginContext) async throws -> Void
     private let _deactivate: () async -> Void
-    private let _closedNotchContent: () -> AnyView?
-    private let _expandedPanelContent: () -> AnyView?
-    private let _settingsContent: () -> AnyView?
     private let _displayRequest: () -> DisplayRequest?
     private let _closedNotchPosition: () -> ClosedNotchPosition?
+
+    let hasClosedNotchContent: Bool
+    let hasExpandedPanelContent: Bool
+    let hasSettingsContent: Bool
 
     init<P: NotchPlugin>(_ plugin: P) {
         self.id = plugin.id
@@ -234,9 +237,6 @@ struct AnyNotchPlugin: Identifiable {
         self._state = { plugin.state }
         self._activate = { try await plugin.activate(context: $0) }
         self._deactivate = { await plugin.deactivate() }
-        self._closedNotchContent = { plugin.closedNotchContent() }
-        self._expandedPanelContent = { plugin.expandedPanelContent() }
-        self._settingsContent = { plugin.settingsContent() }
         self._displayRequest = { plugin.displayRequest }
         // Preserve PositionedPlugin conformance through type erasure
         if let positioned = plugin as? PositionedPlugin {
@@ -244,6 +244,10 @@ struct AnyNotchPlugin: Identifiable {
         } else {
             self._closedNotchPosition = { nil }
         }
+
+        self.hasClosedNotchContent = type(of: plugin.closedNotchContent()) != EmptyView.self
+        self.hasExpandedPanelContent = type(of: plugin.expandedPanelContent()) != EmptyView.self
+        self.hasSettingsContent = type(of: plugin.settingsContent()) != EmptyView.self
     }
 
     var metadata: PluginMetadata { _metadata() }
@@ -261,9 +265,6 @@ struct AnyNotchPlugin: Identifiable {
         await _deactivate()
     }
 
-    func closedNotchContent() -> AnyView? { _closedNotchContent() }
-    func expandedPanelContent() -> AnyView? { _expandedPanelContent() }
-    func settingsContent() -> AnyView? { _settingsContent() }
     var displayRequest: DisplayRequest? { _displayRequest() }
     var closedNotchPosition: ClosedNotchPosition? { _closedNotchPosition() }
 }

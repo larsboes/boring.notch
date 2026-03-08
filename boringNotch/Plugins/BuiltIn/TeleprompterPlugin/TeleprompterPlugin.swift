@@ -115,17 +115,19 @@ final class TeleprompterPlugin: NotchPlugin {
         context?.services.apiRouteRegistrar?.unregister(path: "/api/v1/teleprompter/state")
         context?.services.apiRouteRegistrar?.unregister(path: "/api/v1/teleprompter/ai-assist")
     }
-    
-    func closedNotchContent() -> AnyView? {
-        AnyView(TeleprompterClosedView(state: teleState))
+    @ViewBuilder
+    func closedNotchContent() -> some View {
+        TeleprompterClosedView(state: teleState)
     }
     
-    func expandedPanelContent() -> AnyView? {
-        AnyView(TeleprompterExpandedView(state: teleState))
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        TeleprompterExpandedView(state: teleState)
     }
     
-    func settingsContent() -> AnyView? {
-        AnyView(TeleprompterSettingsView(state: teleState))
+    @ViewBuilder
+    func settingsContent() -> some View {
+        TeleprompterSettingsView(state: teleState)
     }
     
     var displayRequest: DisplayRequest? {
@@ -134,7 +136,7 @@ final class TeleprompterPlugin: NotchPlugin {
         return DisplayRequest(
             priority: .critical,
             category: DisplayRequest.utility,
-            preferredHeight: physicalHeight * 5
+            preferredHeight: physicalHeight * 5.5
         )
     }
 }

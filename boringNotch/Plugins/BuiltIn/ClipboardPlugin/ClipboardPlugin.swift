@@ -48,16 +48,10 @@ final class ClipboardPlugin: NotchPlugin {
     
     // MARK: - UI Slots
     
-    func closedNotchContent() -> AnyView? {
-        return nil
-    }
-    
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive, let context else { return nil }
-        return AnyView(ClipboardView(manager: context.services.clipboardManager))
-    }
-    
-    func settingsContent() -> AnyView? {
-        return nil
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive, let context {
+            ClipboardView(manager: context.services.clipboardManager)
+        }
     }
 }

@@ -26,7 +26,30 @@ import SwiftUI
 
     var contentType: ContentType = .normal
 
-    var phase: NotchPhase = .closed
+    var phase: NotchPhase = .closed {
+        didSet {
+            guard phase != oldValue else { return }
+            
+            // Back off background services when closed to save battery
+            if phase.isVisible {
+                // Resume polling if available
+                if let bgBattery = services.battery as? BackgroundServiceRestartable {
+                    bgBattery.startMonitoring()
+                }
+                if let bgBluetooth = services.bluetoothManager as? BackgroundServiceRestartable {
+                    bgBluetooth.startMonitoring()
+                }
+            } else {
+                // Halt heavy polling and timers
+                if let bgBattery = services.battery as? BackgroundServiceRestartable {
+                    bgBattery.stopMonitoring()
+                }
+                if let bgBluetooth = services.bluetoothManager as? BackgroundServiceRestartable {
+                    bgBluetooth.stopMonitoring()
+                }
+            }
+        }
+    }
     /// Decoupled content reveal progress (0→1).
     /// Animated independently from the shell spring so content can lead/lag the shell.
     var contentRevealProgress: CGFloat = 0
@@ -81,7 +104,6 @@ import SwiftUI
         set { sizeCalculator.inactiveNotchSize = newValue }
     }
 
-    let webcamService: any WebcamServiceProtocol
     var isCameraExpanded: Bool = false
     var isRequestingAuthorization: Bool = false
 
@@ -93,10 +115,8 @@ import SwiftUI
         // This method is kept for external cleanup calls if needed
     }
 
-    let musicService: any MusicServiceProtocol
-    private let soundService: any SoundServiceProtocol
-    private let dragDropService: any DragDropServiceProtocol
-    let sharingService: any SharingServiceProtocol
+    let services: any NotchServiceProvider
+
     var shelfService: ShelfServiceProtocol?
 
     weak var window: NSWindow?
@@ -111,35 +131,29 @@ import SwiftUI
         screenUUID: String? = nil,
         coordinator: BoringViewCoordinator,
         detector: FullscreenMediaDetector,
-        webcamService: any WebcamServiceProtocol,
-        musicService: any MusicServiceProtocol,
-        soundService: any SoundServiceProtocol,
-        dragDropService: any DragDropServiceProtocol,
-        sharingService: any SharingServiceProtocol,
+        services: any NotchServiceProvider,
         settings: NotchViewModelSettings? = nil,
         displaySettings: any DisplaySettings
     ) {
         self.coordinator = coordinator
         self.detector = detector
-        self.webcamService = webcamService
-        self.musicService = musicService
-        self.soundService = soundService
-        self.dragDropService = dragDropService
-        self.sharingService = sharingService
+        self.services = services
         // settings must be provided; nil fallback only for secondary window clones
         self.settings = settings ?? DefaultNotchViewModelSettings(source: MockNotchSettings())
         self.displaySettings = displaySettings
         self.animation = animationLibrary.animation
 
         self.hoverController = NotchHoverController(settings: self.settings, displaySettings: displaySettings)
-        self.sizeCalculator = NotchSizeCalculator(settings: self.settings, displaySettings: displaySettings, musicService: musicService)
+        self.sizeCalculator = NotchSizeCalculator(settings: self.settings, displaySettings: displaySettings, musicService: services.music)
         self.observerSetup = NotchObserverSetup(settings: self.settings, detector: detector)
         self.shelfService = nil
 
         super.init()
-        hoverController.shouldPreventClose = { [weak self] in
-            self?.sharingService.preventNotchClose ?? false
+        
+        let preventCloseThunk: @MainActor () -> Bool = { [weak self] in
+            return self?.services.sharing.preventNotchClose ?? false
         }
+        hoverController.shouldPreventClose = preventCloseThunk
         configureHoverCallbacks()
         setupDragDropCallbacks()
 
@@ -178,20 +192,23 @@ import SwiftUI
     override convenience init() {
         let mockSettings = MockNotchSettings()
         let musicService = MusicService(manager: MusicManager(settings: mockSettings))
+        
+        // Use a lightweight mock container for previews
+        let mockServices = ServiceContainer(
+            eventBus: PluginEventBus(),
+            settings: mockSettings
+        )
+        
         self.init(
             coordinator: BoringViewCoordinator(settings: mockSettings),
             detector: FullscreenMediaDetector(musicService: musicService, settings: mockSettings),
-            webcamService: WebcamManager(),
-            musicService: musicService,
-            soundService: SoundService(),
-            dragDropService: DragDropService(),
-            sharingService: SharingStateManager(),
+            services: mockServices,
             displaySettings: mockSettings
         )
     }
 
     private func setupDragDropCallbacks() {
-        dragDropService.onDragEntersNotchRegion = { [weak self] in
+        services.dragDrop.onDragEntersNotchRegion = { [weak self] in
             Task { @MainActor in
                 guard let self = self else { return }
                 self.dragDetectorTargeting = true
@@ -200,14 +217,14 @@ import SwiftUI
             }
         }
 
-        dragDropService.onDragExitsNotchRegion = { [weak self] in
+        services.dragDrop.onDragExitsNotchRegion = { [weak self] in
             Task { @MainActor in
                 guard let self = self else { return }
                 self.dragDetectorTargeting = false
             }
         }
 
-        dragDropService.startMonitoring()
+        services.dragDrop.startMonitoring()
     }
 
     private func setupNotchHeightObserver() {
@@ -240,7 +257,7 @@ import SwiftUI
                 let y = screenFrame.maxY - height
 
                 let region = CGRect(x: x, y: y, width: width, height: height)
-                self.dragDropService.updateNotchRegion(region)
+                self.services.dragDrop.updateNotchRegion(region)
             }
         }
     }

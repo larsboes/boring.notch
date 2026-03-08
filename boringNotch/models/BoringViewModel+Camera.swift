@@ -13,13 +13,13 @@ extension BoringViewModel {
             return
         }
 
-        switch webcamService.authorizationStatus {
+        switch services.webcam.authorizationStatus {
         case .authorized:
-            if webcamService.isSessionRunning {
-                webcamService.stopSession()
+            if services.webcam.isSessionRunning {
+                services.webcam.stopSession()
                 isCameraExpanded = false
-            } else if webcamService.cameraAvailable {
-                webcamService.startSession()
+            } else if services.webcam.cameraAvailable {
+                services.webcam.startSession()
                 isCameraExpanded = true
             }
 
@@ -46,7 +46,7 @@ extension BoringViewModel {
 
         case .notDetermined:
             isRequestingAuthorization = true
-            webcamService.checkAndRequestVideoAuthorization()
+            services.webcam.checkAndRequestVideoAuthorization()
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.isRequestingAuthorization = false
             }

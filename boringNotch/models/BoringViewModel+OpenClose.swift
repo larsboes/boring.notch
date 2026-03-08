@@ -30,11 +30,11 @@ extension BoringViewModel {
             self.contentRevealProgress = 1
         }
 
-        musicService.forceUpdate()
+        services.music.forceUpdate()
     }
 
     func close(force: Bool = false) {
-        if sharingService.preventNotchClose { return }
+        if services.sharing.preventNotchClose { return }
         if !force && isHoveringNotch && phase == .open { return }
         guard phase == .open || force else { return }
 

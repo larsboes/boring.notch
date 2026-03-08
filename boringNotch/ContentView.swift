@@ -28,7 +28,7 @@ struct ContentView: View {
     @State var haptics: Bool = false
 
     var musicService: any MusicServiceProtocol {
-        vm.musicService
+        vm.services.music
     }
 
     @Namespace var albumArtNamespace
@@ -48,6 +48,7 @@ struct ContentView: View {
         let expandingViewShow: Bool
         let isPlaying: Bool
         let isPlayerIdle: Bool
+        let activePluginId: String?
     }
 
     private var currentStateSnapshot: StateSnapshot {
@@ -58,7 +59,8 @@ struct ContentView: View {
             sneakPeekShow: coordinator.sneakPeek.show,
             expandingViewShow: coordinator.expandingView.show,
             isPlaying: musicService.playbackState.isPlaying,
-            isPlayerIdle: musicService.isPlayerIdle
+            isPlayerIdle: musicService.isPlayerIdle,
+            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin()
         )
     }
 

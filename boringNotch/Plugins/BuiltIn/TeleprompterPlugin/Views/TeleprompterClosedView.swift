@@ -21,7 +21,7 @@ struct TeleprompterClosedView: View {
 
     /// Match closed notch width + flanking (same pattern as MusicLiveActivity)
     private var contentWidth: CGFloat {
-        vm.closedNotchSize.width + 60
+        vm.closedNotchSize.width + 100
     }
 
     var body: some View {
@@ -32,8 +32,8 @@ struct TeleprompterClosedView: View {
 
             // Reading zone — teleprompter text, directly below camera
             ZStack {
-                // Background Voice Glow Beam (Only active while scrolling/playing)
-                if state.isScrolling {
+                // Background Voice Glow Beam (Only active while scrolling/playing AND not transitioning)
+                if state.isScrolling, !vm.phase.isTransitioning {
                     Rectangle()
                         .fill(
                             LinearGradient(
@@ -137,36 +137,75 @@ struct TeleprompterClosedView: View {
 
     // MARK: - Reading Chrome
 
-    /// Progress bar, section title, and elapsed/remaining time overlay.
+    /// Progress bar, section title, speed slider, stop button, and elapsed/remaining time.
     private var readingChrome: some View {
-        VStack(spacing: 0) {
-            // Section title (top-right of reading zone)
-            HStack {
-                Spacer()
+        VStack(spacing: 4) {
+            Spacer()
+
+            // Speed slider row
+            HStack(spacing: 6) {
+                Image(systemName: "tortoise")
+                    .font(.system(size: 8))
+                    .foregroundStyle(.white.opacity(0.3))
+
+                Slider(
+                    value: Binding(
+                        get: { state.config.speed },
+                        set: { state.config.speed = $0 }
+                    ),
+                    in: 10...150,
+                    step: 5
+                )
+                .tint(.white.opacity(0.4))
+                .controlSize(.mini)
+
+                Image(systemName: "hare")
+                    .font(.system(size: 8))
+                    .foregroundStyle(.white.opacity(0.3))
+
+                Text("\(Int(state.config.speed))")
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.4))
+                    .frame(width: 24, alignment: .trailing)
+            }
+            .padding(.horizontal, 12)
+
+            // Bottom row: elapsed time, section, close button, remaining time
+            HStack(spacing: 6) {
+                if state.isScrolling || state.scrollPosition > 0 {
+                    Text(state.elapsedTimeString)
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.25))
+                }
+
                 if let section = state.currentSectionTitle {
                     Text(section)
                         .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(.white.opacity(0.35))
                         .lineLimit(1)
-                        .padding(.trailing, 8)
-                        .padding(.top, 4)
                 }
-            }
 
-            Spacer()
+                Spacer()
 
-            // Elapsed / remaining time
-            if state.isScrolling || state.scrollPosition > 0 {
-                HStack {
-                    Text(state.elapsedTimeString)
-                    Spacer()
+                // Stop / close button — prominent
+                Button {
+                    state.reset()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.6))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if state.isScrolling || state.scrollPosition > 0 {
                     Text(state.remainingTimeString)
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.25))
                 }
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.25))
-                .padding(.horizontal, 8)
-                .padding(.bottom, 4)
             }
+            .padding(.horizontal, 12)
+            .padding(.bottom, 4)
 
             // Progress bar
             GeometryReader { geo in
@@ -181,7 +220,6 @@ struct TeleprompterClosedView: View {
             }
             .frame(height: 2)
         }
-        .allowsHitTesting(false)
     }
 }
 

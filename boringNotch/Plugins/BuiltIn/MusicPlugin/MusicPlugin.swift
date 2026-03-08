@@ -144,44 +144,23 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         return DisplayRequest(priority: .high, category: DisplayRequest.music)
     }
 
-    func closedNotchContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-        guard let service = musicService else { return nil }
-        // Only show if playing or we have track info?
-        // Original logic was driven by NotchStateMachine.
-        // For now, if the state machine asks for this plugin, we return the view.
-        
-        return AnyView(
+    @ViewBuilder
+    func closedNotchContent() -> some View {
+        if isEnabled, state.isActive, let service = musicService {
             MusicLiveActivity(service: service)
-        )
+        }
     }
 
-    func expandedPanelContent() -> AnyView? {
-        guard isEnabled, state.isActive else { return nil }
-
-        // Use the refactored PluginMusicPlayerView which accesses the service internally
-        // We pass the namespace via environment or constructor - wait, the namespace comes from the parent view (NotchHomeView)
-        // This is a challenge: The expandedPanelContent signature doesn't accept a Namespace.ID.
-        // We might need to adjust the protocol or use an EnvironmentObject for the namespace.
-        // For now, let's look at how NotchHomeView passes it.
-        // It passes `albumArtNamespace: albumArtNamespace` to `MusicPlayerView`.
-        
-        // TEMPORARY FIX: We can't pass the namespace here because the protocol doesn't support it.
-        // We will return a wrapper that expects the namespace to be injected or available.
-        // But NotchPlugin protocol returns AnyView, meaning the type is erased.
-        //
-        // Solution: The plugin system needs a way to pass context like Namespace.
-        // For Phase 2, we will use a dedicated EnvironmentKey for the album art namespace.
-        
-        return AnyView(
+    @ViewBuilder
+    func expandedPanelContent() -> some View {
+        if isEnabled, state.isActive {
             MusicExpandedViewWrapper(plugin: self)
-        )
+        }
     }
 
-    func settingsContent() -> AnyView? {
-        AnyView(
-            MusicSettingsView(plugin: self)
-        )
+    @ViewBuilder
+    func settingsContent() -> some View {
+        MusicSettingsView(plugin: self)
     }
 
     // MARK: - ExportablePlugin

@@ -119,6 +119,13 @@
 | 4.34 | DDD | **SneakContentType.isHUD** — Moved HUD-type check from free function in BoringHeader to computed property on enum (domain logic on domain type). |
 | 4.35 | Clean Code | **DisplaySurfaceState** — Made `ttlTask` private, added `[weak self]` capture, added explicit `clear()` method. |
 | 4.36 | Clean Code | **Named constants** — `TeleprompterState` magic numbers extracted: `endBuffer` (40px), `speedStep` (10), `speedMin` (10), `speedMax` (150). |
+| 4.37 | Performance | **Background TimelineView gating** — `PluginMusicControlsView` `TimelineView(.animation)` now switches to static `HStack` when notch is closed. Eliminates 60fps background CPU burn. |
+| 4.38 | Performance | **AVAudioRecorder lifecycle** — `MicrophoneMonitor` mic hardware release tied to `onDisappear`/`notchState` change. Orange dot no longer persists when teleprompter is paused. |
+| 4.39 | Performance | **Eliminate `AnyView`** — Plugin views migrated from `AnyView` to type-specific wrappers, restoring SwiftUI structural identity for diff-based updates. |
+| 4.40 | Performance | **Isolate high-frequency readers** — `elapsedTime` decoupled from `PluginMusicControlsView` into leaf `ScrubberPlayheadView`. Only playhead redraws at 60fps. |
+| 4.41 | Performance | **GPU/CoreAnimation backoff** — Heavy `.blur(radius: 35)` and `.blendMode(.screen)` gated behind `!vm.phase.isTransitioning`. |
+| 4.42 | Performance | **Background service suspension** — `BackgroundServiceRestartable` protocol + `BoringViewModel.phase` observer pauses `BatteryService`/`BluetoothManager` polling when notch closed. `NotchServiceProvider` consolidation. |
+| 4.43 | Performance | **Teleprompter off-main parsing** — `TeleprompterState.text` `didSet` now parses sections via `Task.detached`, caching results instead of re-parsing 60× per second on MainActor. |
 
 ---
 
@@ -163,26 +170,12 @@ A timer plugin needing only `sound` + `notifications` must depend on 28 services
 
 Issues identified during CPU/Memory/Battery analysis (2026-03-08).
 
-### Background TimelineView Rendering
-
-**Impact:** High (CPU/Battery) | **Files:** `PluginMusicControlsView` and others using `TimelineView`
-- **Issue:** `TimelineView(.animation)` drives slider and lyrics at screen refresh rate. If `isPlaying` is true, the timeline closure still evaluates 60fps in the background even when the notch is closed and invisible.
-- **Fix:** Gate the `TimelineView` schedule based on `vm.notchState`. If `.closed`, pass `.never` or `.periodic(from: .now, by: 1.0)`. Only run `.animation` when the notch is `.open`.
-- **DDD Alignment:** Pure Presentation/View Layer optimization.
-
 ### Aggressive @Observable Invalidation
 
 **Impact:** Medium (CPU) | **Files:** `NotchStateMachine`, `ContentView`
 - **Issue:** `NotchStateInput` is massive. Any property change in `MusicService` or `BoringViewCoordinator` triggers state machine re-evaluation and `ContentView` re-layout.
 - **Fix:** Apply `.onChange` modifiers explicitly or use `access(keyPath:)` to restrict invalidation to actual dependencies, rather than invalidating on any property trigger.
 - **DDD Alignment:** Refines Domain/ViewModel boundaries to prevent UI thrashing.
-
-### AVAudioRecorder Background Execution
-
-**Impact:** Medium (CPU/Battery) | **Files:** `MicrophoneMonitor`
-- **Issue:** Polling 60fps using `.updateMeters()`. If the teleprompter is open but paused in the background, macOS keeps the audio hardware awake (orange dot visible), draining battery.
-- **Fix:** Tie `startMonitoring()`/`stopMonitoring()` strictly to `isScrolling` state, not just plugin active state. Release the mic hardware instantly when paused.
-- **DDD Alignment:** Matches external resource acquisition (Infrastructure) precisely to Domain state.
 
 ### Window Coordinator Geometry Polling
 

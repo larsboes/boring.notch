@@ -31,11 +31,7 @@ extension WindowCoordinator {
                     screenUUID: uuid,
                     coordinator: coordinator,
                     detector: detector,
-                    webcamService: pluginManager.services.webcam,
-                    musicService: pluginManager.services.music,
-                    soundService: pluginManager.services.sound,
-                    dragDropService: pluginManager.services.dragDrop,
-                    sharingService: pluginManager.services.sharing,
+                    services: pluginManager.services,
                     displaySettings: settings
                 )
                 let stateMachine = NotchStateMachine(settings: settings)

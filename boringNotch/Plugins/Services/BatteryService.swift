@@ -4,7 +4,7 @@ import IOKit.ps
 
 @MainActor
 @Observable
-class BatteryService: BatteryServiceProtocol {
+class BatteryService: BatteryServiceProtocol, BackgroundServiceRestartable {
     // MARK: - Properties
     
     var levelBattery: Float = 0.0
@@ -64,7 +64,7 @@ class BatteryService: BatteryServiceProtocol {
     
     // MARK: - Monitoring
     
-    private func startMonitoring() {
+    func startMonitoring() {
         guard let powerSource = IOPSNotificationCreateRunLoopSource({ context in
             guard let context = context else { return }
             let service = Unmanaged<BatteryService>.fromOpaque(context).takeUnretainedValue()
@@ -79,7 +79,7 @@ class BatteryService: BatteryServiceProtocol {
         CFRunLoopAddSource(CFRunLoopGetMain(), powerSource, .defaultMode)
     }
     
-    nonisolated private func stopMonitoring() {
+    nonisolated func stopMonitoring() {
         if let powerSource = sourceContainer.source {
             CFRunLoopRemoveSource(CFRunLoopGetMain(), powerSource, .defaultMode)
             sourceContainer.source = nil
