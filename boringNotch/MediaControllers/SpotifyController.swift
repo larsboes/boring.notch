@@ -138,7 +138,7 @@ final class SpotifyController: MediaControllerProtocol {
         let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
         let artworkURL = descriptor.atIndex(10)?.stringValue ?? ""
         
-        let state = PlaybackState(
+        var state = PlaybackState(
             bundleIdentifier: "com.spotify.client",
             isPlaying: isPlaying,
             title: currentTrack,
