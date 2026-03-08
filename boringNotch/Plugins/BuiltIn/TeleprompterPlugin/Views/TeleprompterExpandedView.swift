@@ -9,26 +9,28 @@ struct TeleprompterExpandedView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // MARK: - Two-Column Content
+            // MARK: - Two-Column Content (fills remaining space)
             HStack(alignment: .top, spacing: 10) {
                 // Left: Script Editor (~60%)
                 editorColumn
-                    .frame(maxWidth: .infinity)
 
                 // Right: Control Panel (~40%)
-                TeleprompterControlPanel(state: state)
-                    .frame(width: 250)
+                ScrollView(.vertical, showsIndicators: false) {
+                    TeleprompterControlPanel(state: state)
+                }
+                .frame(width: 250)
             }
             .padding(.horizontal, 16)
             .padding(.top, 2)
+            .frame(maxHeight: .infinity)
+            .clipped()
 
-            // MARK: - Bottom Action Bar
+            // MARK: - Bottom Action Bar (fixed, always visible)
             actionBar
                 .padding(.horizontal, 16)
                 .padding(.bottom, 4)
-                .padding(.top, 2)
+                .padding(.top, 4)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             // Notch opened — stop scrolling so user can edit
             state.isScrolling = false
@@ -52,6 +54,7 @@ struct TeleprompterExpandedView: View {
                 .scrollContentBackground(.hidden)
                 .textEditorStyle(.plain)
                 .padding(10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if state.text.isEmpty {
                 Text("Type or paste your script here...")
@@ -61,6 +64,7 @@ struct TeleprompterExpandedView: View {
                     .allowsHitTesting(false)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color(nsColor: .textBackgroundColor).opacity(0.15))

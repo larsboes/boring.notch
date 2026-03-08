@@ -222,6 +222,15 @@ class NotchStateMachine {
             sneakPeekStyle: settings.sneakPeekStyles
         )
     }
+
+    /// Determines what would be shown if the notch were forced to its closed state.
+    /// This is used by NotchContentRouter to provide seamless cross-fades during transitions (no black gap).
+    var hypotheticalClosedState: NotchDisplayState {
+        guard let input = lastInput else { return .closed(content: .idle) }
+        var closedInput = input
+        closedInput.notchState = .closed
+        return computeDisplayState(from: closedInput)
+    }
 }
 
 // MARK: - Computed Properties (for ContentView compatibility)

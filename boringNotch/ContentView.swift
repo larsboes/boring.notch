@@ -99,12 +99,10 @@ struct ContentView: View {
                     .frame(width: computedChinWidth, alignment: .top)
                     // Smoothly interpolate bottom padding based on animation progress
                     .padding(.bottom, lerp(0, 12, animationProgress))
+                    .frame(height: isDisplayStateOpen ? vm.notchSize.height : nil, alignment: .top)
                     .clipShape(currentNotchShape)
                     .background { notchBackground }
                     .overlay { glassOverlay }
-                    .overlay(alignment: .top) { topEdgeLine }
-                    .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
-                    .frame(height: isDisplayStateOpen ? vm.notchSize.height : nil)
                     // Single animation for phase transitions (animations handled in ViewModel)
                     // Keep gesture progress animation separate for responsive feedback
                     .animation(.smooth, value: gestureProgress)

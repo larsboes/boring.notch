@@ -18,6 +18,8 @@ protocol NotchViewModelSettings {
     var hideTitleBar: Bool { get }
     var openNotchOnHover: Bool { get }
     var openShelfByDefault: Bool { get }
+    var musicLiveActivityEnabled: Bool { get }
+    var showPowerStatusNotifications: Bool { get }
 }
 
 /// Default implementation that delegates to a NotchSettings instance
@@ -36,4 +38,6 @@ struct DefaultNotchViewModelSettings: NotchViewModelSettings {
     var hideTitleBar: Bool { source.hideTitleBar }
     var openNotchOnHover: Bool { source.openNotchOnHover }
     var openShelfByDefault: Bool { source.openShelfByDefault }
+    var musicLiveActivityEnabled: Bool { source.musicLiveActivityEnabled }
+    var showPowerStatusNotifications: Bool { source.showPowerStatusNotifications }
 }

@@ -31,7 +31,7 @@ struct BoringHeader: View {
                 .contentReveal(progress: contentProgress, staggerIndex: 1)
                 .zIndex(2)
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
         .foregroundColor(.gray)
         .environment(vm)
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))

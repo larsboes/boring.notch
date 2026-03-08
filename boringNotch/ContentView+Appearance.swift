@@ -12,20 +12,28 @@ import SwiftUI
 extension ContentView {
     var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
 
-    var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
+    var displayClosedNotchHeight: CGFloat {
+        let targetHeight = vm.effectiveClosedNotchHeight
+        return targetHeight == 0 ? 10 : targetHeight
+    }
 
     var animationProgress: CGFloat {
-        // Robustness: Prefer explicitly managed shellProgress, 
-        // but fallback to actual height-based calculation if we detect a discrepancy.
-        // This prevents "sharp corners on a tall notch" (the black rectangle glitch).
+        // In the terminal closed state, progress is definitively 0.
+        // This prevents a stale vm.notchSize.height (e.g. 38 physical vs 32 inactive)
+        // from producing a phantom non-zero progress that inflates width/corners.
+        if vm.phase == .closed {
+            return 0
+        }
+
+        // During transitions and open state, prefer shellProgress but use height-based
+        // fallback to catch stuck animations (e.g. shellProgress stuck at 0 while notch
+        // is visually tall → ensures corners stay rounded).
         let currentHeight = vm.notchSize.height
         let openHeight = openNotchSize.height
         let closedHeight = displayClosedNotchHeight
         
         let heightProgress = max(0, min(1, (currentHeight - closedHeight) / (openHeight - closedHeight)))
         
-        // If shellProgress is stuck at 0 but height is > 50% expanded, something is wrong.
-        // Use the higher of the two to ensure corners are ALWAYS rounded when notch is large.
         return max(vm.shellAnimationProgress, heightProgress)
     }
 
@@ -87,28 +95,21 @@ extension ContentView {
     }
 
     var computedChinWidth: CGFloat {
+        let openWidth = openNotchSize.width
+        let closedTargetSize = vm.effectiveClosedNotchSize
+        
+        // Robustness: Link visual width directly to the same animated progress used for corners and height.
+        // This ensures the notch CANNOT be wide if it is physically short or has pill-shaped corners.
+        let animatedWidth = lerp(closedTargetSize.width, openWidth, animationProgress)
+
+        // During transitions (opening/closing/open), follow the animated interpolation.
         if vm.phase.isVisible {
-            // During opening, open, and closing phases, we follow the animated notch size.
-            // This prevents the "huge black rectangle" during closing transitions.
-            return vm.notchSize.width
+            return animatedWidth
         }
 
-        var chinWidth: CGFloat = vm.closedNotchSize.width
-
-        if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && settings.showPowerStatusNotifications {
-            chinWidth = 640
-        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && vm.notchState == .closed && (musicService.playbackState.isPlaying || !musicService.isPlayerIdle)
-            && settings.musicLiveActivityEnabled && !vm.hideOnClosed {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicService.playbackState.isPlaying && musicService.isPlayerIdle) && settings.showNotHumanFace
-            && !vm.hideOnClosed {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
-        }
-
-        return chinWidth
+        // When closed, use the exact target size. No max() needed — animationProgress is 0
+        // so animatedWidth == closedTargetSize.width already.
+        return closedTargetSize.width
     }
 }
 

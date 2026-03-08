@@ -37,8 +37,16 @@ import SwiftUI
         self.settings = settings
         self.displaySettings = displaySettings
         self.musicService = musicService
-        self.notchSize = getClosedNotchSize(settings: displaySettings)
-        self.closedNotchSize = self.notchSize
+        
+        let initialInactive = getInactiveNotchSize(settings: displaySettings)
+        self.inactiveNotchSize = initialInactive
+        
+        // Initial notch size should account for potential live activities at startup
+        let hasLiveAtStart = musicService.playbackState.isPlaying || settings.showNotHumanFace
+        let initialClosed = getClosedNotchSize(settings: displaySettings, hasLiveActivity: hasLiveAtStart)
+        
+        self.notchSize = initialClosed
+        self.closedNotchSize = initialClosed
     }
 
     // MARK: - Size Calculation

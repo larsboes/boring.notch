@@ -306,6 +306,45 @@ import SwiftUI
         )
     }
 
+    var effectiveClosedNotchSize: CGSize {
+        let currentHeight = effectiveClosedNotchHeight
+        let inactiveHeight = max(10, sizeCalculator.inactiveNotchSize.height)
+        
+        // 1. Determine "Has Live Activity" based on height.
+        // We use a 2pt buffer to avoid jitter from floating point or subtle safe area changes.
+        let hasLiveActivity = currentHeight > inactiveHeight + 2 || pluginPreferredHeight != nil
+
+        // 2. Get the base width from the physical notch measurement.
+        var size = getClosedNotchSize(
+            settings: displaySettings, 
+            screenUUID: screenUUID, 
+            hasLiveActivity: hasLiveActivity
+        )
+        
+        // 3. Override height with the effective closed height.
+        //    getClosedNotchSize returns the raw physical/settings height, but the actual
+        //    visual height is effectiveClosedNotchHeight (which accounts for inactive state).
+        size.height = currentHeight
+
+        // 4. Apply extra width for specific Live Activities (Music/Face/Power).
+        // This MUST match the logic used in ContentView to prevent width snaps.
+        let isFaceActive = !services.music.playbackState.isPlaying &&
+                           services.music.isPlayerIdle &&
+                           settings.showNotHumanFace
+        
+        let isMusicActive = (services.music.playbackState.isPlaying || !services.music.isPlayerIdle) && 
+                            settings.musicLiveActivityEnabled
+
+        if coordinator.expandingView.type == .battery && coordinator.expandingView.show && settings.showPowerStatusNotifications {
+            size.width = 640
+        } else if (isMusicActive || isFaceActive) && !hideOnClosed {
+            // Add the "ears" padding for visualizer/artwork/eyes
+            size.width += (2 * max(0, size.height - 12) + 20)
+        }
+
+        return size
+    }
+
     func syncWindowState() {
         if let boringWindow = window as? BoringNotchWindow {
             boringWindow.isNotchOpen = phase.isInteractive
@@ -316,9 +355,15 @@ import SwiftUI
 
     /// Ensures progress variables match the current phase.
     /// Acts as a safety fallback for interrupted animations.
+    /// Skips .closing/.opening transitions — those are driven by the explicit
+    /// withAnimation blocks in open()/close() and must not be overridden here.
     func syncAnimationState(animated: Bool = false) {
+        // Only sync for terminal states (.open, .closed).
+        // Transition states (.opening, .closing) are managed by their animation blocks.
+        guard !phase.isTransitioning else { return }
+
         let targetProgress: CGFloat = phase.isVisible ? 1 : 0
-        
+
         if animated {
             let animation = phase.isVisible ? StandardAnimations.open : StandardAnimations.close
             withAnimation(animation) {

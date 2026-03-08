@@ -138,7 +138,10 @@ enum MusicPlayerImageSizes {
         }
     }
 
-    return .init(width: notchWidth, height: notchHeight)
+    // Safety Clamp: Never allow a "closed" notch or Live Activity to be wider than the fully open notch.
+    // This prevents full-screen horizontal explosions if system auxiliary measurements fail.
+    let finalWidth = min(860, max(220, notchWidth))
+    return .init(width: finalWidth, height: notchHeight)
 }
 
 @MainActor func getInactiveNotchSize(settings: any DisplaySettings, screenUUID: String? = nil) -> CGSize {

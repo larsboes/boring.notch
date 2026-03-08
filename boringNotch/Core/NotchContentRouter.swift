@@ -19,6 +19,7 @@ struct NotchContentRouter: View {
     @Environment(BoringViewModel.self) var vm
     @Environment(\.pluginManager) var pluginManager
     @Environment(\.settings) var settings
+    @Environment(NotchStateMachine.self) var stateMachine
     @Bindable var coordinator: BoringViewCoordinator
 
     /// Height to use for closed notch content
@@ -46,6 +47,7 @@ struct NotchContentRouter: View {
                 expandingContent(type: type)
             }
         }
+        .opacity(vm.phase == .opening || vm.phase == .closing ? vm.contentRevealProgress : 1.0)
     .environment(coordinator)
     .environment(\.displayClosedNotchHeight, closedNotchHeight)
     .environment(\.cornerRadiusScaleFactor, cornerRadiusScaleFactor)
@@ -222,8 +224,9 @@ struct NotchContentRouter: View {
             .contentReveal(progress: vm.contentRevealProgress, staggerIndex: 2) // Unified transition for ALL plugins
             .padding(.horizontal, 32) // Match header padding (32) to stay inside rounded corners
             .padding(.bottom, 16)      // Bottom padding to avoid bottom-corner clipping
-            .clipped()                 // Clip content at padding boundary, not at notch edge
+            .clipped()                 // Strict clipping at padding boundary
         }
+        .clipped() // Ensure entire open content VStack is clipped at the island height boundary
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 

@@ -33,7 +33,6 @@ struct TeleprompterControlPanel: View {
                 scriptInfoSection
             }
         }
-        .frame(maxHeight: .infinity)
         .overlay {
             if let error = aiError {
                 aiErrorBanner(error)

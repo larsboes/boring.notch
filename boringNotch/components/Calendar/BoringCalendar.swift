@@ -9,20 +9,19 @@ import SwiftUI
 import AppKit
 
 // MARK: - WeekDayPicker
-/// Fixed 6-day week view (Mon-Sat) with compact styling
+/// Full 7-day week view (Mon-Sun) with compact styling
 struct WeekDayPicker: View {
     @Binding var selectedDate: Date
     @Environment(\.settings) var settings
     @State private var haptics: Bool = false
 
-    /// Get Mon-Sat of the week containing the selected date
+    /// Get Mon-Sun of the week containing the selected date
     private var weekDays: [Date] {
-        let calendar = Calendar.current
-        let today = Date()
-        var components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)
-        components.weekday = 2 // Monday
-        guard let monday = calendar.date(from: components) else { return [] }
-        return (0..<6).compactMap { offset in
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2 // Monday
+        guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: selectedDate) else { return [] }
+        let monday = weekInterval.start
+        return (0..<7).compactMap { offset in
             calendar.date(byAdding: .day, value: offset, to: monday)
         }
     }
