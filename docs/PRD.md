@@ -46,6 +46,15 @@
 | 11 — Foundation Models | Planned | On-device AI via Apple FoundationModels (macOS 26+), streaming, structured generation |
 | 12 — Audio Visualizer | Planned | Real audio-reactive visualization extending closed notch. ScreenCaptureKit + FFT. |
 | 13 — Notch Video Player | Planned (Long-term) | PiP-style video player as extended notch. AVPlayer + browser integration. |
+| 14 — Animation & UI Polish | In Progress | Velocity-dependent springs, gesture feel, content morphing. |
+
+### Phase 14 Status
+
+| Sub-phase | Status | Notes |
+|-----------|--------|-------|
+| 14.1 — Velocity-Dependent Springs | **Merged** | Fast flings overshoot, slow opens settle. Gesture-only (hover opens bypass). |
+| 14.2 — Breathing Glow | **Killed** | Implemented but too subtle to notice; concept not compelling vs. real audio visualizer (Phase 12). |
+| 14.3+ | Planned | Dynamic liquid glass, content morphing, rubber-band gestures, haptic sync. |
 
 **Latest architecture hardening commits:**
 - `d277bd4` — snapshot before cleanup
