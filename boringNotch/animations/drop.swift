@@ -26,6 +26,16 @@ enum StandardAnimations {
         dampingFraction: 0.92,
         blendDuration: 0.04
     )
+
+    /// Velocity-aware open spring — fast flings overshoot more, slow opens settle gently.
+    /// - Parameter velocity: Gesture velocity in pts/s. 0 = identical to `open`.
+    static func openWithVelocity(_ velocity: CGFloat) -> Animation {
+        let clamped = min(abs(velocity), 2000)
+        let t = clamped / 2000  // 0→1 normalized
+        let response = 0.32 - t * 0.18  // 0.32→0.14 (much snappier)
+        let damping = 0.92 - t * 0.37   // 0.92→0.55 (visibly bouncier)
+        return Animation.spring(response: response, dampingFraction: damping, blendDuration: 0.04)
+    }
     /// Estimated settle duration for the open animation
     static let openDuration: Duration = .milliseconds(300)
 
