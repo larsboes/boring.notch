@@ -42,14 +42,14 @@ final class MediaKeyInterceptor {
         keyboardBacklightService: any KeyboardBacklightServiceProtocol,
         eventBus: PluginEventBus,
         settings: any HUDSettings,
-        xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared
+        xpcHelper: (any XPCHelperServiceProtocol)? = nil
     ) {
         self.volumeService = volumeService
         self.brightnessService = brightnessService
         self.keyboardBacklightService = keyboardBacklightService
         self.eventBus = eventBus
         self.settings = settings
-        self.xpcHelper = xpcHelper
+        self.xpcHelper = xpcHelper ?? XPCHelperClient.shared
     }
 
     // MARK: - Accessibility (via XPC)

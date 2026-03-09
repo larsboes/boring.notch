@@ -28,13 +28,13 @@ final class TeleprompterPlugin: NotchPlugin {
         
         // Register API routes
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/teleprompter/load") { [weak self] request in
-            guard let self = self else { return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Plugin unavailable")) }
-            
+            guard let self else { return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Plugin unavailable")) }
+
             struct LoadRequest: Decodable {
                 let text: String
                 let speed: Double?
             }
-            
+
             do {
                 let loadReq = try JSONDecoder().decode(LoadRequest.self, from: request.body)
                 await MainActor.run {
@@ -49,31 +49,31 @@ final class TeleprompterPlugin: NotchPlugin {
                 return .json(status: 400, APIResponseEnvelope<APIErrorData>.failure("Invalid load request"))
             }
         }
-        
+
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/teleprompter/start") { [weak self] _ in
-            await MainActor.run { self?.teleState.isScrolling = true }
+            if let self { await MainActor.run { self.teleState.isScrolling = true } }
             return .json(APIResponseEnvelope<APIErrorData>.success())
         }
-        
+
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/teleprompter/pause") { [weak self] _ in
-            await MainActor.run { self?.teleState.isScrolling = false }
+            if let self { await MainActor.run { self.teleState.isScrolling = false } }
             return .json(APIResponseEnvelope<APIErrorData>.success())
         }
 
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/teleprompter/stop") { [weak self] _ in
-            await MainActor.run { self?.teleState.reset() }
+            if let self { await MainActor.run { self.teleState.reset() } }
             return .json(APIResponseEnvelope<APIErrorData>.success())
         }
 
         context.services.apiRouteRegistrar?.register(method: .get, path: "/api/v1/teleprompter/state") { [weak self] _ in
-            guard let self = self else { return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Plugin unavailable")) }
-            
+            guard let self else { return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Plugin unavailable")) }
+
             struct StateResponse: Encodable {
                 let position: Double
                 let isScrolling: Bool
                 let text: String
             }
-            
+
             let response = await MainActor.run {
                 StateResponse(
                     position: self.teleState.scrollPosition,
@@ -84,18 +84,19 @@ final class TeleprompterPlugin: NotchPlugin {
             return .json(APIResponseEnvelope.success(response))
         }
 
+        let aiService = context.services.ai
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/teleprompter/ai-assist") { [weak self] request in
-            guard let self = self else { return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Plugin unavailable")) }
-            
+            guard let self else { return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Plugin unavailable")) }
+
             struct AIRequest: Decodable {
                 let action: TeleprompterAIAction
             }
-            
+
             do {
                 let aiReq = try JSONDecoder().decode(AIRequest.self, from: request.body)
-                try await self.teleState.aiAssist(action: aiReq.action, ai: context.services.ai)
+                try await self.teleState.aiAssist(action: aiReq.action, ai: aiService)
                 return .json(APIResponseEnvelope<APIErrorData>.success())
-            } catch let error as DecodingError {
+            } catch _ as DecodingError {
                 return .json(status: 400, APIResponseEnvelope<APIErrorData>.failure("Invalid action. Valid: refine, summarize, draft-intro"))
             } catch {
                 return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure(error.localizedDescription))

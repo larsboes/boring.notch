@@ -30,7 +30,7 @@ final class BluetoothManager: NSObject, BackgroundServiceRestartable {
     func startMonitoring() {
         updateConnectedDevices()
         timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
-            self?.updateConnectedDevices()
+            Task { @MainActor in self?.updateConnectedDevices() }
         }
     }
     

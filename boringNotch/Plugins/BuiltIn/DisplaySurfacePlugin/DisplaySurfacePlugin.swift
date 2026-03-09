@@ -28,13 +28,13 @@ final class DisplaySurfacePlugin: NotchPlugin {
             }
             do {
                 let req = try JSONDecoder().decode(TextRequest.self, from: request.body)
-                await MainActor.run { self?.displayState.setContent(.text(req.text), ttl: req.ttl) }
+                if let self { await MainActor.run { self.displayState.setContent(.text(req.text), ttl: req.ttl) } }
                 return .json(APIResponseEnvelope<APIErrorData>.success())
             } catch {
                 return .json(status: 400, APIResponseEnvelope<APIErrorData>.failure("Invalid text request"))
             }
         }
-        
+
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/display/progress") { [weak self] request in
             struct ProgressRequest: Decodable {
                 let label: String
@@ -43,15 +43,15 @@ final class DisplaySurfacePlugin: NotchPlugin {
             }
             do {
                 let req = try JSONDecoder().decode(ProgressRequest.self, from: request.body)
-                await MainActor.run { self?.displayState.setContent(.progress(label: req.label, value: req.value), ttl: req.ttl) }
+                if let self { await MainActor.run { self.displayState.setContent(.progress(label: req.label, value: req.value), ttl: req.ttl) } }
                 return .json(APIResponseEnvelope<APIErrorData>.success())
             } catch {
                 return .json(status: 400, APIResponseEnvelope<APIErrorData>.failure("Invalid progress request"))
             }
         }
-        
+
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/display/clear") { [weak self] _ in
-            await MainActor.run { self?.displayState.setContent(.clear) }
+            if let self { await MainActor.run { self.displayState.setContent(.clear) } }
             return .json(APIResponseEnvelope<APIErrorData>.success())
         }
     }

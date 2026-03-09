@@ -60,7 +60,7 @@ struct CornerRadiusInsetsKey: EnvironmentKey {
 // MARK: - XPC Helper Service
 
 struct XPCHelperServiceKey: EnvironmentKey {
-    @MainActor static let defaultValue: (any XPCHelperServiceProtocol)? = nil
+    nonisolated(unsafe) static let defaultValue: (any XPCHelperServiceProtocol)? = nil
 }
 
 // MARK: - Environment Extension

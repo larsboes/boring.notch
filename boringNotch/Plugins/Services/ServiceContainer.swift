@@ -171,7 +171,7 @@ final class ServiceContainer: NotchServiceProvider {
         bluetoothManager: any BluetoothStateServiceProtocol,
         notesManager: any NotesServiceProtocol,
         clipboardManager: any ClipboardServiceProtocol,
-        xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared
+        xpcHelper: (any XPCHelperServiceProtocol)? = nil
     ) {
         self.music = music
         self.sound = sound
@@ -200,6 +200,6 @@ final class ServiceContainer: NotchServiceProvider {
         self.bluetoothManager = bluetoothManager
         self.notesManager = notesManager
         self.clipboardManager = clipboardManager
-        self.xpcHelper = xpcHelper
+        self.xpcHelper = xpcHelper ?? XPCHelperClient.shared
     }
 }
