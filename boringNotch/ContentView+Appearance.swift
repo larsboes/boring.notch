@@ -121,7 +121,7 @@ extension ContentView {
             translation: translation, phase: phase, notchState: vm.notchState,
             sensitivity: settings.gestureSensitivity
         )
-        applyGestureResult(result, openAction: { doOpen() })
+        applyGestureResult(result, openAction: { velocity in doOpen(velocity: velocity) })
     }
 
     func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
@@ -137,7 +137,7 @@ extension ContentView {
 
     func applyGestureResult(
         _ result: NotchGestureCoordinator.GestureResult,
-        openAction: (() -> Void)? = nil,
+        openAction: ((_ velocity: CGFloat) -> Void)? = nil,
         closeAction: (() -> Void)? = nil
     ) {
         switch result {
@@ -145,10 +145,10 @@ extension ContentView {
             withAnimation(StandardAnimations.interactive) { gestureProgress = value }
         case .reset:
             withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
-        case .triggerOpen:
+        case .triggerOpen(let velocity):
             if settings.enableHaptics { haptics.toggle() }
             withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
-            openAction?()
+            openAction?(velocity)
         case .triggerClose:
             gestureProgress = .zero
             closeAction?()

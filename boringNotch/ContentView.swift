@@ -216,9 +216,9 @@ struct ContentView: View {
         }
     }
 
-    func doOpen() {
+    func doOpen(velocity: CGFloat = 0) {
         withAnimation(StandardAnimations.interactive) {
-            vm.open()
+            vm.open(initialVelocity: velocity)
         }
     }
 }

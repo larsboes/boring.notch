@@ -9,13 +9,21 @@ import SwiftUI
 
 extension BoringViewModel {
     func open() {
+        open(initialVelocity: 0)
+    }
+
+    func open(initialVelocity: CGFloat) {
         // Allow opening if closed OR if we are currently closing (interrupt)
         guard phase == .closed || phase == .closing else { return }
 
         hoverController.cancelPendingClose()
 
-        // Shell expands (spring)
-        withAnimation(StandardAnimations.open) {
+        // Shell expands — velocity determines spring character:
+        // tap/keyboard (0) → confident settle, fast fling → playful overshoot
+        let openAnimation = initialVelocity > 0
+            ? StandardAnimations.openWithVelocity(initialVelocity)
+            : StandardAnimations.open
+        withAnimation(openAnimation) {
             self.notchSize = openNotchSize
             self.phase = .opening
             self.shellAnimationProgress = 1

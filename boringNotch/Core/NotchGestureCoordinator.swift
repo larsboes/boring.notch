@@ -16,8 +16,8 @@ struct NotchGestureCoordinator {
         case progress(CGFloat)
         /// Gesture ended — reset progress to zero.
         case reset
-        /// Threshold crossed — trigger open.
-        case triggerOpen
+        /// Threshold crossed — trigger open. Associated velocity is the translation magnitude at trigger time.
+        case triggerOpen(velocity: CGFloat)
         /// Threshold crossed — trigger close.
         case triggerClose
     }
@@ -38,7 +38,7 @@ struct NotchGestureCoordinator {
         let progress = (translation / sensitivity) * 20
 
         if translation > sensitivity {
-            return .triggerOpen
+            return .triggerOpen(velocity: translation)
         }
 
         return .progress(progress)
