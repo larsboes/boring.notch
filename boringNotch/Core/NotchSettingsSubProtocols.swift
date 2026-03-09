@@ -78,6 +78,8 @@ protocol MediaSettings {
     var musicControlSlots: [MusicControlButton] { get set }
     var selectedVisualizerURL: URL? { get set }
     var selectedVisualizerSpeed: Double { get set }
+    var ambientVisualizerEnabled: Bool { get set }
+    var ambientVisualizerHeight: CGFloat { get set }
 }
 
 // MARK: - Gesture Settings

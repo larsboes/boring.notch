@@ -341,6 +341,7 @@
 		FF86A1260B3CF40EEA4B3EB2 /* boringNotch/Core/DefaultsNotchSettings+Plugins.swift in Sources */ = {isa = PBXBuildFile; fileRef = F669397153DED9DDA8BC3C7F /* boringNotch/Core/DefaultsNotchSettings+Plugins.swift */; };
 		FFBFA7A0C2A7138FEDA8B6C3 /* PluginContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7231CBEA1B26EC990993D858 /* PluginContext.swift */; };
 		FFCA15E9DB3AAC5EA8F853DF /* BrowserMediaController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9849A358223882A5C9DCF755 /* BrowserMediaController.swift */; };
+		B12A0E7F3C9D4A2E81F6D123 /* AmbientGlowVisualizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34F8B2A1D7E5F9B62A0C456 /* AmbientGlowVisualizer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -720,6 +721,7 @@
 		F90A69E202A04A6BBCF1E913 /* BoringViewCoordinator+Plugins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoringViewCoordinator+Plugins.swift"; sourceTree = "<group>"; };
 		F9750452CD89BB8FD364799F /* MusicSlotConfigurationView+DragDrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MusicSlotConfigurationView+DragDrop.swift"; sourceTree = "<group>"; };
 		FF6BE2334C4CDF3755A24760 /* DataPortabilityView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DataPortabilityView.swift; path = boringNotch/components/Settings/Views/DataPortabilityView.swift; sourceTree = "<group>"; };
+		C34F8B2A1D7E5F9B62A0C456 /* AmbientGlowVisualizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AmbientGlowVisualizer.swift; path = boringNotch/Plugins/BuiltIn/MusicPlugin/Views/AmbientGlowVisualizer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -1717,6 +1719,7 @@
 		FCFF889C11AFA281613D2F11 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C34F8B2A1D7E5F9B62A0C456 /* AmbientGlowVisualizer.swift */,
 				BD4EDF4731BD96E501B155CE /* MusicLiveActivity.swift */,
 				BF9E85A0ABF3F3293A94E679 /* PluginMusicPlayerView.swift */,
 				8837776161EBE6B0242F17B4 /* MusicSettingsView.swift */,
@@ -2148,6 +2151,7 @@
 				060D66B5EB78228493165B74 /* SharingServiceProtocol.swift in Sources */,
 				1364DBA2B4CCA6A05350DD01 /* VolumeServiceProtocol.swift in Sources */,
 				75B3730C9CFC122A7F77A870 /* MusicLiveActivity.swift in Sources */,
+				B12A0E7F3C9D4A2E81F6D123 /* AmbientGlowVisualizer.swift in Sources */,
 				D30F75A64E8DACE773A73917 /* PluginMusicPlayerView.swift in Sources */,
 				4F804814C52DD7ECEC50E40A /* MusicSettingsView.swift in Sources */,
 				F15AC62F518003BEBB86C2A3 /* PluginEnvironment.swift in Sources */,

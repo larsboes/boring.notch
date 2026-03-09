@@ -54,6 +54,19 @@ struct Media: View {
                     "Show music live activity",
                     isOn: $settings.musicLiveActivityEnabled.animation()
                 )
+                Toggle(
+                    "Ambient visualizer glow",
+                    isOn: $settings.ambientVisualizerEnabled.animation()
+                )
+                if settings.ambientVisualizerEnabled {
+                    HStack {
+                        Text("Visualizer height")
+                        Spacer()
+                        Text("\(Int(settings.ambientVisualizerHeight))px")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $settings.ambientVisualizerHeight, in: 20...60, step: 5)
+                }
                 Toggle("Show sneak peek on playback changes", isOn: $settings.enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $settings.sneakPeekStyles) {
                     ForEach(SneakPeekStyle.selectableCases) { style in

@@ -72,4 +72,12 @@ import Defaults
         get { Defaults[.selectedVisualizerSpeed] }
         set { Defaults[.selectedVisualizerSpeed] = newValue }
     }
+    var ambientVisualizerEnabled: Bool {
+        get { Defaults[.ambientVisualizerEnabled] }
+        set { Defaults[.ambientVisualizerEnabled] = newValue }
+    }
+    var ambientVisualizerHeight: CGFloat {
+        get { Defaults[.ambientVisualizerHeight] }
+        set { Defaults[.ambientVisualizerHeight] = newValue }
+    }
 }

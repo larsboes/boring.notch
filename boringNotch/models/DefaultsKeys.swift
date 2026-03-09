@@ -87,6 +87,8 @@ extension Defaults.Keys {
     // MARK: Visualizer
     static let selectedVisualizerURL = Key<URL?>("selectedVisualizerURL", default: nil)
     static let selectedVisualizerSpeed = Key<Double>("selectedVisualizerSpeed", default: 1.0)
+    static let ambientVisualizerEnabled = Key<Bool>("ambientVisualizerEnabled", default: false)
+    static let ambientVisualizerHeight = Key<CGFloat>("ambientVisualizerHeight", default: 30)
 
     // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
