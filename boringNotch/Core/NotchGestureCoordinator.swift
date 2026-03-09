@@ -16,10 +16,31 @@ struct NotchGestureCoordinator {
         case progress(CGFloat)
         /// Gesture ended — reset progress to zero.
         case reset
-        /// Threshold crossed — trigger open. Associated velocity is the translation magnitude at trigger time.
+        /// Threshold crossed — trigger open. Associated velocity is pts/s at trigger time.
         case triggerOpen(velocity: CGFloat)
         /// Threshold crossed — trigger close.
         case triggerClose
+    }
+
+    // Velocity tracking state
+    private static var prevTranslation: CGFloat = 0
+    private static var prevTimestamp: Date?
+
+    private static func computeVelocity(translation: CGFloat) -> CGFloat {
+        let now = Date()
+        defer {
+            prevTranslation = translation
+            prevTimestamp = now
+        }
+        guard let prev = prevTimestamp else { return 0 }
+        let dt = now.timeIntervalSince(prev)
+        guard dt > 0.001 else { return 0 }
+        return (translation - prevTranslation) / CGFloat(dt)
+    }
+
+    private static func resetTracking() {
+        prevTranslation = 0
+        prevTimestamp = nil
     }
 
     /// Process a downward pan gesture (used to open the notch).
@@ -29,16 +50,23 @@ struct NotchGestureCoordinator {
         notchState: NotchState,
         sensitivity: CGFloat
     ) -> GestureResult {
-        guard notchState == .closed else { return .reset }
-
-        if phase == .ended {
+        guard notchState == .closed else {
+            resetTracking()
             return .reset
         }
 
+        if phase == .ended {
+            resetTracking()
+            return .reset
+        }
+
+        let velocity = computeVelocity(translation: translation)
         let progress = (translation / sensitivity) * 20
 
         if translation > sensitivity {
-            return .triggerOpen(velocity: translation)
+            let v = velocity
+            resetTracking()
+            return .triggerOpen(velocity: v)
         }
 
         return .progress(progress)
