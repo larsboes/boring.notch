@@ -125,8 +125,8 @@ final class ServiceContainer: NotchServiceProvider {
         self.webcam = WebcamManager()
         self.notifications = NotificationCenterManager(settings: settings)
         self.volume = VolumeManager(eventBus: eventBus)
-        self.brightness = BrightnessManager(eventBus: eventBus)
-        self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus)
+        self.brightness = BrightnessManager(eventBus: eventBus, xpcHelper: XPCHelperClient.shared)
+        self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus, xpcHelper: XPCHelperClient.shared)
         self.sharing = SharingStateManager()
         self.quickLook = QuickLookService()
         self.quickShare = QuickShareService(temporaryFileStorage: self.temporaryFileStorage, sharingStateManager: self.sharing)
@@ -171,7 +171,7 @@ final class ServiceContainer: NotchServiceProvider {
         bluetoothManager: any BluetoothStateServiceProtocol,
         notesManager: any NotesServiceProtocol,
         clipboardManager: any ClipboardServiceProtocol,
-        xpcHelper: (any XPCHelperServiceProtocol)? = nil
+        xpcHelper: any XPCHelperServiceProtocol
     ) {
         self.music = music
         self.sound = sound
@@ -200,6 +200,6 @@ final class ServiceContainer: NotchServiceProvider {
         self.bluetoothManager = bluetoothManager
         self.notesManager = notesManager
         self.clipboardManager = clipboardManager
-        self.xpcHelper = xpcHelper ?? XPCHelperClient.shared
+        self.xpcHelper = xpcHelper
     }
 }

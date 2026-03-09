@@ -107,7 +107,7 @@ class BoringNotchSkyLightWindow: NSPanel {
     }
     
     private func updateCollectionBehavior() {
-        var newBehavior: NSWindow.CollectionBehavior = [
+        let newBehavior: NSWindow.CollectionBehavior = [
             .fullScreenAuxiliary,
             .stationary,
             .canJoinAllSpaces,

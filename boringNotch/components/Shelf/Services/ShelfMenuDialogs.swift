@@ -85,7 +85,7 @@ extension ShelfMenuActionTarget {
         let chooserDelegate = AppChooserDelegate(recommended: recommendedApps)
         panel.delegate = chooserDelegate
 
-        let (column, popup, alwaysCheckbox) = buildOpenWithAccessoryView(chooserDelegate: chooserDelegate, panel: panel)
+        let (column, _, alwaysCheckbox) = buildOpenWithAccessoryView(chooserDelegate: chooserDelegate, panel: panel)
         panel.accessoryView = column
         panel.isAccessoryViewDisclosed = true
 

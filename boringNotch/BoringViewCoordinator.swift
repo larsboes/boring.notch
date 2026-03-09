@@ -108,9 +108,9 @@ struct ExpandedItem {
         }
     }
 
-    init(settings: any CoordinatorSettings, xpcHelper: (any XPCHelperServiceProtocol)? = nil) {
+    init(settings: any CoordinatorSettings, xpcHelper: any XPCHelperServiceProtocol) {
         self.settings = settings
-        self.xpcHelper = xpcHelper ?? XPCHelperClient.shared
+        self.xpcHelper = xpcHelper
         self.sneakPeekDuration = settings.sneakPeakDuration
 
         // Perform migration from name-based to UUID-based storage

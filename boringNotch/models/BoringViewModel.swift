@@ -207,7 +207,7 @@ import SwiftUI
         )
         
         self.init(
-            coordinator: BoringViewCoordinator(settings: mockSettings),
+            coordinator: BoringViewCoordinator(settings: mockSettings, xpcHelper: XPCHelperClient.shared),
             detector: FullscreenMediaDetector(musicService: musicService, settings: mockSettings),
             services: mockServices,
             displaySettings: mockSettings

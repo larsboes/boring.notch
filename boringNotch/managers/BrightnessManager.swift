@@ -15,9 +15,9 @@ import AppKit
 	private let client: any XPCHelperServiceProtocol
 	private let eventBus: PluginEventBus
 
-	init(eventBus: PluginEventBus, xpcHelper: (any XPCHelperServiceProtocol)? = nil) {
+	init(eventBus: PluginEventBus, xpcHelper: any XPCHelperServiceProtocol) {
 		self.eventBus = eventBus
-		self.client = xpcHelper ?? XPCHelperClient.shared
+		self.client = xpcHelper
 		refresh()
 	}
 
@@ -81,9 +81,9 @@ import AppKit
 	private let client: any XPCHelperServiceProtocol
 	private let eventBus: PluginEventBus
 
-	init(eventBus: PluginEventBus, xpcHelper: (any XPCHelperServiceProtocol)? = nil) {
+	init(eventBus: PluginEventBus, xpcHelper: any XPCHelperServiceProtocol) {
 		self.eventBus = eventBus
-		self.client = xpcHelper ?? XPCHelperClient.shared
+		self.client = xpcHelper
 		refresh()
 	}
 

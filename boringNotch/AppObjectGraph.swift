@@ -18,7 +18,7 @@ final class AppObjectGraph {
     let settings = DefaultsNotchSettings()
     let spaceManager = NotchSpaceManager()
     let settingsWindowController = SettingsWindowController()
-    lazy var coordinator = BoringViewCoordinator(settings: settings)
+    lazy var coordinator = BoringViewCoordinator(settings: settings, xpcHelper: XPCHelperClient.shared)
     lazy var localAPIServerController = LocalAPIServerController(
         eventBus: eventBus,
         pluginManager: pluginManager,
@@ -99,7 +99,8 @@ final class AppObjectGraph {
             brightnessService: pluginManager.services.brightness,
             keyboardBacklightService: pluginManager.services.keyboardBacklight,
             eventBus: eventBus,
-            settings: settings
+            settings: settings,
+            xpcHelper: XPCHelperClient.shared
         )
     }()
 

@@ -239,7 +239,7 @@ struct AnyNotchPlugin: Identifiable {
         self._deactivate = { await plugin.deactivate() }
         self._displayRequest = { plugin.displayRequest }
         // Preserve PositionedPlugin conformance through type erasure
-        if let positioned = plugin as? PositionedPlugin {
+        if let positioned = plugin as? any PositionedPlugin {
             self._closedNotchPosition = { positioned.closedNotchPosition }
         } else {
             self._closedNotchPosition = { nil }

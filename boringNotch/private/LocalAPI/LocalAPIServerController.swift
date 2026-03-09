@@ -24,8 +24,8 @@ final class LocalAPIServerController {
         PluginAPIRoutes.register(on: router, pluginManager: pluginManager)
         PluginAPIRoutes.registerMusic(on: router, musicService: pluginManager.services.music)
 
-        // Expose router to plugins (services is always ServiceContainer here)
-        (pluginManager.services as! ServiceContainer).apiRouteRegistrar = router
+        // Expose router to plugins
+        pluginManager.services.apiRouteRegistrar = router
 
         let server = LocalAPIServer(router: router)
         do {

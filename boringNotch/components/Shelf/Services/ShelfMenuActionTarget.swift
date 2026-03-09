@@ -113,7 +113,7 @@ final class ShelfMenuActionTarget: NSObject {
 
         pb.clearContents()
         Task { [weak self, service] in
-            guard let self else { return }
+            guard self != nil else { return }
             let fileURLs = await selected.asyncCompactMap { item -> URL? in
                 if case .file = item.kind {
                     return service.resolveAndUpdateBookmark(for: item)

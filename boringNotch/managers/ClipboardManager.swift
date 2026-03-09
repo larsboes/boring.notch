@@ -60,7 +60,7 @@ final class ClipboardManager {
         guard !isMonitoring else { return }
         isMonitoring = true
         timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
-            self?.checkPasteboard()
+            Task { @MainActor in self?.checkPasteboard() }
         }
     }
 
