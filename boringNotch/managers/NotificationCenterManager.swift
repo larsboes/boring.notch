@@ -25,9 +25,9 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
     }
 
     func requestAuthorization() {
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            Task {
-                self.checkAuthorizationStatus()
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
+            Task { @MainActor in
+                self?.checkAuthorizationStatus()
                 if granted {
                     print("Notification permission granted")
                 } else if let error = error {
@@ -38,9 +38,9 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
     }
 
     func checkAuthorizationStatus() {
-        center.getNotificationSettings { notifSettings in
-            Task {
-                self.authorizationStatus = notifSettings.authorizationStatus
+        center.getNotificationSettings { [weak self] notifSettings in
+            Task { @MainActor in
+                self?.authorizationStatus = notifSettings.authorizationStatus
             }
         }
     }

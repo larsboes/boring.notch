@@ -142,7 +142,7 @@ final class BrowserExtensionServer {
         let header1 = data[0]
         let header2 = data[1]
         
-        let isFinal = (header1 & 0x80) != 0
+        let _ = (header1 & 0x80) != 0 // isFinal — reserved for future fragmentation support
         let opCode = header1 & 0x0F
         let isMasked = (header2 & 0x80) != 0
         var payloadLength = Int(header2 & 0x7F)
@@ -175,10 +175,9 @@ final class BrowserExtensionServer {
         }
         
         if opCode == 1 { // Text frame
-            if let jsonString = String(data: payload, encoding: .utf8) {
-                if let decoded = try? JSONDecoder().decode(BrowserMediaState.self, from: payload) {
-                    statePublisher.send(decoded)
-                }
+            if String(data: payload, encoding: .utf8) != nil,
+               let decoded = try? JSONDecoder().decode(BrowserMediaState.self, from: payload) {
+                statePublisher.send(decoded)
             }
         }
     }

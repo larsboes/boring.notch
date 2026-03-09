@@ -183,7 +183,7 @@ import SwiftUI
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.open()
+            Task { @MainActor in self?.open() }
         }
 
         NotificationCenter.default.addObserver(
@@ -191,7 +191,7 @@ import SwiftUI
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.close(force: true)
+            Task { @MainActor in self?.close(force: true) }
         }
     }
 

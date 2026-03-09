@@ -95,7 +95,7 @@ final class MusicArtworkService {
                 self.usingAppIconForArtwork = usingAppIcon
                 self.artworkData = state.artwork
 
-                if settings.coloredSpectrogram {
+                if self.settings.coloredSpectrogram {
                     self.calculateAverageColor()
                 }
             }

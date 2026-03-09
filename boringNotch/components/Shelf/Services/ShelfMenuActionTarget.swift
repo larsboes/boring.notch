@@ -112,7 +112,7 @@ final class ShelfMenuActionTarget: NSObject {
         ShelfActionService.stopAccessingCopiedURLs()
 
         pb.clearContents()
-        Task { [weak self] in
+        Task { [weak self, service] in
             guard let self else { return }
             let fileURLs = await selected.asyncCompactMap { item -> URL? in
                 if case .file = item.kind {
