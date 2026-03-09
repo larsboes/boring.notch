@@ -48,6 +48,8 @@ struct ContentView: View {
         let isPlaying: Bool
         let isPlayerIdle: Bool
         let activePluginId: String?
+        let ambientVisualizerEnabled: Bool
+        let ambientVisualizerHeight: CGFloat
     }
 
     private var currentStateSnapshot: StateSnapshot {
@@ -59,7 +61,9 @@ struct ContentView: View {
             expandingViewShow: coordinator.expandingView.show,
             isPlaying: musicService.playbackState.isPlaying,
             isPlayerIdle: musicService.isPlayerIdle,
-            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin()
+            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin(),
+            ambientVisualizerEnabled: settings.ambientVisualizerEnabled,
+            ambientVisualizerHeight: settings.ambientVisualizerHeight
         )
     }
 
@@ -182,6 +186,12 @@ struct ContentView: View {
            let plugin = pluginManager?.plugin(id: activePluginId),
            let preferredHeight = plugin.displayRequest?.preferredHeight {
             vm.pluginPreferredHeight = preferredHeight
+        } else if settings.ambientVisualizerEnabled
+                    && musicService.playbackState.isPlaying
+                    && pluginManager?.highestPriorityClosedNotchPlugin() == PluginID.music {
+            // Ambient visualizer extends the music closed notch downward
+            let baseHeight = getClosedNotchSize(settings: settings, screenUUID: vm.screenUUID, hasLiveActivity: true).height
+            vm.pluginPreferredHeight = baseHeight + settings.ambientVisualizerHeight
         } else {
             vm.pluginPreferredHeight = nil
         }

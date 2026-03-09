@@ -141,18 +141,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
             return nil
         }
 
-        // When ambient visualizer is enabled and music is playing, request extra height
-        let extraHeight: CGFloat? = {
-            guard service.playbackState.isPlaying,
-                  settings?.get("ambientVisualizerEnabled", default: false) == true else {
-                return nil
-            }
-            let vizHeight = settings?.get("ambientVisualizerHeight", default: CGFloat(30)) ?? 30
-            // Base notch height (~38) + visualizer extension
-            return 38 + vizHeight
-        }()
-
-        return DisplayRequest(priority: .high, category: DisplayRequest.music, preferredHeight: extraHeight)
+        return DisplayRequest(priority: .high, category: DisplayRequest.music)
     }
 
     @ViewBuilder
