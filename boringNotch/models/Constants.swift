@@ -108,3 +108,24 @@ enum NotificationDeliveryStyle: String, CaseIterable, Defaults.Serializable {
         }
     }
 }
+
+enum AmbientVisualizerMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case simulated = "simulated"
+    case realAudio = "realAudio"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .simulated: return "Simulation"
+        case .realAudio: return "Real Audio"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .simulated: return "wand.and.stars"
+        case .realAudio: return "waveform.path.ecg"
+        }
+    }
+}

@@ -234,16 +234,32 @@ extension ContentView {
     var ambientVisualizerOverlay: some View {
         if visualizerActive {
             let totalHeight = displayClosedNotchHeight + settings.ambientVisualizerHeight
+            let albumColor = Color(nsColor: musicService.avgColor).ensureMinimumBrightness(factor: 0.5)
 
             Color.black
                 .frame(width: computedChinWidth, height: totalHeight)
                 .overlay(alignment: .bottom) {
-                    AmbientGlowVisualizer(
-                        albumColor: Color(nsColor: musicService.avgColor).ensureMinimumBrightness(factor: 0.5),
-                        isPlaying: true,
-                        height: settings.ambientVisualizerHeight
-                    )
-                    .frame(height: settings.ambientVisualizerHeight)
+                    switch settings.ambientVisualizerMode {
+                    case .simulated:
+                        AmbientGlowVisualizer(
+                            albumColor: albumColor,
+                            isPlaying: true,
+                            height: settings.ambientVisualizerHeight
+                        )
+                        .frame(height: settings.ambientVisualizerHeight)
+
+                    case .realAudio:
+                        if let musicPlugin = pluginManager?.plugin(id: PluginID.music, as: MusicPlugin.self) {
+                            SpectrumBarsView(
+                                bands: musicPlugin.frequencyBands,
+                                barCount: MusicPlugin.audioBandCount,
+                                tintColor: albumColor
+                            )
+                            .frame(height: settings.ambientVisualizerHeight)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+                        }
+                    }
                 }
                 .clipShape(
                     UnevenRoundedRectangle(

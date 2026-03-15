@@ -80,6 +80,7 @@ protocol MediaSettings {
     var selectedVisualizerSpeed: Double { get set }
     var ambientVisualizerEnabled: Bool { get set }
     var ambientVisualizerHeight: CGFloat { get set }
+    var ambientVisualizerMode: AmbientVisualizerMode { get set }
 }
 
 // MARK: - Gesture Settings

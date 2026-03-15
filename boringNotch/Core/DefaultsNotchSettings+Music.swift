@@ -80,4 +80,8 @@ import Defaults
         get { Defaults[.ambientVisualizerHeight] }
         set { Defaults[.ambientVisualizerHeight] = newValue }
     }
+    var ambientVisualizerMode: AmbientVisualizerMode {
+        get { Defaults[.ambientVisualizerMode] }
+        set { Defaults[.ambientVisualizerMode] = newValue }
+    }
 }

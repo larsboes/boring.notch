@@ -72,6 +72,7 @@ final class MockNotchSettings: NotchSettings {
     var selectedVisualizerSpeed: Double = 1.0
     var ambientVisualizerEnabled: Bool = false
     var ambientVisualizerHeight: CGFloat = 110
+    var ambientVisualizerMode: AmbientVisualizerMode = .simulated
 
     // MARK: - Gesture Settings
     var enableGestures: Bool = true

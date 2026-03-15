@@ -59,6 +59,11 @@ struct Media: View {
                     isOn: $settings.ambientVisualizerEnabled.animation()
                 )
                 if settings.ambientVisualizerEnabled {
+                    Picker("Visualizer mode", selection: $settings.ambientVisualizerMode) {
+                        ForEach(AmbientVisualizerMode.allCases) { mode in
+                            Label(mode.displayName, systemImage: mode.icon).tag(mode)
+                        }
+                    }
                     HStack {
                         Text("Visualizer height")
                         Spacer()

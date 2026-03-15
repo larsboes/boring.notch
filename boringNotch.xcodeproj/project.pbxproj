@@ -156,6 +156,12 @@
 		3A958AB02A879E0D96009DDE /* CustomSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829177F6B342E6E24252B640 /* CustomSlider.swift */; };
 		3B5D5B96CBC1BABD9F2A331D /* ShelfMenuDialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC562FA09251CAAABE14E84 /* ShelfMenuDialogs.swift */; };
 		3B62F08BA1134F71012F043C /* ExportCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D43E0BB0FE85A58B2C6DAFA9 /* ExportCoordinator.swift */; };
+		CFCA5F1250D24D6197CD6EFA /* AudioCaptureServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F11992061634912A0BEF52A /* AudioCaptureServiceProtocol.swift */; };
+		BF16398BE45A48F393ACD8BC /* ScreenCaptureKitAudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41EC5D850CFC4387A34CBF4B /* ScreenCaptureKitAudioService.swift */; };
+		128949F1465D4A9AA81EEB8F /* MockAudioCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5DB7F16D38C43499D543F57 /* MockAudioCaptureService.swift */; };
+		AEDF1E43B4264AC6B77B158C /* AudioFFTProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989E968DEC4240B2BA9999FA /* AudioFFTProcessor.swift */; };
+		44B26A1A6D134632901EA987 /* SpectrumBarsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C17CB405DDD402FB09416A5 /* SpectrumBarsView.swift */; };
+		87463A6B3B99428BB3BC1FAF /* MusicPlugin+AudioPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18451FC17B0C41CC9852DC14 /* MusicPlugin+AudioPipeline.swift */; };
 		3F1B4B74D9701CD2DD1953B1 /* WeatherPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14FD01625CE8143D53FEC0A /* WeatherPlugin.swift */; };
 		426D4DEBAE2AA9F82C21238C /* CalendarPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AA596DFD28EB3FD8FCEAD7B /* CalendarPlugin.swift */; };
 		429E221684FEE86CA34C44BC /* BoringViewModel+Hover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5129ED104E656013E0192640 /* BoringViewModel+Hover.swift */; };
@@ -700,6 +706,12 @@
 		D3335B2D3BA83C22394980AD /* YouTubeMusicController+WebSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouTubeMusicController+WebSocket.swift"; sourceTree = "<group>"; };
 		D34B886EB323251D5E5225E9 /* BluetoothServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BluetoothServiceProtocol.swift; path = boringNotch/Plugins/Services/BluetoothServiceProtocol.swift; sourceTree = "<group>"; };
 		D43E0BB0FE85A58B2C6DAFA9 /* ExportCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExportCoordinator.swift; path = boringNotch/Plugins/Services/ExportCoordinator.swift; sourceTree = "<group>"; };
+		8F11992061634912A0BEF52A /* AudioCaptureServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AudioCaptureServiceProtocol.swift; path = boringNotch/Plugins/Services/AudioCaptureServiceProtocol.swift; sourceTree = "<group>"; };
+		41EC5D850CFC4387A34CBF4B /* ScreenCaptureKitAudioService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScreenCaptureKitAudioService.swift; path = boringNotch/Plugins/Services/ScreenCaptureKitAudioService.swift; sourceTree = "<group>"; };
+		A5DB7F16D38C43499D543F57 /* MockAudioCaptureService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MockAudioCaptureService.swift; path = boringNotch/Plugins/Services/MockAudioCaptureService.swift; sourceTree = "<group>"; };
+		989E968DEC4240B2BA9999FA /* AudioFFTProcessor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AudioFFTProcessor.swift; path = boringNotch/Plugins/Services/AudioFFTProcessor.swift; sourceTree = "<group>"; };
+		4C17CB405DDD402FB09416A5 /* SpectrumBarsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SpectrumBarsView.swift; path = boringNotch/Plugins/BuiltIn/MusicPlugin/Views/SpectrumBarsView.swift; sourceTree = "<group>"; };
+		18451FC17B0C41CC9852DC14 /* MusicPlugin+AudioPipeline.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "MusicPlugin+AudioPipeline.swift"; path = "boringNotch/Plugins/BuiltIn/MusicPlugin/MusicPlugin+AudioPipeline.swift"; sourceTree = "<group>"; };
 		D5A5D664328B186D8E7A4EDD /* NotchHoverControllerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotchHoverControllerTests.swift; path = boringNotchTests/NotchHoverControllerTests.swift; sourceTree = "<group>"; };
 		D673572B654148068BF6CFA8 /* AIManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIManager.swift; path = boringNotch/Plugins/AI/AIManager.swift; sourceTree = SOURCE_ROOT; };
 		D8C6831482194E108D82BA4A /* OllamaProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OllamaProvider.swift; path = boringNotch/Plugins/AI/OllamaProvider.swift; sourceTree = SOURCE_ROOT; };
@@ -1261,6 +1273,7 @@
 			isa = PBXGroup;
 			children = (
 				A5A2434E0A7AFD3298FA102E /* MusicPlugin.swift */,
+				18451FC17B0C41CC9852DC14 /* MusicPlugin+AudioPipeline.swift */,
 				FCFF889C11AFA281613D2F11 /* Views */,
 			);
 			name = MusicPlugin;
@@ -1350,6 +1363,10 @@
 				405ABF9F81576FD8F394EBCE /* DragDropServiceProtocol.swift */,
 				A92BE3242603FDB6AF50A4C0 /* DragDropService.swift */,
 				D43E0BB0FE85A58B2C6DAFA9 /* ExportCoordinator.swift */,
+				8F11992061634912A0BEF52A /* AudioCaptureServiceProtocol.swift */,
+				41EC5D850CFC4387A34CBF4B /* ScreenCaptureKitAudioService.swift */,
+				A5DB7F16D38C43499D543F57 /* MockAudioCaptureService.swift */,
+				989E968DEC4240B2BA9999FA /* AudioFFTProcessor.swift */,
 			);
 			name = Services;
 			sourceTree = "<group>";
@@ -1720,6 +1737,7 @@
 			isa = PBXGroup;
 			children = (
 				C34F8B2A1D7E5F9B62A0C456 /* AmbientGlowVisualizer.swift */,
+				4C17CB405DDD402FB09416A5 /* SpectrumBarsView.swift */,
 				BD4EDF4731BD96E501B155CE /* MusicLiveActivity.swift */,
 				BF9E85A0ABF3F3293A94E679 /* PluginMusicPlayerView.swift */,
 				8837776161EBE6B0242F17B4 /* MusicSettingsView.swift */,
@@ -2152,6 +2170,12 @@
 				1364DBA2B4CCA6A05350DD01 /* VolumeServiceProtocol.swift in Sources */,
 				75B3730C9CFC122A7F77A870 /* MusicLiveActivity.swift in Sources */,
 				B12A0E7F3C9D4A2E81F6D123 /* AmbientGlowVisualizer.swift in Sources */,
+				44B26A1A6D134632901EA987 /* SpectrumBarsView.swift in Sources */,
+				87463A6B3B99428BB3BC1FAF /* MusicPlugin+AudioPipeline.swift in Sources */,
+				CFCA5F1250D24D6197CD6EFA /* AudioCaptureServiceProtocol.swift in Sources */,
+				BF16398BE45A48F393ACD8BC /* ScreenCaptureKitAudioService.swift in Sources */,
+				128949F1465D4A9AA81EEB8F /* MockAudioCaptureService.swift in Sources */,
+				AEDF1E43B4264AC6B77B158C /* AudioFFTProcessor.swift in Sources */,
 				D30F75A64E8DACE773A73917 /* PluginMusicPlayerView.swift in Sources */,
 				4F804814C52DD7ECEC50E40A /* MusicSettingsView.swift in Sources */,
 				F15AC62F518003BEBB86C2A3 /* PluginEnvironment.swift in Sources */,

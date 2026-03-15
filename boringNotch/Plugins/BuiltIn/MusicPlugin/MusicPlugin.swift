@@ -71,6 +71,12 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
     private var eventBus: PluginEventBus?
     private var cancellables = Set<AnyCancellable>()
 
+    // Audio pipeline — backing storage for MusicPlugin+AudioPipeline.swift
+    var audioCaptureService: (any AudioCaptureServiceProtocol)?
+    var fftProcessor: AudioFFTProcessor?
+    var frequencyBands: [Float] = Array(repeating: 0, count: 32)
+    var peakBands: [Float] = Array(repeating: 0, count: 32)
+
     // Plugin-specific settings
     private var showLyrics: Bool = true
     private var enableSneakPeek: Bool = true
@@ -96,11 +102,17 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         // Subscribe to playback changes
         setupSubscriptions()
 
+        // Set up audio FFT pipeline
+        setupAudioPipeline()
+
         state = .active
     }
 
     func deactivate() async {
         cancellables.removeAll()
+        await stopAudioCapture()
+        audioCaptureService = nil
+        fftProcessor = nil
         musicService = nil
         settings = nil
         eventBus = nil
@@ -201,7 +213,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
     private func setupSubscriptions() {
         guard let service = musicService else { return }
 
-        // Emit events when playback state changes
+        // Emit events when playback state changes + drive audio capture
         service.playbackStatePublisher
             .sink { [weak self] playbackState in
                 guard let self = self else { return }
@@ -210,6 +222,14 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
                     track: self.musicService?.currentTrack
                 )
                 self.eventBus?.emit(event)
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    if playbackState.isPlaying {
+                        await self.startAudioCapture()
+                    } else {
+                        await self.stopAudioCapture()
+                    }
+                }
             }
             .store(in: &cancellables)
             
