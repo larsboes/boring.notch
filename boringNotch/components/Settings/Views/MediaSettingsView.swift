@@ -65,7 +65,7 @@ struct Media: View {
                         Text("\(Int(settings.ambientVisualizerHeight))px")
                             .foregroundStyle(.secondary)
                     }
-                    Slider(value: $settings.ambientVisualizerHeight, in: 20...60, step: 5)
+                    Slider(value: $settings.ambientVisualizerHeight, in: 80...220, step: 10)
                 }
                 Toggle("Show sneak peek on playback changes", isOn: $settings.enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $settings.sneakPeekStyles) {

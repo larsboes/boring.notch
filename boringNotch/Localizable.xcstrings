@@ -1015,6 +1015,9 @@
         }
       }
     },
+    "%lldpx" : {
+
+    },
     "• Bug fixes" : {
       "localizations" : {
         "ar" : {
@@ -2542,6 +2545,9 @@
           }
         }
       }
+    },
+    "Ambient visualizer glow" : {
+
     },
     "API Key" : {
 
@@ -22502,6 +22508,9 @@
           }
         }
       }
+    },
+    "Visualizer height" : {
+
     },
     "Weather" : {
 

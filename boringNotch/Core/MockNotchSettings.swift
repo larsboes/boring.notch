@@ -71,7 +71,7 @@ final class MockNotchSettings: NotchSettings {
     var selectedVisualizerURL: URL? = nil
     var selectedVisualizerSpeed: Double = 1.0
     var ambientVisualizerEnabled: Bool = false
-    var ambientVisualizerHeight: CGFloat = 30
+    var ambientVisualizerHeight: CGFloat = 110
 
     // MARK: - Gesture Settings
     var enableGestures: Bool = true

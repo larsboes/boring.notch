@@ -48,8 +48,6 @@ struct ContentView: View {
         let isPlaying: Bool
         let isPlayerIdle: Bool
         let activePluginId: String?
-        let ambientVisualizerEnabled: Bool
-        let ambientVisualizerHeight: CGFloat
     }
 
     private var currentStateSnapshot: StateSnapshot {
@@ -61,9 +59,7 @@ struct ContentView: View {
             expandingViewShow: coordinator.expandingView.show,
             isPlaying: musicService.playbackState.isPlaying,
             isPlayerIdle: musicService.isPlayerIdle,
-            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin(),
-            ambientVisualizerEnabled: settings.ambientVisualizerEnabled,
-            ambientVisualizerHeight: settings.ambientVisualizerHeight
+            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin()
         )
     }
 
@@ -106,6 +102,7 @@ struct ContentView: View {
                     .clipShape(currentNotchShape)
                     .background { notchBackground }
                     .overlay { glassOverlay }
+                    .background(alignment: .top) { ambientVisualizerOverlay }
                     // Single animation for phase transitions (animations handled in ViewModel)
                     // Keep gesture progress animation separate for responsive feedback
                     .animation(.smooth, value: gestureProgress)
@@ -186,12 +183,6 @@ struct ContentView: View {
            let plugin = pluginManager?.plugin(id: activePluginId),
            let preferredHeight = plugin.displayRequest?.preferredHeight {
             vm.pluginPreferredHeight = preferredHeight
-        } else if settings.ambientVisualizerEnabled
-                    && musicService.playbackState.isPlaying
-                    && pluginManager?.highestPriorityClosedNotchPlugin() == PluginID.music {
-            // Ambient visualizer extends the music closed notch downward
-            let baseHeight = getClosedNotchSize(settings: settings, screenUUID: vm.screenUUID, hasLiveActivity: true).height
-            vm.pluginPreferredHeight = baseHeight + settings.ambientVisualizerHeight
         } else {
             vm.pluginPreferredHeight = nil
         }
@@ -233,6 +224,39 @@ struct ContentView: View {
 // MARK: - Extracted Sub-Views
 
 extension ContentView {
+    private var visualizerActive: Bool {
+        settings.ambientVisualizerEnabled
+            && musicService.playbackState.isPlaying
+            && vm.phase == .closed
+    }
+
+    @ViewBuilder
+    var ambientVisualizerOverlay: some View {
+        if visualizerActive {
+            let totalHeight = displayClosedNotchHeight + settings.ambientVisualizerHeight
+
+            Color.black
+                .frame(width: computedChinWidth, height: totalHeight)
+                .overlay(alignment: .bottom) {
+                    AmbientGlowVisualizer(
+                        albumColor: Color(nsColor: musicService.avgColor).ensureMinimumBrightness(factor: 0.5),
+                        isPlaying: true,
+                        height: settings.ambientVisualizerHeight
+                    )
+                    .frame(height: settings.ambientVisualizerHeight)
+                }
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: 22,
+                        bottomTrailingRadius: 22,
+                        topTrailingRadius: 0
+                    )
+                )
+                .allowsHitTesting(false)
+        }
+    }
+
     @ViewBuilder
     var notchBackground: some View {
         ZStack {

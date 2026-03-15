@@ -33,44 +33,18 @@ struct MusicLiveActivity: View {
         max(0, closedNotchTopRadius + 2)
     }
 
-    /// The base notch height (without visualizer extension)
-    private var baseNotchHeight: CGFloat {
-        let vizEnabled = settings.ambientVisualizerEnabled && service.playbackState.isPlaying
-        if vizEnabled {
-            // displayClosedNotchHeight includes the visualizer extension
-            // Subtract it to get the original notch height
-            return displayClosedNotchHeight - settings.ambientVisualizerHeight
-        }
-        return displayClosedNotchHeight
-    }
-
-    private var visualizerEnabled: Bool {
-        settings.ambientVisualizerEnabled && service.playbackState.isPlaying
-    }
-
     var body: some View {
-        VStack(spacing: 0) {
-            musicContent
-                .frame(height: baseNotchHeight, alignment: .center)
-
-            if visualizerEnabled {
-                AmbientGlowVisualizer(
-                    albumColor: Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.5),
-                    isPlaying: service.playbackState.isPlaying,
-                    height: settings.ambientVisualizerHeight
-                )
-            }
-        }
-        .frame(height: displayClosedNotchHeight, alignment: .top)
+        musicContent
+            .frame(height: displayClosedNotchHeight, alignment: .center)
     }
 
     @ViewBuilder
     private var musicContent: some View {
         HStack(spacing: 0) {
-            let baseArtSize = baseNotchHeight - 12
+            let baseArtSize = displayClosedNotchHeight - 12
             let scaledArtSize: CGFloat = {
                 if let scale = cornerRadiusScaleFactor {
-                    return baseNotchHeight - 12 * scale
+                    return displayClosedNotchHeight - 12 * scale
                 }
                 return baseArtSize
             }()
@@ -113,8 +87,8 @@ struct MusicLiveActivity: View {
                 .frame(width: 16, height: 12)
             }
             .frame(
-                width: max(0, baseNotchHeight - 12 + gestureProgress / 2),
-                height: max(0, baseNotchHeight - 12),
+                width: max(0, displayClosedNotchHeight - 12 + gestureProgress / 2),
+                height: max(0, displayClosedNotchHeight - 12),
                 alignment: .center
             )
             .padding(.trailing, 10)
