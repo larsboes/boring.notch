@@ -56,11 +56,15 @@ class AudioSpectrum: NSView {
 
     // MARK: - Real Audio
 
-    /// Update bars from 32-band FFT data. Cancels fake animation.
+    /// Update bars from 32-band FFT data. Only takes over when signal is above threshold.
     func updateBands(_ bands: [Float]) {
         guard bands.count >= 16, isPlaying else { return }
 
-        // Stop fake animation if running
+        // Only replace fake animation when there's real signal
+        let peak = bands.max() ?? 0
+        guard peak > 0.08 else { return }
+
+        // Stop fake animation
         barLayers.forEach { $0.removeAnimation(forKey: "scaleAnimation") }
 
         // Map 32 bands → 4 bars (bass / low-mid / high-mid / treble)

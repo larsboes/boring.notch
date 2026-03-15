@@ -117,8 +117,8 @@ enum AmbientVisualizerMode: String, CaseIterable, Identifiable, Defaults.Seriali
 
     var displayName: String {
         switch self {
-        case .simulated: return "Simulation"
-        case .realAudio: return "Real Audio"
+        case .simulated: return "Generative"
+        case .realAudio: return "Audio Reactive"
         }
     }
 

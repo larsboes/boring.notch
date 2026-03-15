@@ -239,27 +239,19 @@ extension ContentView {
             Color.black
                 .frame(width: computedChinWidth, height: totalHeight)
                 .overlay(alignment: .bottom) {
-                    switch settings.ambientVisualizerMode {
-                    case .simulated:
-                        AmbientGlowVisualizer(
-                            albumColor: albumColor,
-                            isPlaying: true,
-                            height: settings.ambientVisualizerHeight
-                        )
-                        .frame(height: settings.ambientVisualizerHeight)
-
-                    case .realAudio:
-                        if let musicPlugin = pluginManager?.plugin(id: PluginID.music, as: MusicPlugin.self) {
-                            SpectrumBarsView(
-                                bands: musicPlugin.frequencyBands,
-                                barCount: MusicPlugin.audioBandCount,
-                                tintColor: albumColor
-                            )
-                            .frame(height: settings.ambientVisualizerHeight)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 8)
-                        }
-                    }
+                    let bands: [Float] = {
+                        guard settings.ambientVisualizerMode == .realAudio,
+                              let plugin = pluginManager?.plugin(id: PluginID.music, as: MusicPlugin.self)
+                        else { return [] }
+                        return plugin.frequencyBands
+                    }()
+                    AmbientGlowVisualizer(
+                        albumColor: albumColor,
+                        isPlaying: true,
+                        height: settings.ambientVisualizerHeight,
+                        frequencyBands: bands
+                    )
+                    .frame(height: settings.ambientVisualizerHeight)
                 }
                 .clipShape(
                     UnevenRoundedRectangle(
