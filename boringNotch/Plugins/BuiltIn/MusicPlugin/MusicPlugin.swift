@@ -218,8 +218,10 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
     private func setupSubscriptions() {
         guard let service = musicService else { return }
 
-        // Emit events when playback state changes + drive audio capture
+        // Emit events when playback state changes + drive audio capture.
+        // Prepend current state so capture starts immediately if music is already playing.
         service.playbackStatePublisher
+            .prepend(service.playbackState)
             .sink { [weak self] playbackState in
                 guard let self = self else { return }
                 let event = MusicPlaybackChangedEvent(

@@ -239,19 +239,23 @@ extension ContentView {
             Color.black
                 .frame(width: computedChinWidth, height: totalHeight)
                 .overlay(alignment: .bottom) {
-                    let bands: [Float] = {
-                        guard settings.ambientVisualizerMode == .realAudio,
-                              let plugin = pluginManager?.plugin(id: PluginID.music, as: MusicPlugin.self)
-                        else { return [] }
-                        return plugin.frequencyBands
-                    }()
-                    AmbientGlowVisualizer(
-                        albumColor: albumColor,
-                        isPlaying: true,
-                        height: settings.ambientVisualizerHeight,
-                        frequencyBands: bands
-                    )
-                    .frame(height: settings.ambientVisualizerHeight)
+                    if settings.ambientVisualizerMode == .realAudio,
+                       let plugin = pluginManager?.plugin(id: PluginID.music, as: MusicPlugin.self) {
+                        // Dedicated subview so SwiftUI properly tracks plugin.frequencyBands
+                        AudioReactiveVisualizerView(
+                            plugin: plugin,
+                            albumColor: albumColor,
+                            height: settings.ambientVisualizerHeight
+                        )
+                    } else {
+                        AmbientGlowVisualizer(
+                            albumColor: albumColor,
+                            isPlaying: true,
+                            height: settings.ambientVisualizerHeight,
+                            frequencyBands: []
+                        )
+                        .frame(height: settings.ambientVisualizerHeight)
+                    }
                 }
                 .clipShape(
                     UnevenRoundedRectangle(
@@ -309,6 +313,24 @@ extension ContentView {
                     ),
                     lineWidth: settings.liquidGlassStyle.configuration.borderWidth
                 )
+        }
+    }
+
+    /// Dedicated subview so SwiftUI `@Observable` tracking registers `plugin.frequencyBands`
+    /// as a dependency — accessing it inside a closure in `ambientVisualizerOverlay` bypasses tracking.
+    private struct AudioReactiveVisualizerView: View {
+        let plugin: MusicPlugin
+        let albumColor: Color
+        let height: CGFloat
+
+        var body: some View {
+            AmbientGlowVisualizer(
+                albumColor: albumColor,
+                isPlaying: true,
+                height: height,
+                frequencyBands: plugin.frequencyBands
+            )
+            .frame(height: height)
         }
     }
 

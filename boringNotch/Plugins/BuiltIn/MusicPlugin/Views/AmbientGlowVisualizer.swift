@@ -71,7 +71,7 @@ struct AmbientGlowVisualizer: View {
 
     private func drawWaves(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
         // Bass drives wave amplitude in audio-reactive mode
-        let ampScale = frequencyBands.isEmpty ? 1.0 : (1.0 + bassEnergy * 3.5)
+        let ampScale = frequencyBands.isEmpty ? 1.0 : (1.0 + bassEnergy * 6.0)
 
         for layer in 0..<3 {
             let seed = Double(layer) * 1.3
@@ -91,7 +91,7 @@ struct AmbientGlowVisualizer: View {
             path.addLine(to: CGPoint(x: size.width, y: size.height))
             path.closeSubpath()
 
-            let opacity = (0.04 + Double(layer) * 0.02) * (frequencyBands.isEmpty ? 1.0 : (1.0 + bassEnergy * 1.5))
+            let opacity = (0.04 + Double(layer) * 0.02) * (frequencyBands.isEmpty ? 1.0 : (1.0 + bassEnergy * 4.0))
             ctx.fill(path, with: .color(albumColor.opacity(min(0.3, opacity))))
         }
     }
@@ -100,7 +100,7 @@ struct AmbientGlowVisualizer: View {
 
     private func drawOrbits(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
         // Mid energy speeds up orbit rotation
-        let speedMult = frequencyBands.isEmpty ? 1.0 : (1.0 + midEnergy * 2.0)
+        let speedMult = frequencyBands.isEmpty ? 1.0 : (1.0 + midEnergy * 5.0)
 
         for i in 0..<2 {
             let seed = Double(i) * 2.71
@@ -121,7 +121,7 @@ struct AmbientGlowVisualizer: View {
                 else { path.addLine(to: CGPoint(x: px, y: py)) }
             }
 
-            let alpha = 0.1 + sin(time * 0.15 + seed) * 0.05 + (frequencyBands.isEmpty ? 0 : midEnergy * 0.12)
+            let alpha = 0.1 + sin(time * 0.15 + seed) * 0.05 + (frequencyBands.isEmpty ? 0 : midEnergy * 0.28)
             ctx.stroke(path, with: .color(.white.opacity(min(0.45, alpha))), lineWidth: 0.8)
         }
     }
@@ -141,7 +141,7 @@ struct AmbientGlowVisualizer: View {
         path.move(to: CGPoint(x: startX, y: startY))
         path.addCurve(to: CGPoint(x: endX, y: endY), control1: cp1, control2: cp2)
 
-        let alpha = 0.08 + (frequencyBands.isEmpty ? 0 : energy * 0.1)
+        let alpha = 0.08 + (frequencyBands.isEmpty ? 0 : energy * 0.22)
         ctx.stroke(path, with: .color(.white.opacity(min(0.3, alpha))), lineWidth: 1.0)
     }
 
@@ -149,7 +149,7 @@ struct AmbientGlowVisualizer: View {
 
     private func drawParticles(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
         // Treble energy adds extra particle brightness
-        let brightBoost = frequencyBands.isEmpty ? 0.0 : trebleEnergy * 0.18
+        let brightBoost = frequencyBands.isEmpty ? 0.0 : trebleEnergy * 0.38
 
         for i in 0..<16 {
             let seed = Double(i) * 1.618
