@@ -12,18 +12,18 @@ class AudioSpectrum: NSView {
     private var barLayers: [CAGradientLayer] = []
     private var isPlaying = false
     private(set) var currentTintColor: NSColor = .systemBlue
-    
+
     private let barWidth: CGFloat = 2
     private let barCount = 4
     private let spacing: CGFloat = 2
     private let totalHeight: CGFloat = 14
-    
+
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
         setupBars()
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         wantsLayer = true
@@ -54,6 +54,34 @@ class AudioSpectrum: NSView {
         }
     }
 
+    // MARK: - Real Audio
+
+    /// Update bars from 32-band FFT data. Cancels fake animation.
+    func updateBands(_ bands: [Float]) {
+        guard bands.count >= 16, isPlaying else { return }
+
+        // Stop fake animation if running
+        barLayers.forEach { $0.removeAnimation(forKey: "scaleAnimation") }
+
+        // Map 32 bands → 4 bars (bass / low-mid / high-mid / treble)
+        let mappings: [(Int, Int)] = [(0, 3), (4, 8), (9, 16), (17, 31)]
+        let magnitudes = mappings.map { (lo, hi) -> CGFloat in
+            let slice = bands[lo...min(hi, bands.count - 1)]
+            let avg = slice.reduce(0, +) / Float(slice.count)
+            return CGFloat(max(0.15, min(1.0, avg)))
+        }
+
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.06)
+        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeOut))
+        for (i, bar) in barLayers.enumerated() where i < magnitudes.count {
+            bar.transform = CATransform3DMakeScale(1.0, magnitudes[i], 1.0)
+        }
+        CATransaction.commit()
+    }
+
+    // MARK: - Fake Animation (fallback)
+
     private func startAnimating() {
         for (index, barLayer) in barLayers.enumerated() {
             animateBar(barLayer, delay: Double(index) * 0.1)
@@ -68,13 +96,9 @@ class AudioSpectrum: NSView {
         let numSteps = 50
         let startValue = CGFloat.random(in: 0.3...1.0)
         for i in 0...numSteps {
-            if i == 0 {
-                values.append(startValue)
-            } else if i == numSteps {
-                values.append(startValue)
-            } else {
-                values.append(CGFloat.random(in: 0.3...1.0))
-            }
+            if i == 0 { values.append(startValue) }
+            else if i == numSteps { values.append(startValue) }
+            else { values.append(CGFloat.random(in: 0.3...1.0)) }
             keyTimes.append(NSNumber(value: Double(i) / Double(numSteps)))
         }
         animation.values = values
@@ -121,6 +145,7 @@ class AudioSpectrum: NSView {
 struct AudioSpectrumView: NSViewRepresentable {
     let isPlaying: Bool
     let tintColor: Color
+    var frequencyBands: [Float] = []
 
     func makeNSView(context: Context) -> AudioSpectrum {
         let spectrum = AudioSpectrum()
@@ -132,10 +157,11 @@ struct AudioSpectrumView: NSViewRepresentable {
     func updateNSView(_ nsView: AudioSpectrum, context: Context) {
         nsView.setPlaying(isPlaying)
         let newColor = NSColor(tintColor)
-        // Only update gradient colors when tint actually changes to avoid
-        // redundant CALayer updates that cause PlatformViewRepresentableAdaptor spam.
         if !newColor.isClose(to: nsView.currentTintColor) {
             nsView.setTintColor(newColor)
+        }
+        if !frequencyBands.isEmpty {
+            nsView.updateBands(frequencyBands)
         }
     }
 }

@@ -93,9 +93,12 @@ final class AudioFFTProcessor {
                 count += 1
             }
             if count > 0 {
-                let avg = sum / count
-                let db = 10.0 * log10f(max(avg, 1e-10))
-                rawBands[band] = max(0, min(1, (db + 60) / 60))
+                // vDSP_zvmags returns magnitude², normalize by (halfN)² so full-scale ≈ 1.0
+                let normFactor = 1.0 / Float(halfN * halfN)
+                let normalizedPower = (sum / count) * normFactor
+                let db = 10.0 * log10f(max(normalizedPower, 1e-10))
+                // Map -80dB..0dB → 0..1
+                rawBands[band] = max(0, min(1, (db + 80) / 80))
             }
         }
 

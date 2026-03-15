@@ -10,6 +10,7 @@ import SwiftUI
 
 struct MusicLiveActivity: View {
     let service: any MusicServiceProtocol
+    var frequencyBands: [Float] = []
 
     // Environment Dependencies
     @Environment(BoringViewModel.self) var vm
@@ -82,7 +83,8 @@ struct MusicLiveActivity: View {
                     isPlaying: service.playbackState.isPlaying,
                     tintColor: settings.coloredSpectrogram
                         ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.5)
-                        : Color.gray
+                        : Color.gray,
+                    frequencyBands: frequencyBands
                 )
                 .frame(width: 16, height: 12)
             }

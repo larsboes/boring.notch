@@ -105,6 +105,11 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         // Set up audio FFT pipeline
         setupAudioPipeline()
 
+        // Start capture immediately if music is already playing
+        if musicService?.playbackState.isPlaying == true {
+            Task { await startAudioCapture() }
+        }
+
         state = .active
     }
 
@@ -159,7 +164,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
     @ViewBuilder
     func closedNotchContent() -> some View {
         if isEnabled, state.isActive, let service = musicService {
-            MusicLiveActivity(service: service)
+            MusicLiveActivity(service: service, frequencyBands: frequencyBands)
         }
     }
 
