@@ -73,6 +73,7 @@ import SwiftUI
     }
 
     var hideOnClosed: Bool = true
+    private var hideOnClosedDebounceTask: Task<Void, Never>?
 
     /// Optional plugin-requested height override for closed notch (e.g. teleprompter needs double height)
     var pluginPreferredHeight: CGFloat?
@@ -277,10 +278,20 @@ import SwiftUI
 
     private func setupDetectorObserver() {
         observerSetup.setupDetectorObserver(screenUUID: screenUUID) { [weak self] shouldHide in
-            guard let self = self else { return }
-            if self.hideOnClosed != shouldHide {
-                withAnimation(.smooth) {
-                    self.hideOnClosed = shouldHide
+            guard let self else { return }
+            // Debounce: ignore rapid fullscreen detection flickers.
+            // Also skip while notch is open — the closed-state width is irrelevant,
+            // and applying it mid-open causes a width snap on close.
+            self.hideOnClosedDebounceTask?.cancel()
+            self.hideOnClosedDebounceTask = Task { @MainActor [weak self] in
+                do {
+                    try await Task.sleep(for: .milliseconds(400))
+                } catch { return }
+                guard let self, self.notchState == .closed else { return }
+                if self.hideOnClosed != shouldHide {
+                    withAnimation(.smooth) {
+                        self.hideOnClosed = shouldHide
+                    }
                 }
             }
         }
