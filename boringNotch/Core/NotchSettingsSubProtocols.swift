@@ -81,6 +81,9 @@ protocol MediaSettings {
     var ambientVisualizerEnabled: Bool { get set }
     var ambientVisualizerHeight: CGFloat { get set }
     var ambientVisualizerMode: AmbientVisualizerMode { get set }
+    var visualizerSensitivity: Double { get set }
+    var visualizerShowWhenPaused: Bool { get set }
+    var visualizerBandCount: VisualizerBandCount { get set }
 }
 
 // MARK: - Gesture Settings

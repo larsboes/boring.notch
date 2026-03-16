@@ -129,3 +129,12 @@ enum AmbientVisualizerMode: String, CaseIterable, Identifiable, Defaults.Seriali
         }
     }
 }
+
+enum VisualizerBandCount: Int, CaseIterable, Identifiable, Defaults.Serializable {
+    case sixteen = 16
+    case thirtyTwo = 32
+    case sixtyFour = 64
+
+    var id: Int { rawValue }
+    var displayName: String { "\(rawValue) bands" }
+}

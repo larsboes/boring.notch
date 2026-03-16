@@ -21,7 +21,7 @@ struct AmbientGlowVisualizer: View {
 
     var body: some View {
         if isPlaying {
-            TimelineView(.animation(minimumInterval: 1.0 / 20)) { timeline in
+            TimelineView(.animation(minimumInterval: 1.0 / 8)) { timeline in
                 Canvas { context, size in
                     draw(in: &context, size: size, time: timeline.date.timeIntervalSinceReferenceDate)
                 }
@@ -71,7 +71,7 @@ struct AmbientGlowVisualizer: View {
 
     private func drawWaves(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
         // Bass drives wave amplitude in audio-reactive mode
-        let ampScale = frequencyBands.isEmpty ? 1.0 : (1.0 + bassEnergy * 6.0)
+        let ampScale = frequencyBands.isEmpty ? 1.0 : (1.0 + bassEnergy * 2.5)
 
         for layer in 0..<3 {
             let seed = Double(layer) * 1.3
@@ -82,7 +82,7 @@ struct AmbientGlowVisualizer: View {
 
             var path = Path()
             path.move(to: CGPoint(x: 0, y: size.height))
-            for x in stride(from: 0, through: size.width, by: 3) {
+            for x in stride(from: 0, through: size.width, by: 5) {
                 let y = yBase
                     + sin(x * freq + time * spd + seed) * amp
                     + cos(x * freq * 0.6 + time * spd * 0.4) * amp * 0.5
@@ -91,7 +91,7 @@ struct AmbientGlowVisualizer: View {
             path.addLine(to: CGPoint(x: size.width, y: size.height))
             path.closeSubpath()
 
-            let opacity = (0.04 + Double(layer) * 0.02) * (frequencyBands.isEmpty ? 1.0 : (1.0 + bassEnergy * 4.0))
+            let opacity = (0.04 + Double(layer) * 0.02) * (frequencyBands.isEmpty ? 1.0 : (1.0 + bassEnergy * 1.5))
             ctx.fill(path, with: .color(albumColor.opacity(min(0.3, opacity))))
         }
     }
@@ -100,7 +100,7 @@ struct AmbientGlowVisualizer: View {
 
     private func drawOrbits(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
         // Mid energy speeds up orbit rotation
-        let speedMult = frequencyBands.isEmpty ? 1.0 : (1.0 + midEnergy * 5.0)
+        let speedMult = frequencyBands.isEmpty ? 1.0 : (1.0 + midEnergy * 1.5)
 
         for i in 0..<2 {
             let seed = Double(i) * 2.71
@@ -112,7 +112,7 @@ struct AmbientGlowVisualizer: View {
             let arcLen = Double.pi * 1.5 + sin(time * 0.08 + seed) * 0.4
 
             var path = Path()
-            let steps = 60
+            let steps = 30
             for j in 0...steps {
                 let t = Double(j) / Double(steps) * arcLen
                 let px = cx + cos(t + rot) * rx
@@ -121,7 +121,7 @@ struct AmbientGlowVisualizer: View {
                 else { path.addLine(to: CGPoint(x: px, y: py)) }
             }
 
-            let alpha = 0.1 + sin(time * 0.15 + seed) * 0.05 + (frequencyBands.isEmpty ? 0 : midEnergy * 0.28)
+            let alpha = 0.1 + sin(time * 0.15 + seed) * 0.05 + (frequencyBands.isEmpty ? 0 : midEnergy * 0.12)
             ctx.stroke(path, with: .color(.white.opacity(min(0.45, alpha))), lineWidth: 0.8)
         }
     }
@@ -141,7 +141,7 @@ struct AmbientGlowVisualizer: View {
         path.move(to: CGPoint(x: startX, y: startY))
         path.addCurve(to: CGPoint(x: endX, y: endY), control1: cp1, control2: cp2)
 
-        let alpha = 0.08 + (frequencyBands.isEmpty ? 0 : energy * 0.22)
+        let alpha = 0.08 + (frequencyBands.isEmpty ? 0 : energy * 0.10)
         ctx.stroke(path, with: .color(.white.opacity(min(0.3, alpha))), lineWidth: 1.0)
     }
 
@@ -149,9 +149,9 @@ struct AmbientGlowVisualizer: View {
 
     private func drawParticles(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
         // Treble energy adds extra particle brightness
-        let brightBoost = frequencyBands.isEmpty ? 0.0 : trebleEnergy * 0.38
+        let brightBoost = frequencyBands.isEmpty ? 0.0 : trebleEnergy * 0.15
 
-        for i in 0..<16 {
+        for i in 0..<8 {
             let seed = Double(i) * 1.618
             let x = size.width * (0.08 + 0.84 * (sin(time * 0.04 * (1 + seed * 0.07) + seed * 2.1) + 1) / 2)
             let y = size.height * (0.05 + 0.9 * (cos(time * 0.03 * (1 + seed * 0.06) + seed * 1.7) + 1) / 2)

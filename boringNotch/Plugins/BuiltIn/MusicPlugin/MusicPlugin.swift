@@ -74,8 +74,8 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
     // Audio pipeline — backing storage for MusicPlugin+AudioPipeline.swift
     var audioCaptureService: (any AudioCaptureServiceProtocol)?
     var fftProcessor: AudioFFTProcessor?
-    var frequencyBands: [Float] = Array(repeating: 0, count: 32)
-    var peakBands: [Float] = Array(repeating: 0, count: 32)
+    var frequencyBands: [Float] = []
+    var peakBands: [Float] = []
 
     // Plugin-specific settings
     private var showLyrics: Bool = true

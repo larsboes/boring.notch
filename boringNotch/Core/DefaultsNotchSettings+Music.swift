@@ -84,4 +84,16 @@ import Defaults
         get { Defaults[.ambientVisualizerMode] }
         set { Defaults[.ambientVisualizerMode] = newValue }
     }
+    var visualizerSensitivity: Double {
+        get { Defaults[.visualizerSensitivity] }
+        set { Defaults[.visualizerSensitivity] = newValue }
+    }
+    var visualizerShowWhenPaused: Bool {
+        get { Defaults[.visualizerShowWhenPaused] }
+        set { Defaults[.visualizerShowWhenPaused] = newValue }
+    }
+    var visualizerBandCount: VisualizerBandCount {
+        get { Defaults[.visualizerBandCount] }
+        set { Defaults[.visualizerBandCount] = newValue }
+    }
 }

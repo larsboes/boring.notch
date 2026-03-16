@@ -3,21 +3,24 @@
 //  boringNotch
 //
 //  Audio capture + FFT pipeline for MusicPlugin.
-//  Starts/stops with playback. Writes frequencyBands/peakBands on MainActor
-//  so ContentView observes changes automatically.
+//  Runs synchronously on MainActor — no extra dispatch hops.
+//  SCK is only started when the visualizer is enabled in realAudio mode.
 //
 
 import Foundation
 
 extension MusicPlugin {
 
-    static let audioBandCount: Int = 32
-
     // MARK: - Setup
 
     func setupAudioPipeline() {
-        let processor = AudioFFTProcessor(bandCount: Self.audioBandCount)
+        let settings = DefaultsNotchSettings.shared
+        let bandCount = settings.visualizerBandCount.rawValue
+        let processor = AudioFFTProcessor(bandCount: bandCount)
+        processor.smoothingFactor = Self.smoothingFactor(for: settings.visualizerSensitivity)
         fftProcessor = processor
+        frequencyBands = Array(repeating: 0, count: bandCount)
+        peakBands = Array(repeating: 0, count: bandCount)
 
         let service: any AudioCaptureServiceProtocol
         if #available(macOS 13.0, *) {
@@ -27,12 +30,9 @@ extension MusicPlugin {
         }
 
         service.setBufferHandler { [weak self] samples in
-            guard let self else { return }
-            self.fftProcessor?.process(samples)
-            if let processor = self.fftProcessor {
-                self.frequencyBands = processor.frequencyBands
-                self.peakBands = processor.peakBands
-            }
+            guard let self, let result = self.fftProcessor?.process(samples) else { return }
+            self.frequencyBands = result.bands
+            self.peakBands = result.peaks
         }
 
         audioCaptureService = service
@@ -41,6 +41,13 @@ extension MusicPlugin {
     // MARK: - Capture Control
 
     func startAudioCapture() async {
+        let settings = DefaultsNotchSettings.shared
+        // Only run SCK + FFT for realAudio mode — simulated mode needs no audio capture.
+        guard settings.ambientVisualizerEnabled,
+              settings.ambientVisualizerMode == .realAudio else { return }
+
+        fftProcessor?.smoothingFactor = Self.smoothingFactor(for: settings.visualizerSensitivity)
+
         guard let service = audioCaptureService, !service.isCapturing else { return }
         do {
             try await service.startCapture()
@@ -48,12 +55,9 @@ extension MusicPlugin {
             // Screen recording permission denied — fall back to mock
             let mock = MockAudioCaptureService()
             mock.setBufferHandler { [weak self] samples in
-                guard let self else { return }
-                self.fftProcessor?.process(samples)
-                if let processor = self.fftProcessor {
-                    self.frequencyBands = processor.frequencyBands
-                    self.peakBands = processor.peakBands
-                }
+                guard let self, let result = self.fftProcessor?.process(samples) else { return }
+                self.frequencyBands = result.bands
+                self.peakBands = result.peaks
             }
             audioCaptureService = mock
             try? await mock.startCapture()
@@ -61,8 +65,19 @@ extension MusicPlugin {
     }
 
     func stopAudioCapture() async {
+        // Respect "show when paused" — keep capture running if enabled.
+        if DefaultsNotchSettings.shared.visualizerShowWhenPaused { return }
         await audioCaptureService?.stopCapture()
-        frequencyBands = Array(repeating: 0, count: Self.audioBandCount)
-        peakBands = Array(repeating: 0, count: Self.audioBandCount)
+        let bandCount = fftProcessor?.bandCount ?? 32
+        frequencyBands = Array(repeating: 0, count: bandCount)
+        peakBands = Array(repeating: 0, count: bandCount)
+    }
+
+    // MARK: - Helpers
+
+    /// Maps sensitivity [0, 1] to FFT smoothingFactor [0.7, 0.05].
+    /// Higher sensitivity = less smoothing = snappier response.
+    static func smoothingFactor(for sensitivity: Double) -> Float {
+        Float(0.7 - sensitivity * 0.65)
     }
 }

@@ -48,8 +48,10 @@ final class ScreenCaptureKitAudioService: AudioCaptureServiceProtocol {
         }
         let video = DummyVideoOutput()
 
+        // Serial queue ensures AudioStreamOutput's batch accumulator is accessed safely.
+        let audioQueue = DispatchQueue(label: "com.boringnotch.sck.audio", qos: .userInteractive)
         let stream = SCStream(filter: filter, configuration: config, delegate: nil)
-        try stream.addStreamOutput(audio, type: .audio, sampleHandlerQueue: .global(qos: .userInteractive))
+        try stream.addStreamOutput(audio, type: .audio, sampleHandlerQueue: audioQueue)
         try stream.addStreamOutput(video, type: .screen, sampleHandlerQueue: .global(qos: .background))
         try await stream.startCapture()
 
@@ -78,6 +80,10 @@ final class ScreenCaptureKitAudioService: AudioCaptureServiceProtocol {
 @available(macOS 13.0, *)
 private final class AudioStreamOutput: NSObject, SCStreamOutput, @unchecked Sendable {
     private let onSamples: @Sendable ([Float]) -> Void
+    /// Accumulate samples on the serial audio queue before dispatching to MainActor.
+    /// Reduces Task { @MainActor } creation from ~86/sec to ~21/sec.
+    private var pending: [Float] = []
+    private let dispatchThreshold = 2048
 
     init(onSamples: @escaping @Sendable ([Float]) -> Void) {
         self.onSamples = onSamples
@@ -111,8 +117,12 @@ private final class AudioStreamOutput: NSObject, SCStreamOutput, @unchecked Send
         guard sampleCount > 0 else { return }
 
         let floatPointer = UnsafeRawPointer(dataPointer).bindMemory(to: Float.self, capacity: sampleCount)
-        let samples = Array(UnsafeBufferPointer(start: floatPointer, count: sampleCount))
-        onSamples(samples)
+        pending.append(contentsOf: UnsafeBufferPointer(start: floatPointer, count: sampleCount))
+
+        guard pending.count >= dispatchThreshold else { return }
+        let batch = pending
+        pending.removeAll(keepingCapacity: true)
+        onSamples(batch)
     }
 }
 

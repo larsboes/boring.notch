@@ -60,9 +60,9 @@ class AudioSpectrum: NSView {
     func updateBands(_ bands: [Float]) {
         guard bands.count >= 16, isPlaying else { return }
 
-        // Only replace fake animation when there's real signal
+        // Only replace fake animation when there's real signal (lowered threshold for quiet content)
         let peak = bands.max() ?? 0
-        guard peak > 0.08 else { return }
+        guard peak > 0.01 else { return }
 
         // Stop fake animation
         barLayers.forEach { $0.removeAnimation(forKey: "scaleAnimation") }
@@ -75,9 +75,10 @@ class AudioSpectrum: NSView {
             return CGFloat(max(0.15, min(1.0, avg)))
         }
 
+        // No CA animation — FFT smoothing already interpolates values. Stacked animations at
+        // high update rates (43fps) cause visual chaos; instant updates look cleaner.
         CATransaction.begin()
-        CATransaction.setAnimationDuration(0.06)
-        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeOut))
+        CATransaction.setDisableActions(true)
         for (i, bar) in barLayers.enumerated() where i < magnitudes.count {
             bar.transform = CATransform3DMakeScale(1.0, magnitudes[i], 1.0)
         }

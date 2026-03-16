@@ -44,7 +44,7 @@
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
 | 10 — Teleprompter Pro | **Active** | 10.0/10.4/10.7/10.8 shipped. Remaining: script library, voice scrolling, enhanced editor, display customization, closed display polish, screen sharing, detachable mode |
 | 11 — Foundation Models | Planned | On-device AI via Apple FoundationModels (macOS 26+), streaming, structured generation |
-| 12 — Audio Visualizer | Planned | Real audio-reactive visualization extending closed notch. ScreenCaptureKit + FFT. |
+| 12 — Audio Visualizer | **Active** | 12.1–12.6 shipped. 12.7 (perf budget measurement) pending. **Known bug: realAudio mode not reactive — visualizer does not respond to actual system audio.** |
 | 13 — Notch Video Player | Planned (Long-term) | PiP-style video player as extended notch. AVPlayer + browser integration. |
 | 14 — Animation & UI Polish | In Progress | Velocity-dependent springs, gesture feel, content morphing. |
 
@@ -795,7 +795,7 @@ closedNotchContent() → extended notch view
 
 ### 12.1 — Audio Capture Service
 
-**Status:** Planned | **Priority:** P0
+**Status:** ✅ Done | **Priority:** P0
 
 **Protocol:**
 ```swift
@@ -821,7 +821,7 @@ protocol AudioCaptureServiceProtocol: Sendable {
 
 ### 12.2 — FFT Processor
 
-**Status:** Planned | **Priority:** P0
+**Status:** ✅ Done | **Priority:** P0
 
 ```swift
 @MainActor
@@ -843,7 +843,7 @@ final class AudioFFTProcessor {
 
 ### 12.3 — Visualization Modes
 
-**Status:** Planned | **Priority:** P1
+**Status:** ✅ Fixed — Generative ambient (`.simulated` mode) works. Audio Reactive (`.realAudio` mode) was broken due to missing sample accumulation in FFT processor (SCK delivers 512-sample buffers; FFT needed 1024). Fixed with overlap accumulation. Waveform/gradient/radial modes deferred. | **Priority:** P1
 
 **Enum:**
 ```swift
@@ -883,7 +883,7 @@ enum VisualizationMode: String, Codable, CaseIterable {
 
 ### 12.4 — Extended Notch Display
 
-**Status:** Planned | **Priority:** P0
+**Status:** ✅ Done — `AmbientGlowVisualizer` renders below closed notch via `ContentView.ambientVisualizerOverlay`. Height configurable 80–220px. | **Priority:** P0
 
 The visualizer extends the closed notch downward by a configurable height (20–60px, default 30px).
 
@@ -909,7 +909,7 @@ The visualizer extends the closed notch downward by a configurable height (20–
 
 ### 12.5 — Album Art Color Extraction
 
-**Status:** Planned | **Priority:** P2
+**Status:** ✅ Done — `MusicArtworkService.avgColor` extracts dominant color, published via `avgColorPublisher`. Used in visualizer theming and closed-notch tint. | **Priority:** P2
 
 Extract dominant colors from current album art for visualizer theming.
 
@@ -926,19 +926,17 @@ protocol ColorExtractionServiceProtocol {
 
 ### 12.6 — Visualizer Settings
 
-**Status:** Planned | **Priority:** P1
+**Status:** ✅ Done — Shipped in `MediaSettingsView`. | **Priority:** P1
 
-In Music plugin settings section (not a separate settings page):
-
-| Setting | Type | Default | Range |
-|---------|------|---------|-------|
-| Visualizer enabled | Toggle | On | — |
-| Mode | Picker | Spectrum Bars | 4 modes |
-| Extended height | Slider | 30px | 20–60px |
-| Color source | Picker | Album Art | Album Art / Accent / Custom |
-| Sensitivity | Slider | 0.5 | 0.0–1.0 |
-| Show when paused | Toggle | Off | — |
-| Band count | Stepper | 32 | 16/32/64 (Spectrum Bars only) |
+| Setting | Type | Default | Shipped |
+|---------|------|---------|---------|
+| Visualizer enabled | Toggle | Off | ✅ `ambientVisualizerEnabled` |
+| Mode | Picker | Generative | ✅ `ambientVisualizerMode` (.simulated / .realAudio) |
+| Extended height | Slider | 110px | ✅ `ambientVisualizerHeight` (80–220px) |
+| Color source | Picker | Album Art | ⏳ Deferred — `coloredSpectrogram` toggle exists; 3-way picker not built |
+| Sensitivity | Slider | 0.5 | ✅ `visualizerSensitivity` → maps to FFT smoothingFactor |
+| Show when paused | Toggle | Off | ✅ `visualizerShowWhenPaused` |
+| Band count | Segmented | 32 | ✅ `visualizerBandCount` (16/32/64, shown for realAudio mode only) |
 
 **API endpoints (self-registered):**
 ```
@@ -949,17 +947,81 @@ POST /api/v1/visualizer/toggle
 
 ### 12.7 — Performance Budget
 
-| Component | CPU Target | Notes |
-|-----------|-----------|-------|
-| Audio capture | <0.5% | ScreenCaptureKit is hardware-accelerated |
-| FFT processing | <0.5% | 1024-sample vDSP FFT is trivial |
-| Visualization render | <2% | CALayer at 30fps; Metal if needed |
-| **Total** | **<3%** | Acceptable for always-on ambient display |
+**Measured (2026-03-16, M-series MacBook, music playing, realAudio mode):**
 
-- 30fps default, 60fps optional toggle for smoothness addicts
+| State | CPU | Memory | Energy Impact |
+|-------|-----|--------|---------------|
+| Idle / closed (no music) | 3% | ~59MB | Low ✅ |
+| Active visualizer (music + realAudio mode) | ~11% | ~159MB | High ⚠️ |
+
+**Original targets vs reality:**
+
+| Component | Target | Actual | Notes |
+|-----------|--------|--------|-------|
+| Audio capture (SCK) | <0.5% | ~2-3% | SCK has unavoidable framework overhead |
+| FFT processing | <0.5% | ~1% | 1024-sample vDSP at 21fps on MainActor |
+| Canvas render | <2% | ~3-4% | SwiftUI Canvas at 8fps; not Metal |
+| **Total delta** | **<3%** | **~8%** | Over target |
+
+**Optimizations shipped:**
+- SCK audio batched to 2048-sample chunks before MainActor dispatch (86fps → 21fps Task creation)
+- FFT hop size 2048 (~21fps processing, down from naive 43fps)
+- SCK only started when `ambientVisualizerEnabled && mode == .realAudio` (no capture in simulated mode)
+- Canvas at 8fps, stride-5 wave paths, 30-step orbits, 8 particles (down from 20fps/stride-3/60-step/16)
+- Energy multipliers tuned (bass 6x→2.5x, orbit 5x→1.5x) to prevent visual chaos at real audio levels
+
+**Known ceiling:** The ~100MB memory delta and ~2-3% SCK CPU cost are ScreenCaptureKit framework overhead — internal buffers, video pipeline stub, etc. Not reducible without switching capture method.
+
+**Long-term fix (not yet implemented):** Replace SCK with the macOS 14.2+ system audio tap API (`AudioObjectCreateIOProcID` on output device). No video pipeline, no 100MB allocation, estimated <0.5% CPU. Worth a dedicated branch when targeting <5% active CPU.
+
 - All processing paused when music is paused (unless "Show when paused" enabled)
 - Visualizer hidden when notch is expanded (full panel open)
-- `BackgroundServiceRestartable` conformance for phase-based suspension
+
+---
+
+## Known Bugs
+
+### BUG-1 — Audio Visualizer (realAudio mode) Not Reactive
+
+**Status:** ✅ Fixed
+
+**Root cause:** `AudioFFTProcessor.process` required `samples.count >= 1024` but SCK delivers ~512-sample buffers (macOS system audio device default). Every single incoming buffer was silently dropped via `guard samples.count >= fftSize else { return }`.
+
+**Secondary issue:** `AudioSpectrum.updateBands` had `peak > 0.08` threshold that silenced quiet audio in the 4-bar notch indicator. Lowered to `0.01`.
+
+**Fix:**
+- `AudioFFTProcessor.swift` — Added `sampleAccumulator: [Float]`. `process()` now appends samples and processes once ≥ 1024 are available. Uses 50% overlap (advances by 512) for better time resolution. Accumulator is capped to prevent memory growth.
+- `MusicVisualizer.swift` — Lowered `peak` threshold from `0.08` → `0.01`.
+
+---
+
+### BUG-2 — Notch Expands Horizontally ~3s Then Snaps Back
+
+**Symptom:** Notch randomly widens (horizontally) for ~3 seconds then returns to normal size.
+
+**Root cause (traced):** `KeyboardShortcutCoordinator` opens the notch and schedules a `Task.sleep(3s)` auto-close. During those 3 seconds, `NotchObserverSetup` fires a `hideOnClosed` change (triggered by `FullscreenMediaDetector.fullscreenStatus`). This causes `BoringViewModel.effectiveClosedNotchSize` to recalculate — and if `isMusicActive || isFaceActive` is true, extra width is added/removed with a `.smooth` animation. The 3s timer then fires `viewModel.close()` snapping it back.
+
+**Key files:**
+- `KeyboardShortcutCoordinator.swift:99–107` — 3-second auto-close Task
+- `BoringViewModel.swift:309–346` — `effectiveClosedNotchSize` width calculation
+- `BoringViewModel.swift:281–284` — `hideOnClosed` setter with `.smooth` animation
+- `NotchObserverSetup.swift:42–73` — `hideOnClosed` observer loop
+
+**Fix direction:** Debounce `hideOnClosed` changes or suppress `effectiveClosedNotchSize` width recalculation while keyboard auto-close is pending.
+
+---
+
+### Mock/Fake Data Inventory
+
+The following non-test mocks/simulated data exist in production code paths:
+
+| File | Type | Impact |
+|------|------|--------|
+| `MockAudioCaptureService.swift` | Fallback service — energy-based random data | Used when screen recording permission denied. Correct as fallback. |
+| `ScreenCaptureKitAudioService.swift` `DummyVideoOutput` | Dummy video output to satisfy SCK API | Intentional — SCK requires video stream even for audio-only. |
+| `AmbientVisualizerMode.simulated` | Generative `sin()`/`cos()` animation | Intentional — `.simulated` mode is a feature, not a bug. Default mode. |
+| `MockNotchSettings.swift` | Full settings mock | Used in SwiftUI `#Preview` blocks only. ✅ Correct scope. |
+| `DefaultsKeys.swift:92` | `ambientVisualizerMode` defaults to `.simulated` | User never sees real audio reactivity by default. Consider defaulting to `.realAudio` once BUG-1 is fixed. |
 
 ---
 
@@ -1190,5 +1252,5 @@ Before committing to implementation, validate:
 | 9 | External plugin loads from ~/Library/Application Support/boringNotch/Plugins/. |
 | 10 | Expanded panel uses full 740px with two-column layout (editor + controls). Script library persists named scripts. Countdown timer works. Keyboard shortcuts for hands-free control. Closed display shows 2–3 lines with karaoke fade, progress bar, elapsed/remaining time. Voice-driven scrolling as optional Flow Mode. Screen sharing safety via `sharingType = .none`. Detachable floating window for external displays. Creator-daily-driver quality. |
 | 11 | `FoundationModelsProvider` is sole default provider on macOS 26+. AI features work with zero external dependencies. Ollama available as opt-in Advanced option only. Streaming AI responses in teleprompter UI. Structured generation via `@Generable`. On macOS <26: AI features cleanly absent (no broken states). |
-| 12 | Real audio-reactive visualizer responds to actual system audio. Spectrum bars mode as MVP. Extended notch height configurable (20–60px). Album art color extraction for theming. <3% CPU. Permission denial degrades gracefully to fake animation. |
+| 12 | Real audio-reactive visualizer responds to actual system audio. Extended notch height configurable. Album art color extraction for theming. Idle: 3% CPU (✅). Active: ~11% CPU (⚠️ over target — SCK framework overhead; long-term fix: system audio tap API). Permission denial degrades gracefully to simulated animation. |
 | 13 | Video plays in notch viewport via AVPlayer. YouTube URLs load via yt-dlp. Hover reveals mini controls. Expanded panel has full controls + URL input. <5% CPU at 720p. Browser extension video integration validated or descoped. |

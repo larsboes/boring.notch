@@ -226,7 +226,7 @@ struct ContentView: View {
 extension ContentView {
     private var visualizerActive: Bool {
         settings.ambientVisualizerEnabled
-            && musicService.playbackState.isPlaying
+            && (musicService.playbackState.isPlaying || settings.visualizerShowWhenPaused)
             && vm.phase == .closed
     }
 

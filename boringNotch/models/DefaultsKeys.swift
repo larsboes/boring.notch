@@ -90,6 +90,9 @@ extension Defaults.Keys {
     static let ambientVisualizerEnabled = Key<Bool>("ambientVisualizerEnabled", default: false)
     static let ambientVisualizerHeight = Key<CGFloat>("ambientVisualizerHeight", default: 110)
     static let ambientVisualizerMode = Key<AmbientVisualizerMode>("ambientVisualizerMode", default: .simulated)
+    static let visualizerSensitivity = Key<Double>("visualizerSensitivity", default: 0.5)
+    static let visualizerShowWhenPaused = Key<Bool>("visualizerShowWhenPaused", default: false)
+    static let visualizerBandCount = Key<VisualizerBandCount>("visualizerBandCount", default: .thirtyTwo)
 
     // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
