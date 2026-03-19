@@ -18,8 +18,8 @@ import SwiftUI
     let settings: NotchViewModelSettings
     let displaySettings: any DisplaySettings
     let hoverController: NotchHoverController
-    private let sizeCalculator: NotchSizeCalculator
-    private let observerSetup: NotchObserverSetup
+    let sizeCalculator: NotchSizeCalculator
+    let observerSetup: NotchObserverSetup
 
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
@@ -73,6 +73,7 @@ import SwiftUI
     }
 
     var hideOnClosed: Bool = true
+    var hideOnClosedDebounceTask: Task<Void, Never>?
 
     /// Optional plugin-requested height override for closed notch (e.g. teleprompter needs double height)
     var pluginPreferredHeight: CGFloat?
@@ -232,117 +233,6 @@ import SwiftUI
         }
 
         services.dragDrop.startMonitoring()
-    }
-
-    private func setupNotchHeightObserver() {
-        NotificationCenter.default.addObserver(
-            forName: Notification.Name.notchHeightChanged,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.updateNotchSize()
-            }
-        }
-    }
-
-    private func updateNotchSize() {
-        let result = sizeCalculator.updateNotchSize(
-            screenUUID: self.screenUUID,
-            currentState: self.notchState
-        )
-
-        withAnimation(.smooth(duration: 0.3)) {
-            if result.shouldUpdateNotchSize {
-                self.notchSize = result.closedSize
-            }
-
-            if let screenFrame = getScreenFrame(self.screenUUID) {
-                let width = openNotchSize.width
-                let height = openNotchSize.height
-                let x = screenFrame.midX - (width / 2)
-                let y = screenFrame.maxY - height
-
-                let region = CGRect(x: x, y: y, width: width, height: height)
-                self.services.dragDrop.updateNotchRegion(region)
-            }
-        }
-    }
-
-    private func setupBackgroundImageObserver() {
-        observerSetup.setupBackgroundImageObserver { [weak self] image in
-            self?.backgroundImage = image
-        }
-    }
-
-    private func setupDetectorObserver() {
-        observerSetup.setupDetectorObserver(screenUUID: screenUUID) { [weak self] shouldHide in
-            guard let self = self else { return }
-            if self.hideOnClosed != shouldHide {
-                withAnimation(.smooth) {
-                    self.hideOnClosed = shouldHide
-                }
-            }
-        }
-    }
-
-    var effectiveClosedNotchHeight: CGFloat {
-        sizeCalculator.effectiveClosedNotchHeight(
-            screenUUID: screenUUID,
-            hideOnClosed: hideOnClosed,
-            sneakPeekActive: coordinator.sneakPeek.show,
-            expandingViewActive: coordinator.expandingView.show,
-            expandingViewType: coordinator.expandingView.type,
-            coordinator: coordinator,
-            pluginPreferredHeight: pluginPreferredHeight
-        )
-    }
-
-    var chinHeight: CGFloat {
-        sizeCalculator.chinHeight(
-            screenUUID: screenUUID,
-            notchState: notchState,
-            effectiveClosedHeight: effectiveClosedNotchHeight
-        )
-    }
-
-    var effectiveClosedNotchSize: CGSize {
-        let currentHeight = effectiveClosedNotchHeight
-        let inactiveHeight = max(10, sizeCalculator.inactiveNotchSize.height)
-        
-        // 1. Determine "Has Live Activity" based on height.
-        // We use a 2pt buffer to avoid jitter from floating point or subtle safe area changes.
-        let hasLiveActivity = currentHeight > inactiveHeight + 2 || pluginPreferredHeight != nil
-
-        // 2. Get the base width from the physical notch measurement.
-        var size = getClosedNotchSize(
-            settings: displaySettings, 
-            screenUUID: screenUUID, 
-            hasLiveActivity: hasLiveActivity
-        )
-        
-        // 3. Override height with the effective closed height.
-        //    getClosedNotchSize returns the raw physical/settings height, but the actual
-        //    visual height is effectiveClosedNotchHeight (which accounts for inactive state).
-        size.height = currentHeight
-
-        // 4. Apply extra width for specific Live Activities (Music/Face/Power).
-        // This MUST match the logic used in ContentView to prevent width snaps.
-        let isFaceActive = !services.music.playbackState.isPlaying &&
-                           services.music.isPlayerIdle &&
-                           settings.showNotHumanFace
-        
-        let isMusicActive = (services.music.playbackState.isPlaying || !services.music.isPlayerIdle) && 
-                            settings.musicLiveActivityEnabled
-
-        if coordinator.expandingView.type == .battery && coordinator.expandingView.show && settings.showPowerStatusNotifications {
-            size.width = 640
-        } else if (isMusicActive || isFaceActive) && !hideOnClosed {
-            // Add the "ears" padding for visualizer/artwork/eyes
-            size.width += (2 * max(0, size.height - 12) + 20)
-        }
-
-        return size
     }
 
     func syncWindowState() {

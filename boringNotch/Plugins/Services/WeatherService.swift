@@ -35,6 +35,12 @@ final class WeatherService: NSObject, WeatherServiceProtocol, CLLocationManagerD
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
     }
+
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            updateTask?.cancel()
+        }
+    }
     
     // MARK: - Methods
     

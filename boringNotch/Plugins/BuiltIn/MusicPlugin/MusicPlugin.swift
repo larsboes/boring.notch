@@ -68,8 +68,15 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
 
     var musicService: (any MusicServiceProtocol)?
     private var settings: PluginSettings?
+    private(set) var mediaSettings: (any MediaSettings)?
     private var eventBus: PluginEventBus?
     private var cancellables = Set<AnyCancellable>()
+
+    // Audio pipeline — backing storage for MusicPlugin+AudioPipeline.swift
+    var audioCaptureService: (any AudioCaptureServiceProtocol)?
+    var fftProcessor: AudioFFTProcessor?
+    var frequencyBands: [Float] = []
+    var peakBands: [Float] = []
 
     // Plugin-specific settings
     private var showLyrics: Bool = true
@@ -88,6 +95,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         // Store references
         self.musicService = context.services.music
         self.settings = context.settings
+        self.mediaSettings = context.mediaSettings
         self.eventBus = context.eventBus
 
         // Load settings
@@ -96,13 +104,25 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         // Subscribe to playback changes
         setupSubscriptions()
 
+        // Set up audio FFT pipeline
+        setupAudioPipeline()
+
+        // Start capture immediately if music is already playing
+        if musicService?.playbackState.isPlaying == true {
+            Task { await startAudioCapture() }
+        }
+
         state = .active
     }
 
     func deactivate() async {
         cancellables.removeAll()
+        await stopAudioCapture()
+        audioCaptureService = nil
+        fftProcessor = nil
         musicService = nil
         settings = nil
+        mediaSettings = nil
         eventBus = nil
         state = .inactive
     }
@@ -140,14 +160,14 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         else {
             return nil
         }
-        
+
         return DisplayRequest(priority: .high, category: DisplayRequest.music)
     }
 
     @ViewBuilder
     func closedNotchContent() -> some View {
         if isEnabled, state.isActive, let service = musicService {
-            MusicLiveActivity(service: service)
+            MusicLiveActivity(service: service, frequencyBands: frequencyBands)
         }
     }
 
@@ -201,8 +221,10 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
     private func setupSubscriptions() {
         guard let service = musicService else { return }
 
-        // Emit events when playback state changes
+        // Emit events when playback state changes + drive audio capture.
+        // Prepend current state so capture starts immediately if music is already playing.
         service.playbackStatePublisher
+            .prepend(service.playbackState)
             .sink { [weak self] playbackState in
                 guard let self = self else { return }
                 let event = MusicPlaybackChangedEvent(
@@ -210,6 +232,14 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
                     track: self.musicService?.currentTrack
                 )
                 self.eventBus?.emit(event)
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    if playbackState.isPlaying {
+                        await self.startAudioCapture()
+                    } else {
+                        await self.stopAudioCapture()
+                    }
+                }
             }
             .store(in: &cancellables)
             

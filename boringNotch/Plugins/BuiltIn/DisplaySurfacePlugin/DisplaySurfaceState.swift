@@ -7,6 +7,12 @@ final class DisplaySurfaceState {
     var content: DisplayContent = .clear
     private var ttlTask: Task<Void, Never>?
 
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            ttlTask?.cancel()
+        }
+    }
+
     func setContent(_ content: DisplayContent, ttl: TimeInterval? = nil) {
         self.content = content
 

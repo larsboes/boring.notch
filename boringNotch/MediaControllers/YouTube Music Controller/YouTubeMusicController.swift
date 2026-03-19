@@ -91,6 +91,13 @@ final class YouTubeMusicController: MediaControllerProtocol {
         }
     }
 
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            artworkFetchTask?.cancel()
+            appStateObserver?.cancel()
+        }
+    }
+
     // MARK: - MediaControllerProtocol Implementation
     func play() async { await sendCommand(endpoint: "/play", method: "POST") }
     func pause() async { await sendCommand(endpoint: "/pause", method: "POST") }

@@ -108,3 +108,33 @@ enum NotificationDeliveryStyle: String, CaseIterable, Defaults.Serializable {
         }
     }
 }
+
+enum AmbientVisualizerMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case simulated = "simulated"
+    case realAudio = "realAudio"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .simulated: return "Generative"
+        case .realAudio: return "Audio Reactive"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .simulated: return "wand.and.stars"
+        case .realAudio: return "waveform.path.ecg"
+        }
+    }
+}
+
+enum VisualizerBandCount: Int, CaseIterable, Identifiable, Defaults.Serializable {
+    case sixteen = 16
+    case thirtyTwo = 32
+    case sixtyFour = 64
+
+    var id: Int { rawValue }
+    var displayName: String { "\(rawValue) bands" }
+}

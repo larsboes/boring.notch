@@ -44,10 +44,13 @@ final class BrowserMediaController: MediaControllerProtocol {
     var supportsVolumeControl: Bool { false }
     var supportsFavorite: Bool { false }
 
-    init() {
-        BrowserExtensionServer.shared.start()
-        
-        BrowserExtensionServer.shared.statePublisher
+    private let server: BrowserExtensionServer
+
+    init(server: BrowserExtensionServer = .shared) {
+        self.server = server
+        server.start()
+
+        server.statePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] browserState in
                 self?.handleStateUpdate(browserState)
@@ -74,12 +77,12 @@ final class BrowserMediaController: MediaControllerProtocol {
         playbackState = newState
     }
 
-    func play() async { BrowserExtensionServer.shared.sendCommand(BrowserMediaCommand(command: "play")) }
-    func pause() async { BrowserExtensionServer.shared.sendCommand(BrowserMediaCommand(command: "pause")) }
-    func togglePlay() async { BrowserExtensionServer.shared.sendCommand(BrowserMediaCommand(command: playbackState.isPlaying ? "pause" : "play")) }
-    func nextTrack() async { BrowserExtensionServer.shared.sendCommand(BrowserMediaCommand(command: "next")) }
-    func previousTrack() async { BrowserExtensionServer.shared.sendCommand(BrowserMediaCommand(command: "previous")) }
-    func seek(to time: Double) async { BrowserExtensionServer.shared.sendCommand(BrowserMediaCommand(command: "seek", value: time)) }
+    func play() async { server.sendCommand(BrowserMediaCommand(command: "play")) }
+    func pause() async { server.sendCommand(BrowserMediaCommand(command: "pause")) }
+    func togglePlay() async { server.sendCommand(BrowserMediaCommand(command: playbackState.isPlaying ? "pause" : "play")) }
+    func nextTrack() async { server.sendCommand(BrowserMediaCommand(command: "next")) }
+    func previousTrack() async { server.sendCommand(BrowserMediaCommand(command: "previous")) }
+    func seek(to time: Double) async { server.sendCommand(BrowserMediaCommand(command: "seek", value: time)) }
 
     func setVolume(_ level: Double) async { }
     func toggleShuffle() async { }

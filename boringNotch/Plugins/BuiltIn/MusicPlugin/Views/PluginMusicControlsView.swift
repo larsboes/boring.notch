@@ -13,6 +13,7 @@ struct PluginMusicControlsView: View {
 
     @Environment(BoringViewModel.self) var vm
     @Environment(\.settings) var settings
+    @Environment(\.bindableSettings) var bindableSettings
 
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
@@ -103,28 +104,39 @@ struct PluginMusicControlsView: View {
 
     @ViewBuilder
     private var extraControlsView: some View {
-        Menu {
-            Button(action: { Task { await service.toggleShuffle() } }) {
-                Label(service.isShuffled ? "Shuffle On" : "Shuffle Off",
-                      systemImage: "shuffle")
-            }
-            Button(action: { Task { await service.toggleRepeat() } }) {
-                Label(repeatLabel, systemImage: repeatIcon)
-            }
-            if service.canFavoriteTrack {
-                Button(action: { Task { await service.toggleFavorite() } }) {
-                    Label(service.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                          systemImage: service.isFavorite ? "heart.fill" : "heart")
+        HStack(spacing: 4) {
+            HoverButton(
+                icon: "waveform",
+                iconColor: settings.ambientVisualizerEnabled ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
+            ) {
+                withAnimation(.smooth(duration: 0.3)) {
+                    bindableSettings.ambientVisualizerEnabled.toggle()
                 }
             }
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.gray)
-                .frame(width: 22, height: 22)
+
+            Menu {
+                Button(action: { Task { await service.toggleShuffle() } }) {
+                    Label(service.isShuffled ? "Shuffle On" : "Shuffle Off",
+                          systemImage: "shuffle")
+                }
+                Button(action: { Task { await service.toggleRepeat() } }) {
+                    Label(repeatLabel, systemImage: repeatIcon)
+                }
+                if service.canFavoriteTrack {
+                    Button(action: { Task { await service.toggleFavorite() } }) {
+                        Label(service.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                              systemImage: service.isFavorite ? "heart.fill" : "heart")
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.gray)
+                    .frame(width: 22, height: 22)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
     }
 
     private var repeatLabel: String {

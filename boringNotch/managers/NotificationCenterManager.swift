@@ -24,6 +24,12 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
         self.observeRetentionChanges()
     }
 
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            retentionObservation?.cancel()
+        }
+    }
+
     func requestAuthorization() {
         center.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
             Task { @MainActor in

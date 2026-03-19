@@ -10,6 +10,7 @@ import SwiftUI
 
 struct MusicLiveActivity: View {
     let service: any MusicServiceProtocol
+    var frequencyBands: [Float] = []
 
     // Environment Dependencies
     @Environment(BoringViewModel.self) var vm
@@ -18,10 +19,7 @@ struct MusicLiveActivity: View {
     @Environment(\.displayClosedNotchHeight) var displayClosedNotchHeight
     @Environment(\.cornerRadiusScaleFactor) var cornerRadiusScaleFactor
     @Environment(\.cornerRadiusInsets) var cornerRadiusInsets
-    
-    // Constants (could be passed via layout context if dynamic)
-    // For now we assume gestureProgress is handled by the parent container or not needed for the static view
-    // In the original, gestureProgress affected the width of the spectrum container
+
     var gestureProgress: CGFloat = 0
 
     private var closedNotchTopRadius: CGFloat {
@@ -32,14 +30,18 @@ struct MusicLiveActivity: View {
         return max(0, base)
     }
 
-    // Keep media content away from the curved notch shoulders to avoid clipping.
     private var edgeSafeInset: CGFloat {
         max(0, closedNotchTopRadius + 2)
     }
 
     var body: some View {
+        musicContent
+            .frame(height: displayClosedNotchHeight, alignment: .center)
+    }
+
+    @ViewBuilder
+    private var musicContent: some View {
         HStack(spacing: 0) {
-            // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
             let baseArtSize = displayClosedNotchHeight - 12
             let scaledArtSize: CGFloat = {
                 if let scale = cornerRadiusScaleFactor {
@@ -62,27 +64,16 @@ struct MusicLiveActivity: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: geo.size.width, height: geo.size.width)
-                        .clipShape(
-                            RoundedRectangle(
-                                cornerRadius: closedCornerRadius
-                            )
-                        )
+                        .clipShape(RoundedRectangle(cornerRadius: closedCornerRadius))
                         .clipped()
-                        // Only apply matchedGeometryEffect when NOT transitioning.
-                        // During transitions, the container spring and matchedGeometry fight,
-                        // causing stretch/jump artifacts on the album art.
                         .ifLet(vm.phase.isTransitioning ? nil : albumArtNamespace) { view, ns in
                             view.matchedGeometryEffect(id: "albumArt", in: ns)
                         }
                 }
             }
-            .frame(
-                width: scaledArtSize,
-                height: scaledArtSize
-            )
+            .frame(width: scaledArtSize, height: scaledArtSize)
             .padding(.leading, 10)
 
-            // Fixed-width middle section matching physical notch width
             Rectangle()
                 .fill(Color.clear)
                 .frame(width: max(0, vm.closedNotchSize.width - self.edgeSafeInset * 2))
@@ -91,29 +82,19 @@ struct MusicLiveActivity: View {
                 AudioSpectrumView(
                     isPlaying: service.playbackState.isPlaying,
                     tintColor: settings.coloredSpectrogram
-                    ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.5)
-                    : Color.gray
+                        ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.5)
+                        : Color.gray,
+                    frequencyBands: frequencyBands
                 )
                 .frame(width: 16, height: 12)
             }
             .frame(
-                width: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                        + gestureProgress / 2
-                ),
-                height: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                ),
+                width: max(0, displayClosedNotchHeight - 12 + gestureProgress / 2),
+                height: max(0, displayClosedNotchHeight - 12),
                 alignment: .center
             )
             .padding(.trailing, 10)
         }
         .padding(.horizontal, self.edgeSafeInset)
-        .frame(
-            height: displayClosedNotchHeight,
-            alignment: .center
-        )
     }
 }

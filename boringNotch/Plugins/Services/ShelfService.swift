@@ -30,6 +30,12 @@ final class ShelfService: ShelfServiceProtocol {
     private var persistenceTask: Task<Void, Never>?
     private let persistenceDelay: Duration = .seconds(1)
     
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            persistenceTask?.cancel()
+        }
+    }
+
     // Injected helpers
     let imageProcessor: any ShelfImageProcessorProtocol
     let fileHandler: any ShelfFileHandlerProtocol

@@ -81,6 +81,14 @@ final class SneakPeekService: SneakPeekServiceProtocol {
         subscribeToSneakPeekEvents()
     }
 
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            sneakPeekTask?.cancel()
+            expandingViewTask?.cancel()
+            eventSubscription?.cancel()
+        }
+    }
+
     // MARK: - Event Subscription
 
     private func subscribeToSneakPeekEvents() {
@@ -192,7 +200,6 @@ final class SneakPeekService: SneakPeekServiceProtocol {
         let decoder = JSONDecoder()
         guard let data = notification.userInfo?.first?.value as? Data,
               let decoded = try? decoder.decode(SharedSneakPeek.self, from: data) else {
-            print("Failed to decode JSON data")
             return
         }
 

@@ -70,6 +70,12 @@ final class MockNotchSettings: NotchSettings {
     var musicControlSlots: [MusicControlButton] = MusicControlButton.defaultLayout
     var selectedVisualizerURL: URL? = nil
     var selectedVisualizerSpeed: Double = 1.0
+    var ambientVisualizerEnabled: Bool = false
+    var ambientVisualizerHeight: CGFloat = 110
+    var ambientVisualizerMode: AmbientVisualizerMode = .simulated
+    var visualizerSensitivity: Double = 0.5
+    var visualizerShowWhenPaused: Bool = false
+    var visualizerBandCount: VisualizerBandCount = .thirtyTwo
 
     // MARK: - Gesture Settings
     var enableGestures: Bool = true

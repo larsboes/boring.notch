@@ -54,6 +54,40 @@ struct Media: View {
                     "Show music live activity",
                     isOn: $settings.musicLiveActivityEnabled.animation()
                 )
+                Toggle(
+                    "Ambient visualizer glow",
+                    isOn: $settings.ambientVisualizerEnabled.animation()
+                )
+                if settings.ambientVisualizerEnabled {
+                    Picker("Visualizer mode", selection: $settings.ambientVisualizerMode) {
+                        ForEach(AmbientVisualizerMode.allCases) { mode in
+                            Label(mode.displayName, systemImage: mode.icon).tag(mode)
+                        }
+                    }
+                    HStack {
+                        Text("Visualizer height")
+                        Spacer()
+                        Text("\(Int(settings.ambientVisualizerHeight))px")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $settings.ambientVisualizerHeight, in: 80...220, step: 10)
+                    HStack {
+                        Text("Sensitivity")
+                        Spacer()
+                        Text(String(format: "%.0f%%", settings.visualizerSensitivity * 100))
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $settings.visualizerSensitivity, in: 0...1, step: 0.05)
+                    if settings.ambientVisualizerMode == .realAudio {
+                        Picker("Band count", selection: $settings.visualizerBandCount) {
+                            ForEach(VisualizerBandCount.allCases) { count in
+                                Text(count.displayName).tag(count)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    Toggle("Show when paused", isOn: $settings.visualizerShowWhenPaused)
+                }
                 Toggle("Show sneak peek on playback changes", isOn: $settings.enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $settings.sneakPeekStyles) {
                     ForEach(SneakPeekStyle.selectableCases) { style in

@@ -72,4 +72,28 @@ import Defaults
         get { Defaults[.selectedVisualizerSpeed] }
         set { Defaults[.selectedVisualizerSpeed] = newValue }
     }
+    var ambientVisualizerEnabled: Bool {
+        get { Defaults[.ambientVisualizerEnabled] }
+        set { Defaults[.ambientVisualizerEnabled] = newValue }
+    }
+    var ambientVisualizerHeight: CGFloat {
+        get { Defaults[.ambientVisualizerHeight] }
+        set { Defaults[.ambientVisualizerHeight] = newValue }
+    }
+    var ambientVisualizerMode: AmbientVisualizerMode {
+        get { Defaults[.ambientVisualizerMode] }
+        set { Defaults[.ambientVisualizerMode] = newValue }
+    }
+    var visualizerSensitivity: Double {
+        get { Defaults[.visualizerSensitivity] }
+        set { Defaults[.visualizerSensitivity] = newValue }
+    }
+    var visualizerShowWhenPaused: Bool {
+        get { Defaults[.visualizerShowWhenPaused] }
+        set { Defaults[.visualizerShowWhenPaused] = newValue }
+    }
+    var visualizerBandCount: VisualizerBandCount {
+        get { Defaults[.visualizerBandCount] }
+        set { Defaults[.visualizerBandCount] = newValue }
+    }
 }

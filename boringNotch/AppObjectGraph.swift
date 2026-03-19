@@ -57,6 +57,7 @@ final class AppObjectGraph {
             services: ServiceContainer(eventBus: eventBus, settings: settings),
             eventBus: eventBus,
             appState: BoringAppState(),
+            mediaSettings: settings,
             coordinator: coordinator,
             builtInPlugins: [
                 MusicPlugin(),

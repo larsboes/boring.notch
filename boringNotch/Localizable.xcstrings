@@ -1015,6 +1015,9 @@
         }
       }
     },
+    "%lldpx" : {
+
+    },
     "• Bug fixes" : {
       "localizations" : {
         "ar" : {
@@ -2543,6 +2546,9 @@
         }
       }
     },
+    "Ambient visualizer glow" : {
+
+    },
     "API Key" : {
 
     },
@@ -3151,6 +3157,9 @@
           }
         }
       }
+    },
+    "Band count" : {
+
     },
     "Battery" : {
       "localizations" : {
@@ -18229,6 +18238,9 @@
         }
       }
     },
+    "Sensitivity" : {
+
+    },
     "Sessions before long break: %lld" : {
 
     },
@@ -20042,6 +20054,9 @@
       }
     },
     "Show weather" : {
+
+    },
+    "Show when paused" : {
 
     },
     "Shuffle Off" : {
@@ -22502,6 +22517,12 @@
           }
         }
       }
+    },
+    "Visualizer height" : {
+
+    },
+    "Visualizer mode" : {
+
     },
     "Weather" : {
 

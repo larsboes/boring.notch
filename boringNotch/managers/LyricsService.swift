@@ -21,6 +21,12 @@ class LyricsService: LyricsServiceProtocol {
 
     init() {}
 
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            currentFetchTask?.cancel()
+        }
+    }
+
     // MARK: - Public API
 
     func fetchLyrics(bundleIdentifier: String?, title: String, artist: String) async {
