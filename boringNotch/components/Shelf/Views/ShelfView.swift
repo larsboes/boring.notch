@@ -17,13 +17,16 @@ struct ShelfView: View {
     }
     
     private var quickLookService: any QuickLookServiceProtocol {
-        pluginManager!.services.quickLook
+        guard let pluginManager else { preconditionFailure("pluginManager required") }
+        return pluginManager.services.quickLook
     }
     private var quickShareService: QuickShareService {
-        pluginManager!.services.quickShare
+        guard let pluginManager else { preconditionFailure("pluginManager required") }
+        return pluginManager.services.quickShare
     }
-    private var shelfService: ShelfServiceProtocol {
-        pluginManager!.services.shelf
+    private var shelfService: any ShelfServiceProtocol {
+        guard let pluginManager else { preconditionFailure("pluginManager required") }
+        return pluginManager.services.shelf
     }
     private let spacing: CGFloat = 8
 

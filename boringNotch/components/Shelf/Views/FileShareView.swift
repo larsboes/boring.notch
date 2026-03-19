@@ -14,14 +14,14 @@ struct FileShareView: View {
     @Environment(\.settings) var settings
     @Environment(\.pluginManager) var pluginManager
 
-    private var quickShare: QuickShareService { pluginManager!.services.quickShare }
+    private var quickShare: QuickShareService? { pluginManager?.services.quickShare }
 
     @State private var hostView: NSView?
     @State private var interactionNonce: UUID = .init()
     @State private var isProcessing = false
     
     private var selectedProvider: QuickShareProvider {
-        quickShare.availableProviders.first(where: { $0.id == settings.quickShareProvider }) ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
+        quickShare?.availableProviders.first(where: { $0.id == settings.quickShareProvider }) ?? QuickShareProvider(id: "System Share Menu", supportsRawText: true)
     }
 
     var body: some View {
@@ -67,7 +67,7 @@ struct FileShareView: View {
                         ))
                         .frame(width: 55, height: 55)
                     Group {
-                        if let icon = quickShare.icon(for: selectedProvider.id, size: 34) {
+                        if let icon = quickShare?.icon(for: selectedProvider.id, size: 34) {
                             Image(nsImage: icon)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
@@ -94,7 +94,7 @@ struct FileShareView: View {
             .padding(18)
             
             // Loading overlay
-            if isProcessing || quickShare.isPickerOpen {
+            if isProcessing || quickShare?.isPickerOpen == true {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(.black.opacity(0.3))
                     .overlay(
@@ -112,11 +112,12 @@ struct FileShareView: View {
     private func handleDrop(_ providers: [NSItemProvider]) async {
         isProcessing = true
         defer { isProcessing = false }
-        await quickShare.shareDroppedFiles(providers, using: selectedProvider, from: hostView, service: pluginManager!.services.shelf)
+        guard let shelf = pluginManager?.services.shelf else { return }
+        await quickShare?.shareDroppedFiles(providers, using: selectedProvider, from: hostView, service: shelf)
     }
     
     private func handleClick() async {
-        await quickShare.showFilePicker(for: selectedProvider, from: hostView)
+        await quickShare?.showFilePicker(for: selectedProvider, from: hostView)
     }
 }
 

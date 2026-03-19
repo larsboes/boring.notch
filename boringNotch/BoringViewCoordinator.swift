@@ -10,49 +10,6 @@ import Combine
 import Defaults
 import SwiftUI
 
-enum SneakContentType {
-    case brightness
-    case volume
-    case backlight
-    case music
-    case mic
-    case battery
-    case download
-
-    var isHUD: Bool {
-        switch self {
-        case .volume, .brightness, .backlight, .mic: true
-        default: false
-        }
-    }
-}
-
-struct SneakPeek {
-    var show: Bool = false
-    var type: SneakContentType = .music
-    var value: CGFloat = 0
-    var icon: String = ""
-}
-
-struct SharedSneakPeek: Codable {
-    var show: Bool
-    var type: String
-    var value: String
-    var icon: String
-}
-
-enum BrowserType {
-    case chromium
-    case safari
-}
-
-struct ExpandedItem {
-    var show: Bool = false
-    var type: SneakContentType = .battery
-    var value: CGFloat = 0
-    var browser: BrowserType = .chromium
-}
-
 @MainActor
 @Observable class BoringViewCoordinator: NotchAnimationStateProviding {
     var currentView: NotchViews = .home
@@ -77,7 +34,7 @@ struct ExpandedItem {
     var sneakPeekDuration: TimeInterval
     var sneakPeekTask: Task<Void, Never>?
 
-    var sneakPeek: SneakPeek = .init() {
+    var sneakPeek: SneakPeekState = .init() {
         didSet {
             if sneakPeek.show {
                 scheduleSneakPeekHide(after: sneakPeekDuration)

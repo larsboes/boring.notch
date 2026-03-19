@@ -4,8 +4,8 @@ struct NotificationsView: View {
     @Environment(\.pluginManager) var pluginManager
     @Namespace private var animation
     
-    private var manager: any NotificationServiceProtocol {
-        pluginManager!.services.notifications
+    private var manager: (any NotificationServiceProtocol)? {
+        pluginManager?.services.notifications
     }
 
     var body: some View {
@@ -15,9 +15,9 @@ struct NotificationsView: View {
                 .padding(.top, 10)
                 .padding(.bottom, 5)
 
-            if manager.authorizationStatus == .denied {
+            if manager?.authorizationStatus == .denied {
                 permissionDeniedView
-            } else if manager.notifications.isEmpty {
+            } else if manager?.notifications.isEmpty == true {
                 emptyStateView
             } else {
                 notificationList
@@ -34,10 +34,10 @@ struct NotificationsView: View {
 
             Spacer()
 
-            if !manager.notifications.isEmpty {
+            if manager?.notifications.isEmpty == false {
                 Button(action: {
                     withAnimation {
-                        manager.markAllAsRead()
+                        manager?.markAllAsRead()
                     }
                 }) {
                     Text("Mark All Read")
@@ -48,7 +48,7 @@ struct NotificationsView: View {
 
                 Button(action: {
                     withAnimation {
-                        manager.clearAll()
+                        manager?.clearAll()
                     }
                 }) {
                     Image(systemName: "trash")
@@ -100,16 +100,16 @@ struct NotificationsView: View {
     private var notificationList: some View {
         ScrollView {
             LazyVStack(spacing: 8) {
-                ForEach(manager.notifications) { notification in
+                ForEach(manager?.notifications ?? []) { notification in
                     NotificationRow(notification: notification)
                         .transition(.scale.combined(with: .opacity))
                         .contextMenu {
                             Button("Clear") {
-                                manager.removeNotification(notification)
+                                manager?.removeNotification(notification)
                             }
                             if !notification.isRead {
                                 Button("Mark as Read") {
-                                    manager.markAsRead(notification)
+                                    manager?.markAsRead(notification)
                                 }
                             }
                         }
