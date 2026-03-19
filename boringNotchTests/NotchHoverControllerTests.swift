@@ -19,6 +19,8 @@ struct MockNotchViewModelSettings: NotchViewModelSettings {
     var hideTitleBar: Bool = false
     var openNotchOnHover: Bool = true
     var openShelfByDefault: Bool = false
+    var musicLiveActivityEnabled: Bool = true
+    var showPowerStatusNotifications: Bool = true
 }
 
 // MARK: - Tests

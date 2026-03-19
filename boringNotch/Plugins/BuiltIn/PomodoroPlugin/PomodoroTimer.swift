@@ -41,8 +41,14 @@ final class PomodoroTimer {
         return String(format: "%02d:%02d", minutes, seconds)
     }
     
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            timerTask?.cancel()
+        }
+    }
+
     // MARK: - Initialization
-    
+
     init() {
         self.settings = .default
         

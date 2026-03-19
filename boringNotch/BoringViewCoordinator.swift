@@ -108,6 +108,17 @@ struct ExpandedItem {
         }
     }
 
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            sneakPeekTask?.cancel()
+            expandingViewTask?.cancel()
+            hudEnableTask?.cancel()
+            if let accessibilityObserver {
+                NotificationCenter.default.removeObserver(accessibilityObserver)
+            }
+        }
+    }
+
     init(settings: any CoordinatorSettings, xpcHelper: any XPCHelperServiceProtocol) {
         self.settings = settings
         self.xpcHelper = xpcHelper

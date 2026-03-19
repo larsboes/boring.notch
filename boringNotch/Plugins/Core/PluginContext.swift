@@ -27,16 +27,21 @@ final class PluginContext {
     /// App-wide state
     let appState: AppStateProviding
 
+    /// App-wide media settings (visualizer, music live activity, etc.)
+    let mediaSettings: any MediaSettings
+
     init(
         settings: PluginSettings,
         services: any NotchServiceProvider,
         eventBus: PluginEventBus,
-        appState: AppStateProviding
+        appState: AppStateProviding,
+        mediaSettings: any MediaSettings
     ) {
         self.settings = settings
         self.services = services
         self.eventBus = eventBus
         self.appState = appState
+        self.mediaSettings = mediaSettings
     }
 }
 

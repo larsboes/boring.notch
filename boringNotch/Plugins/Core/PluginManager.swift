@@ -65,16 +65,21 @@ final class PluginManager {
 
     // MARK: - Initialization
 
+    /// App-wide media settings, forwarded to plugin contexts
+    private let mediaSettings: any MediaSettings
+
     init(
         services: ServiceContainer,
         eventBus: PluginEventBus,
         appState: AppStateProviding,
+        mediaSettings: any MediaSettings,
         coordinator: any NotchAnimationStateProviding,
         builtInPlugins: [any NotchPlugin] = []
     ) {
         self.services = services
         self.eventBus = eventBus
         self.appState = appState
+        self.mediaSettings = mediaSettings
 
         // Inject shelf service into coordinator
         coordinator.shelfService = services.shelf
@@ -121,7 +126,8 @@ final class PluginManager {
             settings: PluginSettings(pluginId: id),
             services: services,
             eventBus: eventBus,
-            appState: appState
+            appState: appState,
+            mediaSettings: mediaSettings
         )
 
         do {

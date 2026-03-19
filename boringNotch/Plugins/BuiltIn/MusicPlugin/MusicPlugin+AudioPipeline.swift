@@ -14,7 +14,7 @@ extension MusicPlugin {
     // MARK: - Setup
 
     func setupAudioPipeline() {
-        let settings = DefaultsNotchSettings.shared
+        guard let settings = mediaSettings else { return }
         let bandCount = settings.visualizerBandCount.rawValue
         let processor = AudioFFTProcessor(bandCount: bandCount)
         processor.smoothingFactor = Self.smoothingFactor(for: settings.visualizerSensitivity)
@@ -41,7 +41,7 @@ extension MusicPlugin {
     // MARK: - Capture Control
 
     func startAudioCapture() async {
-        let settings = DefaultsNotchSettings.shared
+        guard let settings = mediaSettings else { return }
         // Only run SCK + FFT for realAudio mode — simulated mode needs no audio capture.
         guard settings.ambientVisualizerEnabled,
               settings.ambientVisualizerMode == .realAudio else { return }
@@ -66,7 +66,7 @@ extension MusicPlugin {
 
     func stopAudioCapture() async {
         // Respect "show when paused" — keep capture running if enabled.
-        if DefaultsNotchSettings.shared.visualizerShowWhenPaused { return }
+        if mediaSettings?.visualizerShowWhenPaused == true { return }
         await audioCaptureService?.stopCapture()
         let bandCount = fftProcessor?.bandCount ?? 32
         frequencyBands = Array(repeating: 0, count: bandCount)

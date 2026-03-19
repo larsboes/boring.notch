@@ -48,6 +48,12 @@ final class MusicArtworkService {
         self.settings = settings
     }
 
+    nonisolated deinit {
+        MainActor.assumeIsolated {
+            albumArtTask?.cancel()
+        }
+    }
+
     // MARK: - Public API
 
     /// Called by MusicManager when a content change is detected in the playback state.

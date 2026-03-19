@@ -68,6 +68,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
 
     var musicService: (any MusicServiceProtocol)?
     private var settings: PluginSettings?
+    private(set) var mediaSettings: (any MediaSettings)?
     private var eventBus: PluginEventBus?
     private var cancellables = Set<AnyCancellable>()
 
@@ -94,6 +95,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         // Store references
         self.musicService = context.services.music
         self.settings = context.settings
+        self.mediaSettings = context.mediaSettings
         self.eventBus = context.eventBus
 
         // Load settings
@@ -120,6 +122,7 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         fftProcessor = nil
         musicService = nil
         settings = nil
+        mediaSettings = nil
         eventBus = nil
         state = .inactive
     }
