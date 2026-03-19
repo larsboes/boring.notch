@@ -15,7 +15,7 @@ import KeyboardShortcuts
 final class KeyboardShortcutCoordinator {
     // MARK: - Properties
 
-    private let coordinator: BoringViewCoordinator
+    private let coordinator: any ViewCoordinating
     private let eventBus: PluginEventBus
     private let windowCoordinator: WindowCoordinator
     private let settings: NotchSettings
@@ -24,7 +24,7 @@ final class KeyboardShortcutCoordinator {
     // MARK: - Initialization
 
     init(
-        coordinator: BoringViewCoordinator,
+        coordinator: any ViewCoordinating,
         eventBus: PluginEventBus,
         windowCoordinator: WindowCoordinator,
         settings: NotchSettings
@@ -60,7 +60,7 @@ final class KeyboardShortcutCoordinator {
                     request: SneakPeekRequest(style: .inline, type: .music)
                 ))
             } else {
-                coordinator.toggleExpandingView(status: false, type: .music)
+                coordinator.toggleExpandingView(status: false, type: .music, value: 0, browser: .chromium)
             }
         } else {
             if !coordinator.sneakPeek.show {
@@ -69,7 +69,7 @@ final class KeyboardShortcutCoordinator {
                     request: SneakPeekRequest(style: .standard, type: .music)
                 ))
             } else {
-                coordinator.toggleSneakPeek(status: false, type: .music)
+                coordinator.toggleSneakPeek(status: false, type: .music, duration: 1.5, value: 0, icon: "")
             }
         }
     }

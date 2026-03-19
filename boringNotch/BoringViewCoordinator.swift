@@ -11,7 +11,7 @@ import Defaults
 import SwiftUI
 
 @MainActor
-@Observable class BoringViewCoordinator: NotchAnimationStateProviding {
+@Observable class BoringViewCoordinator: ViewCoordinating {
     var currentView: NotchViews = .home
     var isScrollableViewPresented: Bool = false
     var helloAnimationRunning: Bool = false

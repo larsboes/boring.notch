@@ -21,7 +21,7 @@ final class DragDetectionCoordinator {
     private weak var windowCoordinator: WindowCoordinator?
 
     /// Reference to view coordinator
-    private let coordinator: BoringViewCoordinator
+    private let coordinator: any ViewCoordinating
 
     /// Settings for reading drag detection and display preferences
     private let settings: NotchSettings
@@ -33,7 +33,7 @@ final class DragDetectionCoordinator {
 
     init(
         windowCoordinator: WindowCoordinator,
-        coordinator: BoringViewCoordinator,
+        coordinator: any ViewCoordinating,
         settings: NotchSettings,
         makeDragDropService: @escaping @MainActor () -> DragDropService = { DragDropService() }
     ) {

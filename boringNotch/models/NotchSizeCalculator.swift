@@ -74,7 +74,6 @@ import SwiftUI
         sneakPeekActive: Bool,
         expandingViewActive: Bool,
         expandingViewType: SneakContentType?,
-        coordinator: BoringViewCoordinator,
         pluginPreferredHeight: CGFloat? = nil
     ) -> CGFloat {
         let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
