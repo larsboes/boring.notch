@@ -79,7 +79,6 @@ extension BoringViewModel {
             sneakPeekActive: coordinator.sneakPeek.show,
             expandingViewActive: coordinator.expandingView.show,
             expandingViewType: coordinator.expandingView.type,
-            coordinator: coordinator,
             pluginPreferredHeight: pluginPreferredHeight
         )
     }

@@ -13,7 +13,7 @@ import SwiftUI
 @MainActor
 @Observable class BoringViewModel: NSObject {
     // MARK: - Dependencies
-    let coordinator: BoringViewCoordinator
+    let coordinator: any ViewCoordinating
     private let detector: FullscreenMediaDetector
     let settings: NotchViewModelSettings
     let displaySettings: any DisplaySettings
@@ -137,7 +137,7 @@ import SwiftUI
     @MainActor
     init(
         screenUUID: String? = nil,
-        coordinator: BoringViewCoordinator,
+        coordinator: any ViewCoordinating,
         detector: FullscreenMediaDetector,
         services: any NotchServiceProvider,
         settings: NotchViewModelSettings? = nil,

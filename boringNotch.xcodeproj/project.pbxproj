@@ -330,11 +330,13 @@
 		D50C083877BD45FB1C1E5477 /* DefaultsNotchSettings+HUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43233AEBD59B9D836F52FD6E /* DefaultsNotchSettings+HUD.swift */; };
 		D65C71C9747A41F1B1262CDC /* TeleprompterClosedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C73085443E4827B76CDF60 /* TeleprompterClosedView.swift */; };
 		D6A1952F9109462F8045A4EE /* DisplaySurfaceExpandedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C9355539F648C6A237F5C5 /* DisplaySurfaceExpandedView.swift */; };
+		DB3D1933439D99C4186DCFCE /* ViewCoordinating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3466E2E4EBFA8E66F5DF4EFD /* ViewCoordinating.swift */; };
 		DB5E54FD2F02D24A00293861 /* MacroVisionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 111BEA502ECFBF7F0079DD4E /* MacroVisionKit */; };
 		DB5E54FE2F02D24A00293861 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 110029372E86940F00035A57 /* SQLite */; };
 		DC922FD32FE54B4129B0CD83 /* VolumeManager+CoreAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CB7025FFE2CC5FE373E8EF /* VolumeManager+CoreAudio.swift */; };
 		DCA23F324F7EFCB9EC609BE1 /* TeleprompterControlPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EC53B8CC51BE0AD2D1ECC7 /* TeleprompterControlPanel.swift */; };
 		DE1BF0D59B7B27D831273F50 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E3691B05BAE6AB1B8C16F0 /* CalendarService.swift */; };
+		E06CA639B6CDE6D058450C81 /* ServiceProviderProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E846816D78471973B35660 /* ServiceProviderProtocols.swift */; };
 		E0885A759E6CE4D70A2F850E /* QuickLookServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892ECA7904653BB7AFD34D0D /* QuickLookServiceProtocol.swift */; };
 		E6E1EF49CF913C248BB1A096 /* ClipboardPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = E367E0D4D53A466BC3EBB7F9 /* ClipboardPlugin.swift */; };
 		E72919B50C0656D9E85B9C8D /* HabitExpandedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05B342F7688442107CF810F /* HabitExpandedView.swift */; };
@@ -553,6 +555,7 @@
 		2F996B97FF11027495BA459A /* NotchViewModelSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchViewModelSettings.swift; sourceTree = "<group>"; };
 		30F907D5C61FB27219A2F24B /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		33049D1441AC32824327D939 /* AccentCircleButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentCircleButton.swift; sourceTree = "<group>"; };
+		3466E2E4EBFA8E66F5DF4EFD /* ViewCoordinating.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ViewCoordinating.swift; sourceTree = "<group>"; };
 		3B9B00C3B2A36FAE29CEF180 /* AppObjectGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppObjectGraph.swift; sourceTree = "<group>"; };
 		3BACB7C3AE6E2F7B8AF7AF34 /* DefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultsKeys.swift; sourceTree = "<group>"; };
 		3D01104225AEAADF0C129C4A /* NotchHoverController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotchHoverController.swift; sourceTree = "<group>"; };
@@ -573,6 +576,7 @@
 		4FC562FA09251CAAABE14E84 /* ShelfMenuDialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfMenuDialogs.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5129ED104E656013E0192640 /* BoringViewModel+Hover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BoringViewModel+Hover.swift"; sourceTree = "<group>"; };
+		54E846816D78471973B35660 /* ServiceProviderProtocols.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServiceProviderProtocols.swift; path = boringNotch/Plugins/Core/ServiceProviderProtocols.swift; sourceTree = SOURCE_ROOT; };
 		55C9017F5C7B7BB0AF31032E /* CustomSlider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CustomSlider.swift; path = boringNotch/components/CustomSlider.swift; sourceTree = "<group>"; };
 		575467BE87C1DAEB460F623D /* VolumeServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VolumeServiceProtocol.swift; path = boringNotch/Plugins/Services/VolumeServiceProtocol.swift; sourceTree = "<group>"; };
 		57B93B5B036643D6AEF311DD /* ContentView+Appearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+Appearance.swift"; sourceTree = "<group>"; };
@@ -1679,6 +1683,7 @@
 				684BD5824285F6635ABC1AA7 /* DefaultsNotchSettings+Display.swift */,
 				F669397153DED9DDA8BC3C7F /* DefaultsNotchSettings+Plugins.swift */,
 				B7CF7AA241497887708DFC5F /* SneakPeekTypes.swift */,
+				3466E2E4EBFA8E66F5DF4EFD /* ViewCoordinating.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1736,6 +1741,7 @@
 				DF41C8F8C9011789D192F4C7 /* NotchServiceProvider.swift */,
 				18E4AC0B8664F66A3C8B7BCC /* DisplayPrioritizer.swift */,
 				163CF41605DF5E0D50FECD13 /* PluginID.swift */,
+				54E846816D78471973B35660 /* ServiceProviderProtocols.swift */,
 			);
 			name = Core;
 			sourceTree = "<group>";
@@ -2275,6 +2281,8 @@
 				708C81BA2458358B31811B2B /* NowPlayingController+UpdateHandling.swift in Sources */,
 				64723D7F7EC1702DFF0D9A8C /* MusicPlaybackController+Actions.swift in Sources */,
 				FF1F578331CC420AE9F2FC20 /* SneakPeekTypes.swift in Sources */,
+				DB3D1933439D99C4186DCFCE /* ViewCoordinating.swift in Sources */,
+				E06CA639B6CDE6D058450C81 /* ServiceProviderProtocols.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
