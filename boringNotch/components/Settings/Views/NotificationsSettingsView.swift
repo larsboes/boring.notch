@@ -5,8 +5,8 @@ struct NotificationsSettingsView: View {
     @Environment(\.pluginManager) var pluginManager
     @Environment(\.bindableSettings) var settings
     
-    private var manager: any NotificationServiceProtocol {
-        pluginManager!.services.notifications
+    private var manager: (any NotificationServiceProtocol)? {
+        pluginManager?.services.notifications
     }
 
     var body: some View {
@@ -20,9 +20,9 @@ struct NotificationsSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
                 
-                if manager.authorizationStatus != .authorized {
+                if manager?.authorizationStatus != .authorized {
                     Button("Request permission") {
-                        manager.requestAuthorization()
+                        manager?.requestAuthorization()
                     }
                 }
             } header: {
@@ -68,12 +68,12 @@ struct NotificationsSettingsView: View {
         .accentColor(.effectiveAccent(from: settings))
         .navigationTitle("Notifications")
         .onAppear {
-            manager.refreshAuthorizationStatus()
+            manager?.refreshAuthorizationStatus()
         }
     }
 
     private var authorizationLabel: String {
-        switch manager.authorizationStatus {
+        switch manager?.authorizationStatus {
         case .authorized:
             return "Authorized"
         case .denied:

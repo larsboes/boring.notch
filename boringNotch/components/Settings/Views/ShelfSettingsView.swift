@@ -11,10 +11,10 @@ struct Shelf: View {
     @Environment(\.bindableSettings) var settings
     @Environment(\.pluginManager) var pluginManager
 
-    private var quickShareService: QuickShareService { pluginManager!.services.quickShare }
+    private var quickShareService: QuickShareService? { pluginManager?.services.quickShare }
 
     private var selectedProvider: QuickShareProvider? {
-        quickShareService.availableProviders.first(where: { $0.id == settings.quickShareProvider })
+        quickShareService?.availableProviders.first(where: { $0.id == settings.quickShareProvider })
     }
     
     var body: some View {
@@ -62,10 +62,10 @@ struct Shelf: View {
             
             Section {
                 Picker("Quick Share Service", selection: $settings.quickShareProvider) {
-                    ForEach(quickShareService.availableProviders, id: \.id) { provider in
+                    ForEach(quickShareService?.availableProviders ?? [], id: \.id) { provider in
                         HStack {
                             Group {
-                                if let icon = quickShareService.icon(for: provider.id, size: 16) {
+                                if let icon = quickShareService?.icon(for: provider.id, size: 16) {
                                     Image(nsImage: icon)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
@@ -85,7 +85,7 @@ struct Shelf: View {
                 if let selectedProvider = selectedProvider {
                     HStack {
                         Group {
-                            if let icon = quickShareService.icon(for: selectedProvider.id, size: 16) {
+                            if let icon = quickShareService?.icon(for: selectedProvider.id, size: 16) {
                                 Image(nsImage: icon)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)

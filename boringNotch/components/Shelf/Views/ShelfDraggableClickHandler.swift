@@ -50,10 +50,10 @@ struct DraggableClickHandler<Content: View>: NSViewRepresentable {
     // MARK: - NSView + NSDraggingSource
 
     final class DraggableClickView: NSView, NSDraggingSource {
-        var item: ShelfItem!
-        var settings: NotchSettings!
+        var item: ShelfItem?
+        var settings: (any NotchSettings)?
         weak var viewModel: ShelfItemViewModel?
-        var service: ShelfServiceProtocol!
+        var service: (any ShelfServiceProtocol)?
         var getDragPreview: (() -> NSImage)?
         var onRightClick: ((NSEvent, NSView) -> Void)?
         var onClick: ((NSEvent, NSView) -> Void)?
@@ -87,6 +87,7 @@ struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         }
 
         private func startDragSession(with event: NSEvent) {
+            guard let item, let service else { return }
             let selectedItems = service.selection.selectedItems(in: service.items)
             let itemsToDrag = (selectedItems.count > 1 && selectedItems.contains { $0.id == item.id })
                 ? selectedItems : [item]
@@ -108,7 +109,7 @@ struct DraggableClickHandler<Content: View>: NSViewRepresentable {
             let pasteboardItem = NSPasteboardItem()
             switch item.kind {
             case .file:
-                guard let url = service.resolveAndUpdateBookmark(for: item) else {
+                guard let url = service?.resolveAndUpdateBookmark(for: item) else {
                     pasteboardItem.setString(item.displayName, forType: .string)
                     return pasteboardItem
                 }
@@ -127,7 +128,7 @@ struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         // MARK: NSDraggingSource
 
         func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
-            if settings.copyOnDrag { return [.copy] }
+            if settings?.copyOnDrag == true { return [.copy] }
             switch context {
             case .outsideApplication: return [.copy, .move]
             case .withinApplication: return [.copy, .move, .generic]
@@ -136,15 +137,15 @@ struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         }
 
         func draggingSession(_ session: NSDraggingSession, willBeginAt screenPoint: NSPoint) {
-            service.selection.beginDrag()
+            service?.selection.beginDrag()
         }
 
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
-            service.selection.endDrag()
+            service?.selection.endDrag()
             draggedURLs.forEach { $0.stopAccessingSecurityScopedResource() }
             draggedURLs.removeAll()
-            if settings.autoRemoveShelfItems && !operation.isEmpty {
-                draggedItems.forEach { service.remove($0) }
+            if settings?.autoRemoveShelfItems == true && !operation.isEmpty {
+                draggedItems.forEach { service?.remove($0) }
             }
             draggedItems.removeAll()
         }

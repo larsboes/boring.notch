@@ -11,7 +11,7 @@ import Observation
 
 @MainActor protocol NotchAnimationStateProviding: AnyObject {
     var helloAnimationRunning: Bool { get }
-    var sneakPeek: SneakPeek { get }
+    var sneakPeek: SneakPeekState { get }
     var expandingView: ExpandedItem { get }
     var shelfService: (any ShelfServiceProtocol)? { get set }
 }
@@ -49,7 +49,7 @@ struct NotchStateInput: Equatable {
 
     // Coordinator state
     var helloAnimationRunning: Bool
-    var sneakPeek: SneakPeek
+    var sneakPeek: SneakPeekState
     var expandingView: ExpandedItem
     
     // The ID of the plugin that should be shown in the closed notch (from PluginManager)

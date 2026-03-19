@@ -348,6 +348,7 @@
 		FB41DEC634E3427B8D8B41EA /* TeleprompterExpandedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE1CD63669B40658BB453AA /* TeleprompterExpandedView.swift */; };
 		FCF6949345A749EB944EDFBC /* AIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D673572B654148068BF6CFA8 /* AIManager.swift */; };
 		FDCA6D651407B3AC40CF68EF /* SoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7691289F9F7BD942891A7BAD /* SoundService.swift */; };
+		FF1F578331CC420AE9F2FC20 /* SneakPeekTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7CF7AA241497887708DFC5F /* SneakPeekTypes.swift */; };
 		FF5248DF6260710CA5B6C556 /* HabitClosedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0603643D654C74C555862767 /* HabitClosedView.swift */; };
 		FF86A1260B3CF40EEA4B3EB2 /* DefaultsNotchSettings+Plugins.swift in Sources */ = {isa = PBXBuildFile; fileRef = F669397153DED9DDA8BC3C7F /* DefaultsNotchSettings+Plugins.swift */; };
 		FFBFA7A0C2A7138FEDA8B6C3 /* PluginContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7231CBEA1B26EC990993D858 /* PluginContext.swift */; };
@@ -682,6 +683,7 @@
 		B28F91445E8D5B3F781EC0C6 /* ServiceContainer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServiceContainer.swift; path = Plugins/Services/ServiceContainer.swift; sourceTree = "<group>"; };
 		B54DA3AC64D543BF957D381C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		B63DD2AB955CB497BA0ACD61 /* BrowserExtensionModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserExtensionModels.swift; sourceTree = "<group>"; };
+		B7CF7AA241497887708DFC5F /* SneakPeekTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SneakPeekTypes.swift; sourceTree = "<group>"; };
 		BD4EDF4731BD96E501B155CE /* MusicLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MusicLiveActivity.swift; path = boringNotch/Plugins/BuiltIn/MusicPlugin/Views/MusicLiveActivity.swift; sourceTree = "<group>"; };
 		BF97E971A6C5DED2CE3683B4 /* BrightnessServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BrightnessServiceProtocol.swift; path = boringNotch/Plugins/Services/BrightnessServiceProtocol.swift; sourceTree = "<group>"; };
 		BF9E85A0ABF3F3293A94E679 /* PluginMusicPlayerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginMusicPlayerView.swift; path = boringNotch/Plugins/BuiltIn/MusicPlugin/Views/PluginMusicPlayerView.swift; sourceTree = "<group>"; };
@@ -1676,6 +1678,7 @@
 				0439C9731AD7320E6E80B439 /* DefaultsNotchSettings+Music.swift */,
 				684BD5824285F6635ABC1AA7 /* DefaultsNotchSettings+Display.swift */,
 				F669397153DED9DDA8BC3C7F /* DefaultsNotchSettings+Plugins.swift */,
+				B7CF7AA241497887708DFC5F /* SneakPeekTypes.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -2271,6 +2274,7 @@
 				73FDF54BB0C64E75A6D20D26 /* BoringViewModel+Observers.swift in Sources */,
 				708C81BA2458358B31811B2B /* NowPlayingController+UpdateHandling.swift in Sources */,
 				64723D7F7EC1702DFF0D9A8C /* MusicPlaybackController+Actions.swift in Sources */,
+				FF1F578331CC420AE9F2FC20 /* SneakPeekTypes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

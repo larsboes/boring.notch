@@ -33,15 +33,6 @@ protocol SneakPeekServiceProtocol: AnyObject {
     func handleSneakPeekEvent(_ notification: Notification)
 }
 
-// MARK: - Sneak Peek State (renamed from sneakPeek struct for clarity)
-
-struct SneakPeekState: Equatable {
-    var show: Bool = false
-    var type: SneakContentType = .music
-    var value: CGFloat = 0
-    var icon: String = ""
-}
-
 // MARK: - Sneak Peek Service
 
 @MainActor
