@@ -54,7 +54,7 @@ final class AppObjectGraph {
 
     lazy var pluginManager: PluginManager = {
         PluginManager(
-            services: ServiceContainer(eventBus: eventBus, settings: settings),
+            services: ServiceContainer(eventBus: eventBus, settings: settings, xpcHelper: XPCHelperClient.shared),
             eventBus: eventBus,
             appState: BoringAppState(),
             mediaSettings: settings,

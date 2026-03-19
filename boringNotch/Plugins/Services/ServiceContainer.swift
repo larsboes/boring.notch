@@ -103,7 +103,7 @@ final class ServiceContainer: NotchServiceProvider {
     // MARK: - Initialization
 
     /// Default initializer - creates services that are ready
-    init(eventBus: PluginEventBus, settings: any NotchSettings) {
+    init(eventBus: PluginEventBus, settings: any NotchSettings, xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared) {
         self.music = MusicService(manager: MusicManager(settings: settings))
         self.sound = SoundService()
         self.battery = BatteryService(eventBus: eventBus, settings: settings)
@@ -125,15 +125,15 @@ final class ServiceContainer: NotchServiceProvider {
         self.webcam = WebcamManager()
         self.notifications = NotificationCenterManager(settings: settings)
         self.volume = VolumeManager(eventBus: eventBus)
-        self.brightness = BrightnessManager(eventBus: eventBus, xpcHelper: XPCHelperClient.shared)
-        self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus, xpcHelper: XPCHelperClient.shared)
+        self.brightness = BrightnessManager(eventBus: eventBus, xpcHelper: xpcHelper)
+        self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus, xpcHelper: xpcHelper)
         self.sharing = SharingStateManager()
         self.quickLook = QuickLookService()
         self.quickShare = QuickShareService(temporaryFileStorage: self.temporaryFileStorage, sharingStateManager: self.sharing)
         self.bluetoothManager = BluetoothManager(settings: settings)
         self.notesManager = NotesManager()
         self.clipboardManager = ClipboardManager()
-        self.xpcHelper = XPCHelperClient.shared
+        self.xpcHelper = xpcHelper
 
         let aiSettings = settings
         let aiManager = AIManager(isEnabled: {

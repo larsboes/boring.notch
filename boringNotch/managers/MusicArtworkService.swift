@@ -27,8 +27,7 @@ final class MusicArtworkService {
 
     private var artworkData: Data?
     private var albumArtTask: Task<Void, Error>?
-    private var flipWorkItem: DispatchWorkItem?
-    private var workItem: DispatchWorkItem?
+    private var flipTask: Task<Void, Never>?
     private let settings: any MediaSettings
 
     // Track the last values when artwork was changed to avoid redundant updates
@@ -51,6 +50,7 @@ final class MusicArtworkService {
     nonisolated deinit {
         MainActor.assumeIsolated {
             albumArtTask?.cancel()
+            flipTask?.cancel()
         }
     }
 
@@ -119,7 +119,6 @@ final class MusicArtworkService {
     }
 
     func updateAlbumArt(newAlbumArt: NSImage) {
-        workItem?.cancel()
         withAnimation(.smooth) {
             self.albumArt = newAlbumArt
             if settings.coloredSpectrogram {
@@ -130,23 +129,18 @@ final class MusicArtworkService {
 
     func destroy() {
         albumArtTask?.cancel()
-        flipWorkItem?.cancel()
-        workItem?.cancel()
+        flipTask?.cancel()
     }
 
     // MARK: - Private
 
     private func triggerFlipAnimation() {
-        flipWorkItem?.cancel()
-
-        let item = DispatchWorkItem { [weak self] in
+        flipTask?.cancel()
+        flipTask = Task { [weak self] in
             self?.isFlipping = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                self?.isFlipping = false
-            }
+            try? await Task.sleep(for: .milliseconds(200))
+            guard !Task.isCancelled else { return }
+            self?.isFlipping = false
         }
-
-        flipWorkItem = item
-        DispatchQueue.main.async(execute: item)
     }
 }

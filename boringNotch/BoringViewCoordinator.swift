@@ -58,8 +58,6 @@ struct ExpandedItem {
     var currentView: NotchViews = .home
     var isScrollableViewPresented: Bool = false
     var helloAnimationRunning: Bool = false
-    private(set) var sneakPeekDispatch: DispatchWorkItem?
-    private(set) var expandingViewDispatch: DispatchWorkItem?
     var hudEnableTask: Task<Void, Never>?
 
     var settings: any CoordinatorSettings
