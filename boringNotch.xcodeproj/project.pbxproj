@@ -165,6 +165,7 @@
 		441B5EC9B804A55739E0157D /* MicrophoneMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C4C5FFEDE9C6F9278A00815 /* MicrophoneMonitor.swift */; };
 		44B26A1A6D134632901EA987 /* SpectrumBarsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C17CB405DDD402FB09416A5 /* SpectrumBarsView.swift */; };
 		45736EB72C6F4A7B96A390D7 /* APIRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B02F8D609742898CD3B0EE /* APIRouterTests.swift */; };
+		467BADDEACFDB56F4CC6AF3D /* PluginMenuBarItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B991E0B23FB25E0DECD338 /* PluginMenuBarItems.swift */; };
 		46E5ECA4A0484AC6925E02FC /* TeleprompterState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E89F93D419C42EE8D894352 /* TeleprompterState.swift */; };
 		475F67441B9A9A514AA93940 /* SettingsTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA24C65E96919EB99E61EF4D /* SettingsTypes.swift */; };
 		481109FFAE8F7A980C360A0E /* NotchStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6FB60B94B79A390572281D8 /* NotchStateMachineTests.swift */; };
@@ -552,6 +553,7 @@
 		1FE212DA48341E773C58B984 /* NowPlayingController+UpdateHandling.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "NowPlayingController+UpdateHandling.swift"; sourceTree = "<group>"; };
 		20664216D6CD2C0B26724A29 /* CalendarServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CalendarServiceProtocol.swift; path = boringNotch/Plugins/Services/CalendarServiceProtocol.swift; sourceTree = "<group>"; };
 		22890E9D4CCA59DD8BB5D1A6 /* CalendarDataProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CalendarDataProvider.swift; path = boringNotch/Providers/CalendarDataProvider.swift; sourceTree = "<group>"; };
+		24B991E0B23FB25E0DECD338 /* PluginMenuBarItems.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginMenuBarItems.swift; path = boringNotch/menu/PluginMenuBarItems.swift; sourceTree = SOURCE_ROOT; };
 		27B398BECCBF1BC69FE20C6E /* DesktopCaptureActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DesktopCaptureActor.swift; path = boringNotch/Plugins/Services/DesktopCaptureActor.swift; sourceTree = "<group>"; };
 		2869E20A105C48A687A79531 /* AIProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIProvider.swift; path = boringNotch/Plugins/AI/AIProvider.swift; sourceTree = SOURCE_ROOT; };
 		2BFCD351BD11B3AB4E1048A8 /* YouTubeMusicController+PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouTubeMusicController+PlaybackState.swift"; sourceTree = "<group>"; };
@@ -1074,6 +1076,7 @@
 				F90A69E202A04A6BBCF1E913 /* BoringViewCoordinator+Plugins.swift */,
 				40646D0407885F310AE57B6D /* Plugins */,
 				94CD80AE3BC0BA5B264FD0E0 /* ContentView+SubViews.swift */,
+				C16D5A93104A28ED6CBD7838 /* menu */,
 			);
 			path = boringNotch;
 			sourceTree = "<group>";
@@ -1582,6 +1585,15 @@
 				C886E3346CACBB245D3A60F6 /* TrackingAreaView.swift */,
 			);
 			name = helpers;
+			sourceTree = "<group>";
+		};
+		C16D5A93104A28ED6CBD7838 /* menu */ = {
+			isa = PBXGroup;
+			children = (
+				24B991E0B23FB25E0DECD338 /* PluginMenuBarItems.swift */,
+			);
+			name = menu;
+			path = menu;
 			sourceTree = "<group>";
 		};
 		C465A1003AAB19639180357E /* PomodoroPlugin */ = {
@@ -2269,6 +2281,7 @@
 				B6790B854AF22B5B70859FFE /* SystemNotificationObserverProtocol.swift in Sources */,
 				342411349B16580F20447A04 /* PluginRegistry.swift in Sources */,
 				524FF39FABF5A397BA209DFB /* PluginOrderSettingsView.swift in Sources */,
+				467BADDEACFDB56F4CC6AF3D /* PluginMenuBarItems.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

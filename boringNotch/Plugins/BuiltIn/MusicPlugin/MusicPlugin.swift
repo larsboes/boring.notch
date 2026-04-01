@@ -183,6 +183,21 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
         MusicSettingsView(plugin: self)
     }
 
+    @ViewBuilder
+    func menuBarView() -> some View {
+        if isEnabled, state.isActive, let info = nowPlaying {
+            Section(info.track.title) {
+                Text(info.track.artist)
+            }
+            Button(info.isPlaying ? "Pause" : "Play") {
+                Task { await self.togglePlayPause() }
+            }
+            Button("Next Track") {
+                Task { await self.next() }
+            }
+        }
+    }
+
     // MARK: - ExportablePlugin
 
     var supportedExportFormats: [ExportFormat] { [.json] }

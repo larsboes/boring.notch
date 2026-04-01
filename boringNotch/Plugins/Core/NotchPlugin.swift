@@ -40,6 +40,7 @@ protocol NotchPlugin: Identifiable, Observable, AnyObject {
     associatedtype ClosedContent: View
     associatedtype ExpandedContent: View
     associatedtype SettingsContent: View
+    associatedtype MenuBarContent: View
 
     /// Content shown in the closed notch (compact view)
     @ViewBuilder
@@ -52,6 +53,10 @@ protocol NotchPlugin: Identifiable, Observable, AnyObject {
     /// Settings UI for this plugin
     @ViewBuilder
     func settingsContent() -> SettingsContent
+
+    /// Items contributed to the app's menu bar extra dropdown
+    @ViewBuilder
+    func menuBarView() -> MenuBarContent
 
     // MARK: - Display Requests
 
@@ -107,6 +112,9 @@ extension NotchPlugin {
 
     /// Default: no custom settings (uses auto-generated toggle)
     func settingsContent() -> EmptyView { EmptyView() }
+
+    /// Default: no menu bar contribution
+    func menuBarView() -> EmptyView { EmptyView() }
 
     /// Default: no display request
     var displayRequest: DisplayRequest? { nil }
@@ -227,6 +235,7 @@ struct AnyNotchPlugin: Identifiable {
     let hasClosedNotchContent: Bool
     let hasExpandedPanelContent: Bool
     let hasSettingsContent: Bool
+    let hasMenuBarContent: Bool
 
     init<P: NotchPlugin>(_ plugin: P) {
         self.id = plugin.id
@@ -248,6 +257,7 @@ struct AnyNotchPlugin: Identifiable {
         self.hasClosedNotchContent = type(of: plugin.closedNotchContent()) != EmptyView.self
         self.hasExpandedPanelContent = type(of: plugin.expandedPanelContent()) != EmptyView.self
         self.hasSettingsContent = type(of: plugin.settingsContent()) != EmptyView.self
+        self.hasMenuBarContent = type(of: plugin.menuBarView()) != EmptyView.self
     }
 
     var metadata: PluginMetadata { _metadata() }

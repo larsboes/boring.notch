@@ -59,6 +59,19 @@ extension PluginManager {
         }
     }
 
+    /// Get the menu bar contribution for a plugin
+    @ViewBuilder
+    func menuBarView(for id: String) -> some View {
+        if let wrapper = plugin(id: id), wrapper.state.isActive, wrapper.hasMenuBarContent {
+            switch id {
+            case PluginID.music: if let p = plugin(id: id, as: MusicPlugin.self) { p.menuBarView() }
+            case PluginID.battery: if let p = plugin(id: id, as: BatteryPlugin.self) { p.menuBarView() }
+            case PluginID.pomodoro: if let p = plugin(id: id, as: PomodoroPlugin.self) { p.menuBarView() }
+            default: EmptyView()
+            }
+        }
+    }
+
     /// Get the view for a plugin's settings content
     @ViewBuilder
     func settingsView(for id: String) -> some View {

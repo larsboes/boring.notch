@@ -73,6 +73,13 @@ final class PomodoroPlugin: NotchPlugin, ExportablePlugin {
         PomodoroSettingsView(plugin: self)
     }
     
+    @ViewBuilder
+    func menuBarView() -> some View {
+        if isEnabled, state.isActive, timer.isRunning {
+            Text("\(timer.currentType.rawValue): \(timer.timeRemainingString)")
+        }
+    }
+
     // MARK: - ExportablePlugin
 
     var supportedExportFormats: [ExportFormat] { [.json, .csv] }

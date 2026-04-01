@@ -6,7 +6,6 @@
 //
 
 import AVFoundation
-import Combine
 import KeyboardShortcuts
 import Sparkle
 import SwiftUI
@@ -45,8 +44,13 @@ struct DynamicNotchApp: App {
     init() {
         let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 
+        #if DEBUG
+        let startUpdater = false
+        #else
+        let startUpdater = !isRunningTests
+        #endif
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: !isRunningTests, updaterDelegate: nil, userDriverDelegate: userDriverDelegate)
+            startingUpdater: startUpdater, updaterDelegate: nil, userDriverDelegate: userDriverDelegate)
 
         // Pass the updater controller to appDelegate for wiring in applicationDidFinishLaunching
         appDelegate.updaterController = updaterController
@@ -65,6 +69,7 @@ struct DynamicNotchApp: App {
 
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: showMenuBarIconBinding) {
+            PluginMenuBarItems()
             Button("Settings") {
                 appDelegate.graph.settingsWindowController.showWindow()
             }
@@ -137,15 +142,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             andEventID: AEEventID(kAEGetURL)
         )
 
-        Task {
-            await pluginManager.activateEnabledPlugins()
-        }
         graph.localAPIServerController.start()
-
-        coordinator.configure(
-            eventBus: pluginManager.eventBus,
-            mediaKeyInterceptor: graph.mediaKeyInterceptor
-        )
 
         if let updaterController = updaterController {
             graph.settingsWindowController.setUpdaterController(updaterController)
@@ -169,6 +166,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         syncNotchHeightIfNeeded(settings: graph.settings)
         graph.adjustWindowPosition(changeAlpha: true)
         graph.setupDragDetectors()
+
+        // Subscribe to events AFTER the window is created so that plugin
+        // activation events (music sneak peek, battery, etc.) don't set
+        // expanding view state before the first render.
+        coordinator.configure(
+            eventBus: pluginManager.eventBus,
+            mediaKeyInterceptor: graph.mediaKeyInterceptor
+        )
+
+        Task {
+            await pluginManager.activateEnabledPlugins()
+        }
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {

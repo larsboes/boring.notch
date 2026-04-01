@@ -7,7 +7,6 @@
 //
 
 import SwiftUI
-import Combine
 
 @MainActor
 @Observable
@@ -83,6 +82,13 @@ final class BatteryPlugin: NotchPlugin, PositionedPlugin {
     func closedNotchContent() -> some View {
         if isEnabled, state.isActive, let service = batteryService {
             PluginBatteryView(service: service)
+        }
+    }
+
+    @ViewBuilder
+    func menuBarView() -> some View {
+        if isEnabled, state.isActive, let service = batteryService {
+            Text("Battery: \(Int(service.levelBattery))%\(service.isCharging ? " ⚡" : "")")
         }
     }
     
