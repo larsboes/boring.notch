@@ -28,7 +28,7 @@ struct Media: View {
             } header: {
                 Text("Media Source")
             } footer: {
-                if MusicManager.isNowPlayingDeprecatedStatic {
+                if settings.isNowPlayingDeprecated {
                     HStack {
                         Text("YouTube Music requires this third-party app to be installed: ")
                             .foregroundStyle(.secondary)
@@ -143,7 +143,7 @@ struct Media: View {
 
     // Only show controller options that are available on this macOS version
     private var availableMediaControllers: [MediaControllerType] {
-        if MusicManager.isNowPlayingDeprecatedStatic {
+        if settings.isNowPlayingDeprecated {
             return MediaControllerType.allCases.filter { $0 != .nowPlaying }
         } else {
             return MediaControllerType.allCases

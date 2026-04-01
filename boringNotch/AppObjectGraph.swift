@@ -59,20 +59,7 @@ final class AppObjectGraph {
             appState: BoringAppState(),
             mediaSettings: settings,
             coordinator: coordinator,
-            builtInPlugins: [
-                MusicPlugin(),
-                BatteryPlugin(),
-                CalendarPlugin(),
-                WeatherPlugin(),
-                ShelfPlugin(),
-                WebcamPlugin(),
-                NotificationsPlugin(),
-                ClipboardPlugin(),
-                HabitTrackerPlugin(),
-                PomodoroPlugin(),
-                TeleprompterPlugin(),
-                DisplaySurfacePlugin()
-            ]
+            builtInPlugins: PluginRegistry.makeBuiltInPlugins()
         )
     }()
 

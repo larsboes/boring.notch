@@ -62,6 +62,9 @@ protocol AppearanceSettings {
 
 @MainActor
 protocol MediaSettings {
+    /// Whether the NowPlaying API is deprecated on this macOS version.
+    /// Consumers should use this instead of `MusicManager.isNowPlayingDeprecatedStatic`.
+    var isNowPlayingDeprecated: Bool { get }
     var musicLiveActivityEnabled: Bool { get set }
     var enableSneakPeek: Bool { get set }
     var sneakPeekStyles: SneakPeekStyle { get set }

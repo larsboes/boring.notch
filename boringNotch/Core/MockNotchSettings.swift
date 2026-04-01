@@ -65,6 +65,7 @@ final class MockNotchSettings: NotchSettings {
     var selectedMood: Mood = .neutral
     var waitInterval: Double = 5.0
     var hideNotchOption: HideNotchOption = .never
+    var isNowPlayingDeprecated: Bool = false
     var mediaController: MediaControllerType = .nowPlaying
     var mirrorShape: MirrorShapeEnum = .circle
     var musicControlSlots: [MusicControlButton] = MusicControlButton.defaultLayout

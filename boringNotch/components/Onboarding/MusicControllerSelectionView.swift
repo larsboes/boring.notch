@@ -13,7 +13,7 @@ struct MusicControllerSelectionView: View {
     @Environment(\.bindableSettings) var settings
     
     private var availableMediaControllers: [MediaControllerType] {
-        if MusicManager.isNowPlayingDeprecatedStatic {
+        if settings.isNowPlayingDeprecated {
             return MediaControllerType.allCases.filter { $0 != .nowPlaying }
         } else {
             return MediaControllerType.allCases
