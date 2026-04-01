@@ -60,6 +60,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Plugins") {
+                    Label("Plugins", systemImage: "puzzlepiece.extension")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -114,6 +117,8 @@ struct SettingsView: View {
                     }
                 case "Shelf":
                     Shelf()
+                case "Plugins":
+                    PluginOrderSettingsView()
                 case "Shortcuts":
                     Shortcuts()
                 case "Data":

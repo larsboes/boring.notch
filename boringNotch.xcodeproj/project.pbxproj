@@ -173,6 +173,7 @@
 		4BFA132A0DDA984A968DD2CC /* PluginEventBus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64EC2F5D40F20677C9756788 /* PluginEventBus.swift */; };
 		4F804814C52DD7ECEC50E40A /* MusicSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8837776161EBE6B0242F17B4 /* MusicSettingsView.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
+		524FF39FABF5A397BA209DFB /* PluginOrderSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ABF4EDC0BC256B31198CDE /* PluginOrderSettingsView.swift */; };
 		53DEF8885FE1102CE70C35A9 /* ShelfPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B8AFD68B6AAECCE38D5DC9A /* ShelfPlugin.swift */; };
 		53E7785AF1DCA810D08F7AE7 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B54DA3AC64D543BF957D381C /* Cocoa.framework */; };
 		5819D2843501CE4366B4BB74 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF5C4C63E0F27E2A6677E18 /* BatteryService.swift */; };
@@ -595,6 +596,7 @@
 		5F3B53CD55F2D18D3E7E8D43 /* WebcamPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WebcamPlugin.swift; path = boringNotch/Plugins/BuiltIn/WebcamPlugin/WebcamPlugin.swift; sourceTree = "<group>"; };
 		5F96D36F211CACFDDBAEFD5E /* CountdownOverlayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CountdownOverlayView.swift; path = boringNotch/Plugins/BuiltIn/TeleprompterPlugin/Views/CountdownOverlayView.swift; sourceTree = SOURCE_ROOT; };
 		5FC24D41E787AD703F701E25 /* ShelfDraggableClickHandler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShelfDraggableClickHandler.swift; path = boringNotch/Plugins/BuiltIn/ShelfPlugin/Views/ShelfDraggableClickHandler.swift; sourceTree = "<group>"; };
+		60ABF4EDC0BC256B31198CDE /* PluginOrderSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PluginOrderSettingsView.swift; path = boringNotch/components/Settings/Views/PluginOrderSettingsView.swift; sourceTree = SOURCE_ROOT; };
 		625E4E711AC1D996D0A69845 /* NowPlayingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingModels.swift; sourceTree = "<group>"; };
 		62B884125C4CFF4A46B9D35A /* LiquidGlass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiquidGlass.swift; path = Effects/LiquidGlass.swift; sourceTree = "<group>"; };
 		63CB7025FFE2CC5FE373E8EF /* VolumeManager+CoreAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VolumeManager+CoreAudio.swift"; path = "boringNotch/Plugins/Services/VolumeManager+CoreAudio.swift"; sourceTree = "<group>"; };
@@ -922,6 +924,7 @@
 				67D4400E2F01B2DD0017F574 /* WeatherSettingsView.swift */,
 				11F749062ECB27DC00F841DB /* NotificationsSettingsView.swift */,
 				11F749132ECB27DC00F841DB /* BluetoothSettingsView.swift */,
+				60ABF4EDC0BC256B31198CDE /* PluginOrderSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2265,6 +2268,7 @@
 				AAEF796B364706962819A1F2 /* SystemNotificationObserver.swift in Sources */,
 				B6790B854AF22B5B70859FFE /* SystemNotificationObserverProtocol.swift in Sources */,
 				342411349B16580F20447A04 /* PluginRegistry.swift in Sources */,
+				524FF39FABF5A397BA209DFB /* PluginOrderSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
