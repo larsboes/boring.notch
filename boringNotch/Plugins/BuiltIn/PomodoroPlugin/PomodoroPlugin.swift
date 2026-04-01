@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Combine
 import Defaults
 
 @MainActor
@@ -75,30 +74,45 @@ final class PomodoroPlugin: NotchPlugin, ExportablePlugin {
     }
     
     // MARK: - ExportablePlugin
-    
-    var supportedExportFormats: [ExportFormat] { [.json] }
-    
+
+    var supportedExportFormats: [ExportFormat] { [.json, .csv] }
+
     func exportData(format: ExportFormat) async throws -> Data {
-        guard format == .json else {
-            throw NSError(domain: "PomodoroPlugin", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported format"])
+        switch format {
+        case .json:
+            return try exportJSON()
+        case .csv:
+            return try exportCSV()
+        default:
+            throw ExportError.unsupportedFormat(format)
         }
-        
+    }
+
+    private func exportJSON() throws -> Data {
         var export = [String: Any]()
-        
         if let data = try? JSONEncoder().encode(timer.completedSessions),
            let array = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
             export["completedSessions"] = array
-            
-            // Stats summary for the JSON
             let workSessions = timer.completedSessions.filter { $0.type == .work }.count
             let totalWorkTime = timer.completedSessions.filter { $0.type == .work }.reduce(0) { $0 + $1.duration }
-            
             export["stats"] = [
                 "totalWorkSessions": workSessions,
                 "totalWorkTimeMinutes": totalWorkTime / 60.0
             ]
         }
-        
         return try JSONSerialization.data(withJSONObject: export, options: .prettyPrinted)
+    }
+
+    private func exportCSV() throws -> Data {
+        let iso = ISO8601DateFormatter()
+        var lines = ["completed_at,type,duration_minutes"]
+        for session in timer.completedSessions.sorted(by: { $0.completedAt < $1.completedAt }) {
+            let minutes = String(format: "%.1f", session.duration / 60.0)
+            lines.append("\(iso.string(from: session.completedAt)),\(session.type.rawValue),\(minutes)")
+        }
+        guard let data = lines.joined(separator: "\n").data(using: .utf8) else {
+            throw ExportError.encodingFailed
+        }
+        return data
     }
 }

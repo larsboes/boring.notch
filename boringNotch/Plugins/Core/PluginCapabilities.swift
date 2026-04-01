@@ -8,7 +8,6 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
-import Combine
 import AppKit
 
 // MARK: - Playable Plugin
@@ -65,6 +64,18 @@ protocol ExportablePlugin: NotchPlugin {
 
     /// Export data in the specified format
     func exportData(format: ExportFormat) async throws -> Data
+}
+
+enum ExportError: Error, LocalizedError {
+    case unsupportedFormat(ExportFormat)
+    case encodingFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .unsupportedFormat(let f): return "Export format '\(f.rawValue)' is not supported by this plugin."
+        case .encodingFailed: return "Failed to encode export data."
+        }
+    }
 }
 
 enum ExportFormat: String, CaseIterable, Sendable {

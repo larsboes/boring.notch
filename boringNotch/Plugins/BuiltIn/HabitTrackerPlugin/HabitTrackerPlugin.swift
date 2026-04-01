@@ -80,28 +80,44 @@ final class HabitTrackerPlugin: NotchPlugin, ExportablePlugin {
     }
     
     // MARK: - ExportablePlugin
-    
-    var supportedExportFormats: [ExportFormat] { [.json] }
-    
+
+    var supportedExportFormats: [ExportFormat] { [.json, .csv] }
+
     func exportData(format: ExportFormat) async throws -> Data {
-        guard format == .json else {
-            throw NSError(domain: "HabitTrackerPlugin", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported format"])
+        switch format {
+        case .json:
+            return try exportJSON()
+        case .csv:
+            return try exportCSV()
+        default:
+            throw ExportError.unsupportedFormat(format)
         }
-        
+    }
+
+    private func exportJSON() throws -> Data {
         var export = [String: Any]()
-        
-        // Serialize habits
         if let habitData = try? JSONEncoder().encode(store.habits),
            let habitArray = try? JSONSerialization.jsonObject(with: habitData) as? [[String: Any]] {
             export["habits"] = habitArray
         }
-        
-        // Serialize completions
         if let completionData = try? JSONEncoder().encode(store.completions),
            let completionArray = try? JSONSerialization.jsonObject(with: completionData) as? [[String: Any]] {
             export["completions"] = completionArray
         }
-        
         return try JSONSerialization.data(withJSONObject: export, options: .prettyPrinted)
+    }
+
+    private func exportCSV() throws -> Data {
+        let iso = ISO8601DateFormatter()
+        let habitIndex = Dictionary(uniqueKeysWithValues: store.habits.map { ($0.id, $0.title) })
+        var lines = ["date,habit_id,habit_title,completed_at"]
+        for completion in store.completions.sorted(by: { $0.date < $1.date }) {
+            let title = habitIndex[completion.habitId].map { "\"\($0)\"" } ?? ""
+            lines.append("\(iso.string(from: completion.date)),\(completion.habitId),\(title),\(iso.string(from: completion.completedAt))")
+        }
+        guard let data = lines.joined(separator: "\n").data(using: .utf8) else {
+            throw ExportError.encodingFailed
+        }
+        return data
     }
 }
