@@ -22,11 +22,11 @@ struct NotchGestureCoordinator {
         case triggerClose
     }
 
-    // Velocity tracking state
-    private static var prevTranslation: CGFloat = 0
-    private static var prevTimestamp: Date?
+    // Velocity tracking state (instance-level, safe for multi-display)
+    private var prevTranslation: CGFloat = 0
+    private var prevTimestamp: Date?
 
-    private static func computeVelocity(translation: CGFloat) -> CGFloat {
+    private mutating func computeVelocity(translation: CGFloat) -> CGFloat {
         let now = Date()
         defer {
             prevTranslation = translation
@@ -38,13 +38,13 @@ struct NotchGestureCoordinator {
         return (translation - prevTranslation) / CGFloat(dt)
     }
 
-    private static func resetTracking() {
+    private mutating func resetTracking() {
         prevTranslation = 0
         prevTimestamp = nil
     }
 
     /// Process a downward pan gesture (used to open the notch).
-    static func handleDown(
+    mutating func handleDown(
         translation: CGFloat,
         phase: NSEvent.Phase,
         notchState: NotchState,
@@ -61,7 +61,7 @@ struct NotchGestureCoordinator {
         }
 
         let velocity = computeVelocity(translation: translation)
-        let progress = (translation / sensitivity) * 20
+        let progress = min(1.0, max(0.0, translation / sensitivity))
 
         if translation > sensitivity {
             let v = velocity
@@ -73,7 +73,7 @@ struct NotchGestureCoordinator {
     }
 
     /// Process an upward pan gesture (used to close the notch).
-    static func handleUp(
+    mutating func handleUp(
         translation: CGFloat,
         phase: NSEvent.Phase,
         notchState: NotchState,
@@ -87,7 +87,7 @@ struct NotchGestureCoordinator {
             return preventClose ? .progress(0) : .triggerClose
         }
 
-        let progress = (translation / sensitivity) * -20
+        let progress = min(1.0, max(0.0, translation / sensitivity))
 
         if phase == .ended {
             return .reset

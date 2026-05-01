@@ -66,25 +66,21 @@ extension ContentView {
     }
 
     var topCornerRadius: CGFloat {
-        let baseClosedTop = cornerRadiusInsets.closed.top
-        let closedRadius: CGFloat
-        if let scaleFactor = cornerRadiusScaleFactor {
-            closedRadius = max(0, baseClosedTop * scaleFactor)
-        } else {
-            closedRadius = displayClosedNotchHeight > 0 ? baseClosedTop : 0
-        }
-        return lerp(closedRadius, cornerRadiusInsets.opened.top, animationProgress)
+        interpolatedRadius(closed: cornerRadiusInsets.closed.top, opened: cornerRadiusInsets.opened.top)
     }
 
     var bottomCornerRadius: CGFloat {
-        let baseClosedBottom = cornerRadiusInsets.closed.bottom
+        interpolatedRadius(closed: cornerRadiusInsets.closed.bottom, opened: cornerRadiusInsets.opened.bottom)
+    }
+
+    private func interpolatedRadius(closed base: CGFloat, opened: CGFloat) -> CGFloat {
         let closedRadius: CGFloat
         if let scaleFactor = cornerRadiusScaleFactor {
-            closedRadius = max(0, baseClosedBottom * scaleFactor)
+            closedRadius = max(0, base * scaleFactor)
         } else {
-            closedRadius = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
+            closedRadius = displayClosedNotchHeight > 0 ? base : 0
         }
-        return lerp(closedRadius, cornerRadiusInsets.opened.bottom, animationProgress)
+        return lerp(closedRadius, opened, animationProgress)
     }
 
     var currentNotchShape: NotchShape {
@@ -95,21 +91,14 @@ extension ContentView {
     }
 
     var computedChinWidth: CGFloat {
-        let openWidth = openNotchSize.width
-        let closedTargetSize = vm.effectiveClosedNotchSize
-        
-        // Robustness: Link visual width directly to the same animated progress used for corners and height.
-        // This ensures the notch CANNOT be wide if it is physically short or has pill-shaped corners.
-        let animatedWidth = lerp(closedTargetSize.width, openWidth, animationProgress)
-
-        // During transitions (opening/closing/open), follow the animated interpolation.
-        if vm.phase.isVisible {
-            return animatedWidth
+        switch vm.phase {
+        case .opening, .closing:
+            vm.notchSize.width
+        case .open:
+            openNotchSize.width
+        case .closed:
+            vm.effectiveClosedNotchSize.width
         }
-
-        // When closed, use the exact target size. No max() needed — animationProgress is 0
-        // so animatedWidth == closedTargetSize.width already.
-        return closedTargetSize.width
     }
 }
 
@@ -117,7 +106,7 @@ extension ContentView {
 
 extension ContentView {
     func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        let result = NotchGestureCoordinator.handleDown(
+        let result = vm.gestureCoordinator.handleDown(
             translation: translation, phase: phase, notchState: vm.notchState,
             sensitivity: settings.gestureSensitivity
         )
@@ -125,7 +114,7 @@ extension ContentView {
     }
 
     func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        let result = NotchGestureCoordinator.handleUp(
+        let result = vm.gestureCoordinator.handleUp(
             translation: translation, phase: phase,
             notchState: vm.notchState,
             isHoveringCalendar: vm.isHoveringCalendar,
@@ -142,12 +131,22 @@ extension ContentView {
     ) {
         switch result {
         case .progress(let value):
-            withAnimation(StandardAnimations.interactive) { gestureProgress = value }
+            // Scrub the phase coordinator directly
+            if openAction != nil {
+                vm.interactiveScrub(progress: value)
+            } else {
+                // For close gesture, we just use a simple scale/offset or trigger close.
+                // Reverting to the existing logic just for visual feedback until close is scrubbed too.
+                withAnimation(StandardAnimations.interactive) { gestureProgress = value * -20 } // Restore scale for close
+            }
         case .reset:
-            withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
+            if openAction != nil {
+                vm.cancelInteractiveScrub()
+            } else {
+                withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
+            }
         case .triggerOpen(let velocity):
             if settings.enableHaptics { haptics.toggle() }
-            withAnimation(StandardAnimations.interactive) { gestureProgress = .zero }
             openAction?(velocity)
         case .triggerClose:
             gestureProgress = .zero

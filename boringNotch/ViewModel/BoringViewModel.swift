@@ -55,6 +55,14 @@ import SwiftUI
         phaseCoordinator.closeHello()
     }
 
+    func interactiveScrub(progress: CGFloat) {
+        phaseCoordinator.interactiveScrub(progress: progress)
+    }
+
+    func cancelInteractiveScrub() {
+        phaseCoordinator.cancelInteractiveScrub()
+    }
+
     /// Back off background services when closed to save battery.
     func syncBackgroundServices() {
         let restartables: [any BackgroundServiceRestartable] = [

@@ -53,8 +53,8 @@ protocol NotchPhaseDelegate: AnyObject {
     init() {}
 
     func open(initialVelocity: CGFloat = 0) {
-        // Allow opening if closed OR if we are currently closing (interrupt)
-        guard phase == .closed || phase == .closing else { return }
+        // Allow opening if closed OR if we are currently closing OR if we are scrubbing (opening)
+        guard phase == .closed || phase == .closing || phase == .opening else { return }
 
         // Cancel stale tasks from a prior close cycle
         closeWatchdogTask?.cancel()
@@ -162,5 +162,49 @@ protocol NotchPhaseDelegate: AnyObject {
             delegate.coordinator.helloAnimationRunning = false
             close()
         }
+    }
+
+    func interactiveScrub(progress: CGFloat) {
+        // Only allow scrub from closed
+        guard phase == .closed || phase == .opening else { return }
+
+        // Cancel any pending close behavior
+        closeWatchdogTask?.cancel()
+        closeWatchdogTask = nil
+        postCloseHoverTask?.cancel()
+        postCloseHoverTask = nil
+        delegate.hideOnClosedDebounceTask?.cancel()
+        delegate.hideOnClosedDebounceTask = nil
+        delegate.hoverController.cancelPendingClose()
+
+        self.phase = .opening
+
+        // Start hover heartbeat if not already running
+        delegate.hoverController.setNotchOpen(true)
+        delegate.syncWindowState()
+        delegate.startHoverHeartbeat()
+
+        let closedSize = delegate.effectiveClosedNotchSize
+        let openSize = openNotchSize
+
+        // Smoothly interpolate size based on progress
+        let targetWidth = closedSize.width + (openSize.width - closedSize.width) * progress
+        let targetHeight = closedSize.height + (openSize.height - closedSize.height) * progress
+
+        // Interactive animation for immediate tracking
+        withAnimation(StandardAnimations.interactive) {
+            delegate.notchSize = CGSize(width: targetWidth, height: targetHeight)
+            delegate.shellAnimationProgress = progress
+            delegate.contentRevealProgress = progress
+        }
+
+        if progress > 0 {
+            delegate.services.music.forceUpdate()
+        }
+    }
+
+    func cancelInteractiveScrub() {
+        guard phase == .opening else { return }
+        close()
     }
 }
