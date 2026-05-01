@@ -7,7 +7,6 @@
 //
 
 import SwiftUI
-import Combine
 import Defaults
 
 struct PluginMusicPlayerView: View {
@@ -104,10 +103,7 @@ struct PluginAlbumArtView: View {
                     )
                 )
                 .clipped()
-                // Only apply matchedGeometryEffect when NOT transitioning.
-                // During transitions, the container spring and matchedGeometry fight,
-                // causing stretch/jump artifacts on the album art.
-                .ifLet(vm.phase.isTransitioning ? nil : albumArtNamespace) { view, ns in
+                .ifLet(albumArtNamespace) { view, ns in
                     view.matchedGeometryEffect(id: "albumArt", in: ns)
                 }
         }

@@ -66,7 +66,7 @@ struct MusicLiveActivity: View {
                         .frame(width: geo.size.width, height: geo.size.width)
                         .clipShape(RoundedRectangle(cornerRadius: closedCornerRadius))
                         .clipped()
-                        .ifLet(vm.phase.isTransitioning ? nil : albumArtNamespace) { view, ns in
+                        .ifLet(albumArtNamespace) { view, ns in
                             view.matchedGeometryEffect(id: "albumArt", in: ns)
                         }
                 }
