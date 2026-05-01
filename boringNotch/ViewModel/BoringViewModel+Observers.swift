@@ -163,7 +163,8 @@ extension BoringViewModel {
             showPowerStatusNotifications: settings.showPowerStatusNotifications,
             isMusicPlaying: services.music.playbackState.isPlaying,
             isPlayerIdle: services.music.isPlayerIdle,
-            showNotHumanFace: settings.showNotHumanFace
+            showNotHumanFace: settings.showNotHumanFace,
+            phase: phase
         )
     }
 

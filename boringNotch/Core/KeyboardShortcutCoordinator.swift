@@ -97,7 +97,9 @@ final class KeyboardShortcutCoordinator {
             viewModel.open()
 
             let task = Task { [weak viewModel] in
-                try? await Task.sleep(for: .seconds(3))
+                do {
+                    try await Task.sleep(for: .seconds(3))
+                } catch { return }
                 guard !Task.isCancelled else { return }
                 await MainActor.run {
                     viewModel?.close()
