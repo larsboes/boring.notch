@@ -11,7 +11,8 @@
 import Accelerate
 import Foundation
 
-final class AudioFFTProcessor: @unchecked Sendable {
+@MainActor
+final class AudioFFTProcessor {
 
     let bandCount: Int
 
@@ -23,7 +24,7 @@ final class AudioFFTProcessor: @unchecked Sendable {
     /// Samples to advance between windows. 2048 → ~21fps at 44100Hz.
     private let hopSize: Int = 2048
     private let log2n: vDSP_Length
-    private let fftSetup: FFTSetup
+    private let fftSetup: FFTSetup?
     private let window: [Float]
     private var previousBands: [Float]
     private var peakBands: [Float]
@@ -37,17 +38,25 @@ final class AudioFFTProcessor: @unchecked Sendable {
 
         let n = vDSP_Length(log2(Double(1024)))
         self.log2n = n
-        self.fftSetup = vDSP_create_fftsetup(n, FFTRadix(kFFTRadix2))!
+        self.fftSetup = vDSP_create_fftsetup(n, FFTRadix(kFFTRadix2))
 
         var w = [Float](repeating: 0, count: 1024)
         vDSP_hann_window(&w, vDSP_Length(1024), Int32(vDSP_HANN_NORM))
         self.window = w
     }
 
-    deinit { vDSP_destroy_fftsetup(fftSetup) }
+    deinit { 
+        if let setup = fftSetup {
+            vDSP_destroy_fftsetup(setup) 
+        }
+    }
 
     /// Returns (bands, peaks) once a full hop-aligned window is ready; nil while accumulating.
     func process(_ samples: [Float]) -> (bands: [Float], peaks: [Float])? {
+        guard let setup = fftSetup else {
+            return (bands: [Float](repeating: 0, count: bandCount), peaks: [Float](repeating: 0, count: bandCount))
+        }
+
         sampleAccumulator.append(contentsOf: samples)
         guard sampleAccumulator.count >= hopSize else { return nil }
 
@@ -74,7 +83,7 @@ final class AudioFFTProcessor: @unchecked Sendable {
                         vDSP_ctoz(cPtr, 2, &split, 1, vDSP_Length(halfN))
                     }
                 }
-                vDSP_fft_zrip(fftSetup, &split, 1, log2n, FFTDirection(FFT_FORWARD))
+                vDSP_fft_zrip(setup, &split, 1, log2n, FFTDirection(FFT_FORWARD))
                 var magnitudes = [Float](repeating: 0, count: halfN)
                 vDSP_zvmags(&split, 1, &magnitudes, 1, vDSP_Length(halfN))
                 rawBands = mapToBands(magnitudes: magnitudes, halfN: halfN)
