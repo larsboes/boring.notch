@@ -31,7 +31,7 @@
 
 ---
 
-## Current State (2026-03-08)
+## Current State (2026-03-21)
 
 **Working branch:** `developer`
 **Branch sync:** `developer` = `origin/developer`, `main` = stable
@@ -40,11 +40,11 @@
 | Phase | Status | Summary |
 |-------|--------|---------|
 | 1, 1b, 2, 3, 5, 6, 6b, 7 | ✅ Shipped | Core plugins, API Hardening, AI Assist, Automation, Battery & Export |
-| 4 — Animation + Arch Debt | **Active** | 15+ items done. Remaining: spring tuning, album art morph, gesture-driven open. |
+| 4 — Animation + Arch Debt | **Active** | 30+ items done. DDD directory restructure complete. Remaining: spring tuning, album art morph, gesture-driven open. |
 | 9 — Third-Party Distribution | Planned | .boringplugin bundle format |
 | 10 — Teleprompter Pro | **Active** | 10.0/10.4/10.7/10.8 shipped. Remaining: script library, voice scrolling, enhanced editor, display customization, closed display polish, screen sharing, detachable mode |
 | 11 — Foundation Models | Planned | On-device AI via Apple FoundationModels (macOS 26+), streaming, structured generation |
-| 12 — Audio Visualizer | **Active** | 12.1–12.6 shipped. 12.7 (perf budget measurement) pending. **Known bug: realAudio mode not reactive — visualizer does not respond to actual system audio.** |
+| 12 — Audio Visualizer | **Active** | 12.1–12.6 shipped. 12.7 (perf budget measured, 2026-03-16). BUG-1 (realAudio not reactive) ✅ fixed. Active CPU: ~11% (over 3% target — SCK overhead; long-term fix: system audio tap API). |
 | 13 — Notch Video Player | Planned (Long-term) | PiP-style video player as extended notch. AVPlayer + browser integration. |
 | 14 — Animation & UI Polish | In Progress | Velocity-dependent springs, gesture feel, content morphing. |
 
@@ -97,6 +97,18 @@
 | 4.26 | Animation | HelloAnimation `Task.sleep(3.0)` replaced with `withAnimation` completion handler — eliminates timing drift on startup snake. |
 | 4.27 | Domain Purity | Removed `import SwiftUI` from 5 Core/ domain files (`NotchStateMachine`, `NotchSettingsSubProtocols`, `MockNotchSettings`, `DefaultsNotchSettings`, `NavigationState`) — now compile with only `Foundation`/`Observation`/`Defaults`. |
 | 4.28 | Docs | Fixed 5 doc discrepancies: ServiceContainer path in ARCHITECTURE.md, plugin registration location in PLUGIN_DEVELOPMENT.md, phantom Phase 8 in PRD, plugin count (8→12), BoringViewCoordinator status (legacy→active). Updated CLAUDE.md layer boundaries to distinguish domain vs coordinator files in Core/. |
+| 4.29 | Sizing | `NotchSizeCalculator` restructured as single source of truth. `ClosedNotchInput` struct decouples calculator from services. `effectiveClosedNotchSize` moved from Observers to calculator. |
+| 4.30 | Domain | `NotchAnimationStateProviding` + `createInput()` extracted from `NotchStateMachine.swift` to `ViewCoordinating.swift` (application layer). State machine is now domain-pure. |
+| 4.31 | Safety | Force unwraps fixed in `Constants.swift`, `DownloadView.swift`, `BatteryService.swift`. |
+| 4.32 | Cleanup | `NSObject` removed from `BoringViewModel`. NotificationCenter observers migrated to Combine publishers. |
+| 4.33 | Cleanup | `BoringAnimations` collapsed from `@Observable` class to static enum. 29 unused `import Combine` removed. |
+| 4.34 | DDD | **Directory restructure:** controllers/settings moved from `models/` → `Core/`. `SharingStateManager` → `Plugins/Services/`. `BoringViewModel` + extensions → new `ViewModel/` directory. `models/` now contains only pure data models. |
+| 4.35 | Bounded Ctx | Plugin views consolidated: `components/Calendar/` → `CalendarPlugin/Views/`, `Weather` → `WeatherPlugin/Views/`, `Webcam` → `WebcamPlugin/Views/`, `Notifications` → `NotificationsPlugin/Views/`, `Music` → `MusicPlugin/Views/`. |
+| 4.36 | DDD | `managers/` eliminated — all 19 files moved to `Plugins/Services/`. Single infrastructure layer. |
+| 4.37 | Bounded Ctx | Shelf consolidated: 27 files from `components/Shelf/` → `ShelfPlugin/` (Models, Services, ViewModels, Views). General infrastructure services (ImageProcessing, QuickLook, etc.) → `Plugins/Services/`. |
+| 4.38 | Cleanup | `Constants.swift` split into infrastructure constants + `SettingsTypes.swift` (Defaults.Serializable enums). |
+| 4.39 | Rename | `NotchObserverSetup` → `NotchObserverManager` (reflects runtime controller role). |
+| 4.40 | Bug Fix | Notch ears width desync fixed — `closedEarsActive` (debounced) could be true while `hasLiveActivity` (instant) was false during track transitions, causing narrow base + wide ears mismatch. Fix: force live-activity base size when ears active. |
 | 5.1 | API | **Loopback binding** — `LocalAPIServer` now binds `127.0.0.1` only via `NWParameters.requiredLocalEndpoint`. |
 | 5.2 | API | **Dynamic routing** — `APIRouteRegistrar` protocol (own file) enables plugins to register/unregister REST routes at runtime. Path params (`/plugins/{id}`) with proper 404 vs 405. |
 | 5.3 | API | **Auth middleware** — Keychain-backed Bearer token in `APIAuthMiddleware` (`@unchecked Sendable`, `NSLock`). Denies on keychain failure (secure default). Enforced on all POST endpoints. |
@@ -179,6 +191,82 @@ A timer plugin needing only `sound` + `notifications` must depend on 28 services
 `CoordinatorSettings` composes 6 sub-protocols (`GeneralAppSettings`, `HUDSettings`, `MediaSettings`, `AppearanceSettings`, `DisplaySettings`, `ShelfSettings`) but the coordinator only uses ~5 properties from them. Should be narrowed to actual usage.
 
 **When to fix:** Next settings refactor pass or when adding new coordinator implementations.
+
+---
+
+> The items below were added during the 2026-03-23 architecture audit (3 parallel agents, 333 files analyzed).
+
+### Layer Violation: MusicManager.isNowPlayingDeprecatedStatic Leaks Across Layers
+
+**Severity:** Medium | **Files:** 4 files outside `Plugins/Services/` | **Effort:** Low
+
+`MusicManager.isNowPlayingDeprecatedStatic` (concrete infra type) is accessed directly in:
+- `Core/DefaultsKeys.swift:164` — application layer calling into concrete infra
+- `components/Settings/Views/MediaSettingsView.swift:31, 146` — presentation calling concrete infra
+- `components/Onboarding/MusicControllerSelectionView.swift:16` — presentation calling concrete infra
+
+All 4 use it to detect whether the NowPlaying API is deprecated (macOS version check). The correct pattern is a protocol abstraction (e.g., `MediaControllerCapabilityProtocol`) injected via settings or service provider.
+
+**When to fix:** Phase 15 — low-effort, high-clarity win.
+
+### OCP Violation: NotificationsPlugin Casts to Concrete ServiceContainer
+
+**Severity:** Medium | **Files:** `Plugins/BuiltIn/NotificationsPlugin/NotificationsPlugin.swift:51` | **Effort:** Low
+
+```swift
+if let container = context.services as? ServiceContainer {
+```
+
+Downcasts the protocol-typed `context.services` to the concrete `ServiceContainer`. If `ServiceContainer` is ever renamed, split, or mocked, this breaks silently. The required service should be added to the relevant `ServiceProvider` sub-protocol instead.
+
+**When to fix:** Phase 15 — 1-line fix, high DI cleanliness.
+
+### SRP: BoringViewModel is a God Object (704 lines, 8+ responsibilities)
+
+**Severity:** Medium | **Files:** `ViewModel/BoringViewModel.swift` + 4 extension files | **Effort:** High
+
+Total 704 lines across `BoringViewModel.swift` (269), `+Observers.swift` (171), `+OpenClose.swift` (130), `+Hover.swift` (76), `+Camera.swift` (58). Responsibilities span: per-screen phase state, sizing delegation, hover detection, camera expansion, drop targeting, animation progress tracking, service dependencies, and observer lifecycle.
+
+**Decomposition path:**
+- `NotchPhaseCoordinator` — open/close logic, phase state, watchdog tasks
+- `NotchAnimationOrchestrator` — contentRevealProgress, shellAnimationProgress
+- `DropTargetingManager` — drag/drop state (`dragDetectorTargeting`, `generalDropTargeting`, `dropZoneTargeting`)
+- `CameraFaceManager` — `isCameraExpanded`, `isRequestingAuthorization`
+- `BoringViewModel` (residual, <150 lines) — sizing delegation, service access, wiring
+
+**When to fix:** When any single responsibility needs independent testability, or when complexity slows feature work. Not urgent — extension files keep it manageable today.
+
+### OCP Violation: PluginManager+ViewHelpers Requires Modifying for Every New Plugin
+
+**Severity:** Medium | **Files:** `Plugins/UI/PluginManager+ViewHelpers.swift` | **Effort:** Medium
+
+```swift
+switch id {
+case PluginID.music: if let p = plugin(id: id, as: MusicPlugin.self) { p.closedNotchContent() }
+case PluginID.shelf: if let p = plugin(id: id, as: ShelfPlugin.self) { p.closedNotchContent() }
+// ... 12+ more cases
+}
+```
+
+Adding any new plugin requires modifying this switch in 3 places (closed, expanded, settings). The fix is type-erased view dispatch via `AnyNotchPlugin`, which already wraps plugins — it just doesn't expose a type-erased content method yet.
+
+**When to fix:** Phase 9 (third-party plugins) requires this — external plugins cannot be added to a switch statement.
+
+### ISP: Service Contracts Not Enforced at Compile Time
+
+**Severity:** Low | **Files:** All `activate()` methods | **Effort:** High
+
+ISP sub-protocols (`MediaServiceProvider`, `SystemServiceProvider`, etc.) exist on `NotchServiceProvider` but plugins receive the full union and can access any service. A `WeatherPlugin` can call `context.services.bluetooth` without restriction. Trust-based enforcement is fine for built-in plugins, but will be a liability for Phase 9 third-party plugins.
+
+**When to fix:** Phase 9 — external plugins must receive scoped service access.
+
+### Hard-Coded Plugin Registration in AppObjectGraph
+
+**Severity:** Low | **Files:** `AppObjectGraph.swift` | **Effort:** Medium
+
+Built-in plugins are instantiated eagerly as a hardcoded array in `AppObjectGraph`. No lazy loading, no conditional activation based on hardware capability, no discovery mechanism. Manageable for built-ins, but precludes dynamic plugin loading required for Phase 9.
+
+**When to fix:** Phase 9.
 
 ---
 
@@ -997,17 +1085,89 @@ POST /api/v1/visualizer/toggle
 
 ### BUG-2 — Notch Expands Horizontally ~3s Then Snaps Back
 
+**Status:** ⚠️ Open (confirmed present as of 2026-03-23 audit)
+
 **Symptom:** Notch randomly widens (horizontally) for ~3 seconds then returns to normal size.
 
-**Root cause (traced):** `KeyboardShortcutCoordinator` opens the notch and schedules a `Task.sleep(3s)` auto-close. During those 3 seconds, `NotchObserverSetup` fires a `hideOnClosed` change (triggered by `FullscreenMediaDetector.fullscreenStatus`). This causes `BoringViewModel.effectiveClosedNotchSize` to recalculate — and if `isMusicActive || isFaceActive` is true, extra width is added/removed with a `.smooth` animation. The 3s timer then fires `viewModel.close()` snapping it back.
+**Root cause (traced):** `KeyboardShortcutCoordinator` opens the notch and schedules a `Task.sleep(3s)` auto-close (`KeyboardShortcutCoordinator.swift:100`: `try? await Task.sleep(for: .seconds(3))`). During those 3 seconds, `NotchObserverSetup` fires a `hideOnClosed` change (triggered by `FullscreenMediaDetector.fullscreenStatus`). This causes `BoringViewModel.effectiveClosedNotchSize` to recalculate — and if `isMusicActive || isFaceActive` is true, extra width is added/removed with a `.smooth` animation. The 3s timer then fires `viewModel.close()` snapping it back.
 
 **Key files:**
-- `KeyboardShortcutCoordinator.swift:99–107` — 3-second auto-close Task
-- `BoringViewModel.swift:309–346` — `effectiveClosedNotchSize` width calculation
-- `BoringViewModel.swift:281–284` — `hideOnClosed` setter with `.smooth` animation
-- `NotchObserverSetup.swift:42–73` — `hideOnClosed` observer loop
+- `KeyboardShortcutCoordinator.swift:100` — `try? await Task.sleep(for: .seconds(3))` auto-close
+- `BoringViewModel+Observers.swift:16–36` — `hideOnClosed` setter triggers `.smooth` animation
+- `BoringViewModel+OpenClose.swift:65–68` — `effectiveClosedNotchSize` snapshot taken at close-start
+- `Core/NotchObserverSetup.swift:42–73` — hideOnClosed observer loop (unstructured Task, no cancellation)
 
-**Fix direction:** Debounce `hideOnClosed` changes or suppress `effectiveClosedNotchSize` width recalculation while keyboard auto-close is pending.
+**Fix direction (two options, pick one):**
+1. **Suppress width recalculation during keyboard open:** Gate `effectiveClosedNotchSize` width additions on `phase == .closed` — don't add ear-width while notch is open/transitioning
+2. **Cancel hideOnClosed debounce on `.opening`:** `BoringViewModel+OpenClose.swift` already cancels `hideOnClosedDebounceTask` on `open()` — verify this fires before the fullscreen observer can race in
+
+---
+
+### BUG-3 — AudioFFTProcessor Force Unwrap Crash Risk
+
+**Status:** ⚠️ Open
+
+**Location:** `Plugins/Services/AudioFFTProcessor.swift:40`
+
+```swift
+self.fftSetup = vDSP_create_fftsetup(n, FFTRadix(kFFTRadix2))!
+```
+
+**Risk:** If vDSP setup fails (memory pressure, invalid params), the app crashes on audio service init. No recovery path. Replace `!` with `guard let` + graceful degradation to simulated mode.
+
+---
+
+### BUG-4 — Unstructured Observer Tasks in NotchObserverSetup Have No Cancellation
+
+**Status:** ⚠️ Open
+
+**Location:** `Core/NotchObserverSetup.swift:46–72`
+
+Two `Task { @MainActor in }` blocks launched in `setupDetectorObserver()` are never stored or cancelled. If `NotchObserverManager` deallocates, these tasks continue running and invoking the callback. The `[weak self]` capture prevents crashes but leaves zombie observers polling indefinitely.
+
+**Fix:** Store task references as properties, cancel in `deinit`.
+
+---
+
+### BUG-5 — Recursive Observation Accumulation in startEarsTracking
+
+**Status:** ⚠️ Open
+
+**Location:** `ViewModel/BoringViewModel+Observers.swift:57–64`
+
+`startEarsTracking()` sets up a new `withObservationTracking` block each time it's called, then calls itself recursively from the `onChange` handler. Every ears state change creates a new observation without cleaning up the previous one. Over time with frequent music state changes, observations accumulate.
+
+**Fix:** Guard with `earsTrackingActive` flag or store the tracking handle for cleanup before re-subscribing.
+
+---
+
+### BUG-6 — Silent try? Swallows Task Cancellation Signal
+
+**Status:** Low-severity pattern, 4+ locations
+
+**Locations:**
+- `Core/KeyboardShortcutCoordinator.swift:100`: `try? await Task.sleep(for: .seconds(3))`
+- `ViewModel/BoringViewModel+OpenClose.swift:91`: `try? await Task.sleep(for: .milliseconds(300))`
+
+`try?` on `Task.sleep()` silently swallows `CancellationError`, making it impossible to determine if the sleep completed normally or was cancelled. Correct pattern:
+```swift
+guard !Task.isCancelled else { return }
+try await Task.sleep(for: .seconds(3))
+```
+
+---
+
+### BUG-7 — @unchecked Sendable on AudioFFTProcessor Without Synchronization
+
+**Status:** ⚠️ Low-severity data race risk
+
+**Location:** `Plugins/Services/AudioFFTProcessor.swift:14`
+
+```swift
+final class AudioFFTProcessor: @unchecked Sendable {
+```
+
+Comment (line 8) says "call exclusively from a single serial context" — but this is trust-based. The class holds mutable arrays (`sampleAccumulator`, `previousBands`, `peakBands`) with no lock/actor protection. If ever called from two contexts simultaneously (e.g., SCK audio callback + MainActor), data races corrupt FFT output silently. Add `@MainActor` or explicit `NSLock` to match documented intent.
 
 ---
 
@@ -1021,7 +1181,135 @@ The following non-test mocks/simulated data exist in production code paths:
 | `ScreenCaptureKitAudioService.swift` `DummyVideoOutput` | Dummy video output to satisfy SCK API | Intentional — SCK requires video stream even for audio-only. |
 | `AmbientVisualizerMode.simulated` | Generative `sin()`/`cos()` animation | Intentional — `.simulated` mode is a feature, not a bug. Default mode. |
 | `MockNotchSettings.swift` | Full settings mock | Used in SwiftUI `#Preview` blocks only. ✅ Correct scope. |
-| `DefaultsKeys.swift:92` | `ambientVisualizerMode` defaults to `.simulated` | User never sees real audio reactivity by default. Consider defaulting to `.realAudio` once BUG-1 is fixed. |
+| `DefaultsKeys.swift:92` | `ambientVisualizerMode` defaults to `.simulated` | BUG-1 is fixed — consider defaulting to `.realAudio` now. Requires screen recording permission prompt on first use. |
+
+---
+
+## Architecture Audit (2026-03-23)
+
+Full audit: 333 Swift files, ~36K LOC, 3 parallel analysis agents.
+
+### DDD Compliance Assessment
+
+**Overall: ~70% toward clean DDD.** Strong bounded contexts, clean domain layer, solid event bus decoupling. Weaknesses concentrated in presentation layer (god object) and plugin registration mechanism.
+
+| Layer | Score | Evidence |
+|-------|-------|---------|
+| **Domain** | ✅ 9/10 | `Core/` domain files have zero SwiftUI/AppKit imports. `NotchStateMachine` is pure, testable, framework-free. `NotchPhase`, `SneakPeekTypes`, `NotchSettingsSubProtocols`, `MockNotchSettings` all compile on Foundation-only. |
+| **Application** | ⚠️ 7/10 | `PluginManager`, `PluginContext`, coordinators are clean. One violation: `DefaultsKeys.swift:164` accesses concrete `MusicManager.isNowPlayingDeprecatedStatic` from application layer. |
+| **Infrastructure** | ✅ 8/10 | Services are protocol-backed. `ServiceContainer` is the DI root. Main weakness: mixes container + factory responsibilities (constructs 40+ services inline). |
+| **Presentation** | ⚠️ 6.5/10 | `NotchContentRouter` is clean. `BoringViewModel` is a god object (704 lines, 8 responsibilities). `PluginManager+ViewHelpers` has OCP-violating switch. 3 view files access concrete `MusicManager`. |
+
+### Architecture Strengths
+
+- **Plugin isolation via event bus** — Plugins cannot import each other. All inter-plugin communication flows through `PluginEventBus`. Adding a plugin never touches existing plugins.
+- **Domain purity** — `NotchStateMachine` is a pure function of inputs. No UI framework imports in domain layer. Independently testable.
+- **Protocol-backed services** — Every service has a protocol. `MockNotchSettings` enables `#Preview` without real services. The DI chain from `AppObjectGraph` → `ServiceContainer` → `PluginContext` is clean.
+- **Bounded contexts per plugin** — `ShelfPlugin/`, `MusicPlugin/`, etc. each own their models, views, and services. No namespace pollution.
+- **ISP sub-protocols exist** — `MediaServiceProvider`, `SystemServiceProvider`, `StorageServiceProvider`, etc. are defined. Not enforced at compile time yet, but the vocabulary is there.
+
+### Path from 70% to 90%+ DDD
+
+Ordered by effort/impact ratio:
+
+| Priority | Change | Effort | Impact |
+|----------|--------|--------|--------|
+| **P0** | Fix BUG-2 (width race) | Low | UX stability |
+| **P1** | Replace `MusicManager.isNowPlayingDeprecatedStatic` calls with a protocol (4 files) | Low | Layer purity |
+| **P1** | Fix `NotificationsPlugin` concrete `ServiceContainer` cast | Low | DIP compliance |
+| **P2** | Type-erase `PluginManager+ViewHelpers` switch statements | Medium | OCP compliance; required for Phase 9 |
+| **P2** | Extract `NotchPhaseCoordinator` from `BoringViewModel` | Medium | SRP, testability |
+| **P3** | Enforce ISP service contracts on `PluginContext` generics | High | Compile-time safety for Phase 9 |
+| **P3** | Separate plugin factory from `AppObjectGraph` | High | Enables Phase 9 dynamic loading |
+
+### Plugin System Score: 7.5/10
+
+| Dimension | Score | Note |
+|-----------|-------|------|
+| Plugin Isolation | 8.5/10 | Event bus prevents coupling; discovery is hardcoded |
+| DI Completeness | 7.5/10 | PluginContext solid; service access trust-based not enforced |
+| Presentation Clarity | 6.5/10 | ContentRouter excellent; BoringViewModel bloated |
+| Service Architecture | 8/10 | ISP protocols good; ServiceContainer mixes factory concerns |
+| Lifecycle Management | 7/10 | Clean activate/deactivate; activation ordering not declarative |
+| Testability | 7/10 | StateMachine testable; integration tests hard via god objects |
+| Extensibility | 6.5/10 | ViewHelpers switch blocks true plug-and-play |
+| Code Quality | 7/10 | 300-line limit met; @Observable/@MainActor consistent; concurrency edge cases remain |
+
+---
+
+## Phase 15 — Architecture Hardening (Completed)
+
+**Goal:** Close the gap from ~70% to 90%+ DDD compliance. Fix open bugs. Enforce layer boundaries. Prepare plugin infrastructure for Phase 9 third-party distribution.
+
+**Constraint:** All changes must keep build green and tests passing. Work in isolation-safe commits.
+
+### 15.1 — Fix BUG-2: Notch Width Race
+
+**Priority:** P0 | **Effort:** Low | **Files:** `KeyboardShortcutCoordinator.swift`, `BoringViewModel+OpenClose.swift`
+
+Gate `effectiveClosedNotchSize` ear-width additions on `phase == .closed`. Width should not mutate while the notch is open or transitioning. See BUG-2 above for full root cause.
+
+### 15.2 — Abstract MusicManager.isNowPlayingDeprecatedStatic
+
+**Priority:** P1 | **Effort:** Low | **Files:** 4 violation sites + new protocol
+
+Create `MediaControllerCapabilityProtocol` or add `isNowPlayingDeprecated: Bool` to an existing settings sub-protocol. Inject via `NotchSettings` or `NotchServiceProvider`. Replace 4 direct calls.
+
+### 15.3 — Fix NotificationsPlugin ServiceContainer Cast
+
+**Priority:** P1 | **Effort:** Low | **Files:** `NotificationsPlugin.swift:51`
+
+Add the required service property to the appropriate `ServiceProvider` sub-protocol. Remove the concrete downcast.
+
+### 15.4 — Fix AudioFFTProcessor Crash Risk + Data Race
+
+**Priority:** P1 | **Effort:** Low | **Files:** `AudioFFTProcessor.swift`
+
+- Replace force-unwrap on `vDSP_create_fftsetup` with `guard let` + graceful fallback
+- Add `@MainActor` to enforce single-threaded access (matches comment on line 8)
+- Remove `@unchecked Sendable`
+
+### 15.5 — Fix Unstructured Observer Tasks
+
+**Priority:** P1 | **Effort:** Low | **Files:** `NotchObserverSetup.swift`, `BoringViewModel+Observers.swift`
+
+- Store Task references in `NotchObserverManager`, cancel in `deinit`
+- Fix recursive `startEarsTracking()` with active-flag guard
+- Add `deinit` to `BoringViewModel` cancelling `hideOnClosedDebounceTask`, `earsDebounceTask`, `closeWatchdogTask`, `postCloseHoverTask`
+
+### 15.6 — Type-Erase PluginManager+ViewHelpers Switch
+
+**Priority:** P2 | **Effort:** Medium | **Files:** `Plugins/UI/PluginManager+ViewHelpers.swift`, `AnyNotchPlugin`
+
+Extend `AnyNotchPlugin` with type-erased `closedNotchContentView()`, `expandedPanelContentView()`, `settingsContentView()` → `AnyView`. Remove the `switch id { case PluginID.music: ... }` pattern. Required before Phase 9 (external plugins cannot be listed in a switch).
+
+### 15.7 — Extract NotchPhaseCoordinator from BoringViewModel
+
+**Priority:** P2 | **Effort:** Medium | **Files:** `BoringViewModel+OpenClose.swift` → `Core/NotchPhaseCoordinator.swift`
+
+Extract open/close state machine + watchdog tasks into a dedicated `@MainActor @Observable` class. `BoringViewModel` delegates to it. Reduces BoringViewModel responsibility count from 8 to 7, makes open/close independently testable.
+
+### Phase 15 Implementation Order
+
+| Priority | Task | Effort | Unblocks |
+|----------|------|--------|---------|
+| **P0** | 15.1 Fix BUG-2 | Low | UX stability |
+| **P1** | 15.2 Abstract MusicManager static | Low | Layer purity |
+| **P1** | 15.3 Fix NotificationsPlugin cast | Low | DIP compliance |
+| **P1** | 15.4 AudioFFTProcessor safety | Low | Crash prevention |
+| **P1** | 15.5 Fix observer tasks | Low | Memory leak prevention |
+| **P2** | 15.6 Type-erase ViewHelpers switch | Medium | Phase 9 |
+| **P2** | 15.7 Extract NotchPhaseCoordinator | Medium | BoringViewModel SRP |
+
+### Phase 15 Success Metrics
+
+- BUG-2 never reproduces (notch width stable during keyboard-triggered open)
+- Zero presentation/application layer files import concrete `MusicManager`
+- `NotificationsPlugin` uses protocol, not concrete cast
+- `AudioFFTProcessor` has no force unwraps, has `@MainActor`
+- All unstructured `Task` refs stored and cancellable
+- `PluginManager+ViewHelpers` has no `switch id { case PluginID... }` pattern
+- Adding a new plugin requires zero changes to `PluginManager+ViewHelpers`
 
 ---
 
@@ -1254,3 +1542,4 @@ Before committing to implementation, validate:
 | 11 | `FoundationModelsProvider` is sole default provider on macOS 26+. AI features work with zero external dependencies. Ollama available as opt-in Advanced option only. Streaming AI responses in teleprompter UI. Structured generation via `@Generable`. On macOS <26: AI features cleanly absent (no broken states). |
 | 12 | Real audio-reactive visualizer responds to actual system audio. Extended notch height configurable. Album art color extraction for theming. Idle: 3% CPU (✅). Active: ~11% CPU (⚠️ over target — SCK framework overhead; long-term fix: system audio tap API). Permission denial degrades gracefully to simulated animation. |
 | 13 | Video plays in notch viewport via AVPlayer. YouTube URLs load via yt-dlp. Hover reveals mini controls. Expanded panel has full controls + URL input. <5% CPU at 720p. Browser extension video integration validated or descoped. |
+| 15 | BUG-2 never reproduces. Zero concrete `MusicManager` refs outside infra layer. `AudioFFTProcessor` crash-free with `@MainActor`. All observer Tasks stored + cancellable. `PluginManager+ViewHelpers` has no plugin switch statements. DDD compliance at 90%+. |
