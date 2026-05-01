@@ -232,6 +232,11 @@ struct AnyNotchPlugin: Identifiable {
     private let _displayRequest: () -> DisplayRequest?
     private let _closedNotchPosition: () -> ClosedNotchPosition?
 
+    private let _closedNotchContent: () -> AnyView
+    private let _expandedPanelContent: () -> AnyView
+    private let _settingsContent: () -> AnyView
+    private let _menuBarView: () -> AnyView
+
     let hasClosedNotchContent: Bool
     let hasExpandedPanelContent: Bool
     let hasSettingsContent: Bool
@@ -253,6 +258,11 @@ struct AnyNotchPlugin: Identifiable {
         } else {
             self._closedNotchPosition = { nil }
         }
+
+        self._closedNotchContent = { AnyView(plugin.closedNotchContent()) }
+        self._expandedPanelContent = { AnyView(plugin.expandedPanelContent()) }
+        self._settingsContent = { AnyView(plugin.settingsContent()) }
+        self._menuBarView = { AnyView(plugin.menuBarView()) }
 
         self.hasClosedNotchContent = type(of: plugin.closedNotchContent()) != EmptyView.self
         self.hasExpandedPanelContent = type(of: plugin.expandedPanelContent()) != EmptyView.self
@@ -277,4 +287,9 @@ struct AnyNotchPlugin: Identifiable {
 
     var displayRequest: DisplayRequest? { _displayRequest() }
     var closedNotchPosition: ClosedNotchPosition? { _closedNotchPosition() }
+    
+    func closedNotchContent() -> AnyView { _closedNotchContent() }
+    func expandedPanelContent() -> AnyView { _expandedPanelContent() }
+    func settingsContent() -> AnyView { _settingsContent() }
+    func menuBarView() -> AnyView { _menuBarView() }
 }
