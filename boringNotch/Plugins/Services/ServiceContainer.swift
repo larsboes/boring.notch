@@ -77,6 +77,9 @@ final class ServiceContainer: NotchServiceProvider {
     /// Clipboard manager for clipboard history
     let clipboardManager: any ClipboardServiceProtocol
 
+    /// System notification observer for capturing macOS notification banners
+    let systemNotificationObserver: any SystemNotificationObserverProtocol
+
     /// XPC Helper for privileged operations
     let xpcHelper: any XPCHelperServiceProtocol
 
@@ -103,7 +106,8 @@ final class ServiceContainer: NotchServiceProvider {
     // MARK: - Initialization
 
     /// Default initializer - creates services that are ready
-    init(eventBus: PluginEventBus, settings: any NotchSettings, xpcHelper: any XPCHelperServiceProtocol = XPCHelperClient.shared) {
+    init(eventBus: PluginEventBus, settings: any NotchSettings, xpcHelper: (any XPCHelperServiceProtocol)? = nil) {
+        let xpcHelper = xpcHelper ?? XPCHelperClient.shared
         self.music = MusicService(manager: MusicManager(settings: settings))
         self.sound = SoundService()
         self.battery = BatteryService(eventBus: eventBus, settings: settings)
@@ -124,6 +128,7 @@ final class ServiceContainer: NotchServiceProvider {
         self.lyrics = LyricsService()
         self.webcam = WebcamManager()
         self.notifications = NotificationCenterManager(settings: settings)
+        self.systemNotificationObserver = SystemNotificationObserver(notificationManager: self.notifications)
         self.volume = VolumeManager(eventBus: eventBus)
         self.brightness = BrightnessManager(eventBus: eventBus, xpcHelper: xpcHelper)
         self.keyboardBacklight = KeyboardBacklightManager(eventBus: eventBus, xpcHelper: xpcHelper)
@@ -153,6 +158,7 @@ final class ServiceContainer: NotchServiceProvider {
         dragDrop: any DragDropServiceProtocol,
         webcam: any WebcamServiceProtocol,
         notifications: any NotificationServiceProtocol,
+        systemNotificationObserver: SystemNotificationObserver,
         volume: any VolumeServiceProtocol,
         brightness: any BrightnessServiceProtocol,
         keyboardBacklight: any KeyboardBacklightServiceProtocol,
@@ -182,6 +188,7 @@ final class ServiceContainer: NotchServiceProvider {
         self.dragDrop = dragDrop
         self.webcam = webcam
         self.notifications = notifications
+        self.systemNotificationObserver = systemNotificationObserver
         self.volume = volume
         self.brightness = brightness
         self.keyboardBacklight = keyboardBacklight

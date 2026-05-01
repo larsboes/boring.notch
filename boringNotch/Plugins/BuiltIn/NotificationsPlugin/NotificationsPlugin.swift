@@ -7,7 +7,6 @@
 //
 
 import SwiftUI
-import Combine
 
 @MainActor
 @Observable
@@ -31,26 +30,33 @@ final class NotificationsPlugin: NotchPlugin {
     private(set) var state: PluginState = .inactive
     
     // MARK: - Dependencies
-    
+
     var notificationService: (any NotificationServiceProtocol)?
     private var settings: PluginSettings?
-    
+    private var systemObserver: (any SystemNotificationObserverProtocol)?
+
     // MARK: - Initialization
-    
+
     init() {}
-    
+
     // MARK: - Lifecycle
-    
+
     func activate(context: PluginContext) async throws {
         state = .activating
-        
+
         self.notificationService = context.services.notifications
         self.settings = context.settings
-        
+
+        // Start observing macOS system notifications
+        self.systemObserver = context.services.systemNotificationObserver
+        self.systemObserver?.startObserving()
+
         state = .active
     }
-    
+
     func deactivate() async {
+        systemObserver?.stopObserving()
+        systemObserver = nil
         notificationService = nil
         settings = nil
         state = .inactive

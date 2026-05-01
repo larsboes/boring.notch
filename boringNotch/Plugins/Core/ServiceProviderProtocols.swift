@@ -52,6 +52,7 @@ protocol StorageServiceProvider {
 @MainActor
 protocol UIServiceProvider {
     var notifications: any NotificationServiceProtocol { get }
+    var systemNotificationObserver: any SystemNotificationObserverProtocol { get }
     var sharing: any SharingServiceProtocol { get }
     var dragDrop: any DragDropServiceProtocol { get }
     var webcam: any WebcamServiceProtocol { get }
