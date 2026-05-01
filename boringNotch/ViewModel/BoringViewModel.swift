@@ -11,7 +11,7 @@ import Defaults
 import SwiftUI
 
 @MainActor
-@Observable class BoringViewModel {
+@Observable class BoringViewModel: NotchPhaseDelegate {
     // MARK: - Dependencies
     let coordinator: any ViewCoordinating
     private let detector: FullscreenMediaDetector
@@ -20,6 +20,7 @@ import SwiftUI
     let hoverController: NotchHoverController
     let sizeCalculator: NotchSizeCalculator
     let observerSetup: NotchObserverManager
+    let phaseCoordinator = NotchPhaseCoordinator()
 
     let animation: Animation = BoringAnimations.animation
 
@@ -36,19 +37,26 @@ import SwiftUI
         }
     }
 
-    nonisolated(unsafe) var closeWatchdogTask: Task<Void, Never>?
-    nonisolated(unsafe) var postCloseHoverTask: Task<Void, Never>?
+    var phase: NotchPhase { phaseCoordinator.phase }
 
-    var phase: NotchPhase = .closed {
-        didSet {
-            guard phase != oldValue else { return }
-            syncAnimationState(animated: true)
-            syncBackgroundServices()
-        }
+    var notchState: NotchState {
+        phase.isVisible ? .open : .closed
+    }
+
+    func open(initialVelocity: CGFloat = 0) {
+        phaseCoordinator.open(initialVelocity: initialVelocity)
+    }
+
+    func close(force: Bool = false) {
+        phaseCoordinator.close(force: force)
+    }
+
+    func closeHello() {
+        phaseCoordinator.closeHello()
     }
 
     /// Back off background services when closed to save battery.
-    private func syncBackgroundServices() {
+    func syncBackgroundServices() {
         let restartables: [any BackgroundServiceRestartable] = [
             services.battery as? BackgroundServiceRestartable,
             services.bluetoothManager as? BackgroundServiceRestartable
@@ -69,10 +77,6 @@ import SwiftUI
     /// Shell expansion progress (0→1).
     /// Driven by StandardAnimations.open/close to ensure smooth corner radius transitions.
     var shellAnimationProgress: CGFloat = 0
-
-    var notchState: NotchState {
-        phase.isVisible ? .open : .closed
-    }
 
     var dragDetectorTargeting: Bool = false
     var generalDropTargeting: Bool = false
@@ -144,8 +148,6 @@ import SwiftUI
         hideOnClosedDebounceTask?.cancel()
         earsDebounceTask?.cancel()
         earsTrackingTask?.cancel()
-        closeWatchdogTask?.cancel()
-        postCloseHoverTask?.cancel()
     }
 
     // MARK: - Initialization
@@ -171,6 +173,8 @@ import SwiftUI
         self.sizeCalculator = NotchSizeCalculator(settings: self.settings, displaySettings: displaySettings)
         self.observerSetup = NotchObserverManager(settings: self.settings, detector: detector)
         self.shelfService = nil
+
+        self.phaseCoordinator.delegate = self
 
         let preventCloseThunk: @MainActor () -> Bool = { [weak self] in
             return self?.services.sharing.preventNotchClose ?? false
