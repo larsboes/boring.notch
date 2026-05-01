@@ -9,7 +9,8 @@ import Defaults
 @MainActor extension DefaultsNotchSettings {
     // MARK: - Music & Media Settings
     var isNowPlayingDeprecated: Bool {
-        MusicPlaybackController.isNowPlayingDeprecatedStatic
+        get { Defaults[.isNowPlayingDeprecated] }
+        set { Defaults[.isNowPlayingDeprecated] = newValue }
     }
     var musicLiveActivityEnabled: Bool {
         get { Defaults[.musicLiveActivityEnabled] }

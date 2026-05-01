@@ -160,8 +160,10 @@ extension Defaults.Keys {
     static let hideTitleBar = Key<Bool>("hideTitleBar", default: true)
     static let hideNonNotchedFromMissionControl = Key<Bool>("hideNonNotchedFromMissionControl", default: true)
 
+    static let isNowPlayingDeprecated = Key<Bool>("isNowPlayingDeprecated", default: false)
+
     static var defaultMediaController: MediaControllerType {
-        MusicPlaybackController.isNowPlayingDeprecatedStatic ? .appleMusic : .nowPlaying
+        Defaults[.isNowPlayingDeprecated] ? .appleMusic : .nowPlaying
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
