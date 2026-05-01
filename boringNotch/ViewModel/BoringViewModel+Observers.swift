@@ -55,13 +55,23 @@ extension BoringViewModel {
     }
 
     private func startEarsTracking() {
-        withObservationTracking {
-            _ = self.computeRawEarsActive()
-        } onChange: { [weak self] in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
+        earsTrackingTask?.cancel()
+        earsTrackingTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self else { break }
+                let _ = withObservationTracking {
+                    self.computeRawEarsActive()
+                } onChange: { }
+
                 self.onEarsInputChanged()
-                self.startEarsTracking()
+
+                await withCheckedContinuation { continuation in
+                    withObservationTracking {
+                        _ = self.computeRawEarsActive()
+                    } onChange: {
+                        continuation.resume()
+                    }
+                }
             }
         }
     }
@@ -186,7 +196,11 @@ extension BoringViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self else { return }
-                notchState == .open ? close(force: true) : open()
+                if notchState == .open {
+                    close(force: true)
+                } else {
+                    open()
+                }
             }
             .store(in: &notificationCancellables)
 

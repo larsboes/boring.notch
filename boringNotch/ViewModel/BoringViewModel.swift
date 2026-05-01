@@ -36,8 +36,8 @@ import SwiftUI
         }
     }
 
-    var closeWatchdogTask: Task<Void, Never>?
-    var postCloseHoverTask: Task<Void, Never>?
+    nonisolated(unsafe) var closeWatchdogTask: Task<Void, Never>?
+    nonisolated(unsafe) var postCloseHoverTask: Task<Void, Never>?
 
     var phase: NotchPhase = .closed {
         didSet {
@@ -55,7 +55,11 @@ import SwiftUI
         ].compactMap { $0 }
 
         for service in restartables {
-            phase.isVisible ? service.startMonitoring() : service.stopMonitoring()
+            if phase.isVisible {
+                service.startMonitoring()
+            } else {
+                service.stopMonitoring()
+            }
         }
     }
     /// Decoupled content reveal progress (0→1).
@@ -79,12 +83,13 @@ import SwiftUI
     }
 
     var hideOnClosed: Bool = true
-    var hideOnClosedDebounceTask: Task<Void, Never>?
+    nonisolated(unsafe) var hideOnClosedDebounceTask: Task<Void, Never>?
 
     /// Debounced ears state for closed notch width.
     /// Prevents flicker from transient music/face state changes.
     var closedEarsActive: Bool = false
-    var earsDebounceTask: Task<Void, Never>?
+    nonisolated(unsafe) var earsDebounceTask: Task<Void, Never>?
+    nonisolated(unsafe) var earsTrackingTask: Task<Void, Never>?
     var earsCancellables = Set<AnyCancellable>()
 
     /// Optional plugin-requested height override for closed notch (e.g. teleprompter needs double height)
@@ -133,6 +138,14 @@ import SwiftUI
     weak var window: NSWindow?
     var isHoveringNotch: Bool {
         hoverController.isHoveringNotch
+    }
+
+    deinit {
+        hideOnClosedDebounceTask?.cancel()
+        earsDebounceTask?.cancel()
+        earsTrackingTask?.cancel()
+        closeWatchdogTask?.cancel()
+        postCloseHoverTask?.cancel()
     }
 
     // MARK: - Initialization
