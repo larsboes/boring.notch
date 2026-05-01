@@ -1303,13 +1303,13 @@ Extract open/close state machine + watchdog tasks into a dedicated `@MainActor @
 
 ### Phase 15 Success Metrics
 
-- BUG-2 never reproduces (notch width stable during keyboard-triggered open)
-- Zero presentation/application layer files import concrete `MusicManager`
-- `NotificationsPlugin` uses protocol, not concrete cast
-- `AudioFFTProcessor` has no force unwraps, has `@MainActor`
-- All unstructured `Task` refs stored and cancellable
-- `PluginManager+ViewHelpers` has no `switch id { case PluginID... }` pattern
-- Adding a new plugin requires zero changes to `PluginManager+ViewHelpers`
+- [x] BUG-2 never reproduces (notch width stable during keyboard-triggered open)
+- [x] Zero presentation/application layer files import concrete `MusicManager`
+- [x] `NotificationsPlugin` uses protocol, not concrete cast
+- [x] `AudioFFTProcessor` has no force unwraps, has `@MainActor`
+- [x] All unstructured `Task` refs stored and cancellable
+- [x] `PluginManager+ViewHelpers` has no `switch id { case PluginID... }` pattern
+- [x] Adding a new plugin requires zero changes to `PluginManager+ViewHelpers`
 
 ---
 
