@@ -54,7 +54,8 @@
 |-----------|--------|-------|
 | 14.1 — Velocity-Dependent Springs | **Merged** | Fast flings overshoot, slow opens settle. Gesture-only (hover opens bypass). |
 | 14.2 — Breathing Glow | **Killed** | Implemented but too subtle to notice; concept not compelling vs. real audio visualizer (Phase 12). |
-| 14.3+ | Planned | Dynamic liquid glass, content morphing, rubber-band gestures, haptic sync. |
+| 14.3 — Gesture-Driven Progressive Open | **Planned** | Drag down on notch visually scrubs the open animation linearly with drag distance. Full velocity spring only on release. |
+| 14.4 — Content Morphing | **Planned** | Re-enable the album art ghosting transition/matched geometry effect, adjusting timing to avoid artifacts. |
 
 **Latest architecture hardening commits:**
 - `d277bd4` — snapshot before cleanup
