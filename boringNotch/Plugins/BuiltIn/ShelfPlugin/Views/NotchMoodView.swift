@@ -5,7 +5,6 @@
 //  Created by Alexander on 2025-12-29.
 //
 
-
 import SwiftUI
 
 struct NotchMoodView: View {

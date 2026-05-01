@@ -91,24 +91,18 @@ struct BoringHeader: View {
     @ViewBuilder
     private var headerButtons: some View {
         if settings.showHabitTracker {
-            HeaderButton(icon: "checkmark.circle.fill", isActive: coordinator.currentView == .habitTracker) {
-                withAnimation(.smooth) {
-                    coordinator.currentView = coordinator.currentView == .habitTracker ? .home : .habitTracker
-                }
+            HeaderButton(icon: "checkmark.circle.fill", isActive: vm.currentView == .habitTracker) {
+                vm.navigate(to: vm.currentView == .habitTracker ? .home : .habitTracker)
             }
         }
         if settings.showPomodoro {
-            HeaderButton(icon: "timer", isActive: coordinator.currentView == .pomodoro) {
-                withAnimation(.smooth) {
-                    coordinator.currentView = coordinator.currentView == .pomodoro ? .home : .pomodoro
-                }
+            HeaderButton(icon: "timer", isActive: vm.currentView == .pomodoro) {
+                vm.navigate(to: vm.currentView == .pomodoro ? .home : .pomodoro)
             }
         }
         if settings.showTeleprompter {
-            HeaderButton(icon: "text.justify.left", isActive: coordinator.currentView == .teleprompter) {
-                withAnimation(.smooth) {
-                    coordinator.currentView = coordinator.currentView == .teleprompter ? .home : .teleprompter
-                }
+            HeaderButton(icon: "text.justify.left", isActive: vm.currentView == .teleprompter) {
+                vm.navigate(to: vm.currentView == .teleprompter ? .home : .teleprompter)
             }
         }
         if settings.showMirror {

@@ -148,7 +148,9 @@ class BatteryService: BatteryServiceProtocol, BackgroundServiceRestartable {
                 return BatteryInfo.defaultInfo
             }
             
-            let source = sources.first!
+            guard let source = sources.first else {
+                return BatteryInfo.defaultInfo
+            }
             
             guard let description = IOPSGetPowerSourceDescription(snapshot, source)?.takeUnretainedValue() as? [String: Any] else {
                 throw BatteryError.batteryInfoUnavailable("Could not get power source description")
@@ -242,4 +244,3 @@ struct BatteryInfo {
         timeToFullCharge: 0
     )
 }
-

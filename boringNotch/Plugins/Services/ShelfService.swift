@@ -7,7 +7,6 @@
 
 import Foundation
 import AppKit
-import Combine
 
 /// Concrete implementation of ShelfServiceProtocol.
 /// Manages the state and persistence of shelf items.

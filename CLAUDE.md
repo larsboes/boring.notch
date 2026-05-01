@@ -1,84 +1,100 @@
 # boring.notch — Project Instructions
 
-## Project Overview
-macOS SwiftUI app that replaces the MacBook notch with an interactive widget system. Plugin-first architecture — every feature (music, battery, calendar, weather, shelf, webcam, notifications, clipboard) is a plugin.
+## Overview
+macOS SwiftUI app that replaces the MacBook notch with an interactive widget system. Plugin-first architecture — every feature (music, battery, calendar, weather, shelf, webcam, notifications, clipboard, pomodoro, teleprompter, habits) is a plugin.
 
-## Tech Stack
-- **Domain Layer**: Compilable WITHOUT SwiftUI/AppKit. Located in `Core/` (domain-focused types like `NotchStateMachine`).
-- **UI Extension Layer**: UI-specific extensions on Domain objects. Located in `Plugins/UI/`.
-- **Dependency Injection**: No `.shared` singletons. Inject via protocols in `ServiceContainer`.
-- **Dependencies:** Defaults (settings), Sparkle (updates), Lottie (animations), KeyboardShortcuts
+## Build & Test
 - **Build:** `xcodebuild -scheme boringNotch -destination 'platform=macOS' build 2>&1 | tail -50`
 - **Test:** `xcodebuild -scheme boringNotch -destination 'platform=macOS' test 2>&1 | tail -50`
+- Always build after changes. Don't commit without a green build.
 
-## Code Standards
-- **Max 300 lines per file** (hard limit). Target 200 lines.
-- **No `.shared` singletons** in views or services. Use `@Environment` or init injection. Acceptable exceptions: `NSWorkspace.shared`, `NSApplication.shared`, `URLSession.shared`, `URLCache.shared`, `XPCHelperClient.shared`, `FullScreenMonitor.shared`, `QLThumbnailGenerator.shared`, `QLPreviewPanel.shared()`, `NSScreenUUIDCache.shared`, `SkyLightOperator.shared`, `DefaultsNotchSettings.shared` (settings injection root only).
-- **No direct `Defaults[.]` access** outside `DefaultsNotchSettings.swift`. Use `NotchSettings` protocol / `@Environment(\.bindableSettings)`.
-- **`@Observable` + `@MainActor`** for all observable state. No `ObservableObject`/`@Published`.
-- **Protocol-based services** injected via `PluginContext` or init parameters.
-- **HUD/sneak peek requests:** Publish `SneakPeekRequestedEvent` via `PluginEventBus` — never call coordinator directly.
-- **No service construction in SwiftUI views.** Views receive dependencies; they do not create them.
+## Directory Structure
 
-## SOLID Principles — Mapped to This Codebase
-
-| Principle | Rule |
-|-----------|------|
-| **Single Responsibility** | One file = one responsibility. If you need an "and" to describe a file's purpose, split it. |
-| **Open/Closed** | New features → new `NotchPlugin`. Never modify `PluginManager` to add feature logic. |
-| **Liskov Substitution** | Every `ServiceProtocol` implementation must be fully substitutable — no `fatalError` in conformances. |
-| **Interface Segregation** | Split large protocols by consumer. A plugin that only needs `play()` should not depend on `VolumeServiceProtocol.setBrightness()`. |
-| **Dependency Inversion** | Plugins and views depend on protocols, never concrete types. `ServiceContainer` is the only place that instantiates concrete services. |
+```
+boringNotch/
+├── Core/                    # Domain + Application layer
+│   ├── Domain files         # NotchStateMachine, NotchPhase, SneakPeekTypes,
+│   │                        # NotchSettingsSubProtocols, MockNotchSettings
+│   │                        # → Must compile WITHOUT SwiftUI/AppKit
+│   ├── Controllers          # NotchHoverController, NotchSizeCalculator,
+│   │                        # NotchCameraController, NotchObserverManager
+│   ├── Coordinators         # WindowCoordinator, NotchContentRouter,
+│   │                        # SneakPeekService, KeyboardShortcutCoordinator
+│   └── Settings             # DefaultsNotchSettings (+extensions), NotchSettings,
+│                            # NotchViewModelSettings, Constants, DefaultsKeys, SettingsTypes
+├── ViewModel/               # BoringViewModel + extensions (Camera, Hover, Observers, OpenClose)
+├── models/                  # Pure data models only (CalendarModel, EventModel, PlaybackState, etc.)
+├── Plugins/
+│   ├── Core/                # PluginManager, NotchPlugin, PluginEventBus, PluginSettings
+│   ├── Services/            # ALL service protocols + implementations (61 files)
+│   │                        # ServiceContainer (DI), protocols, managers, services
+│   └── BuiltIn/             # Each plugin = bounded context
+│       ├── MusicPlugin/     # Plugin + Views/
+│       ├── ShelfPlugin/     # Plugin + Models/ + Services/ + ViewModels/ + Views/
+│       ├── CalendarPlugin/  # Plugin + Views/
+│       ├── WeatherPlugin/   # Plugin + Views/
+│       ├── BatteryPlugin/   # Plugin
+│       └── ...              # Webcam, Notifications, Pomodoro, Teleprompter, etc.
+├── components/              # Shared UI only — not feature-specific
+│   ├── Notch/               # Notch chrome (shape, window, header)
+│   ├── Settings/            # Settings views
+│   ├── Onboarding/          # First-run flow
+│   ├── Effects/             # LiquidGlass, MetalBlurView
+│   ├── Live activities/     # HUD views (shared across plugins)
+│   └── Tabs/                # Tab navigation
+├── BoringViewCoordinator    # Shared cross-screen state (sneakPeek, expandingView)
+├── AppObjectGraph           # DI root — constructs all services and coordinators
+├── ContentView              # + Appearance, SubViews extensions
+├── sizing/                  # matters.swift — pure sizing functions
+├── MediaControllers/        # NowPlaying, Spotify, AppleMusic, YouTube, Browser
+├── extensions/              # Swift extensions
+├── helpers/                 # Utility helpers
+└── observers/               # System observers (fullscreen, drag, media keys)
+```
 
 ## DDD Layer Boundaries
 
-Layer rules are import constraints:
+| Layer | Where | Imports | Forbidden |
+|-------|-------|---------|-----------|
+| **Domain** | `Core/` domain files (5 files) | Foundation, Observation, Combine, Defaults | SwiftUI, AppKit |
+| **Application** | `Core/` coordinators + `Plugins/Core/` + `Plugins/BuiltIn/` | Domain + SwiftUI/AppKit | Concrete infra types |
+| **Infrastructure** | `Plugins/Services/`, `DefaultsNotchSettings` | Anything | — |
+| **Presentation** | `components/`, plugin `Views/`, `ContentView` | Application + SwiftUI/AppKit | Direct Defaults, concrete services |
 
-| Layer | Directory | Allowed Imports | Forbidden |
-|-------|-----------|-----------------|-----------|
-| **Domain** | `Core/` domain files: `NotchStateMachine`, `NotchPhase`, `NotchSettingsSubProtocols`, `MockNotchSettings` | `Foundation`, `Observation`, `Combine`, `Defaults` | SwiftUI, AppKit |
-| **Application** | `Core/` coordinators: `WindowCoordinator`, `HoverZoneManager`, `NotchContentRouter`, `SneakPeekService`, etc. + `Plugins/Core/`, `Plugins/UI/`, `Plugins/BuiltIn/` | Domain + SwiftUI/AppKit for coordination | Concrete infra types |
-| **Infrastructure** | `managers/`, `Plugins/Services/` (implementations), `DefaultsNotchSettings` | Anything needed | — |
-| **Presentation** | `components/`, plugin `Views/`, `ContentView` | Application layer + SwiftUI/AppKit | Direct Defaults, concrete services |
+## Plugin System
 
-**Bounded contexts:** Each plugin is its own bounded context. Plugins communicate exclusively via `PluginEventBus`, never by importing each other.
+- Each plugin conforms to `NotchPlugin`, receives deps via `PluginContext.activate()`
+- Plugins communicate via `PluginEventBus` only — never import each other
+- Plugin views live inside `Plugins/BuiltIn/*/Views/`
+- HUD requests: publish `SneakPeekRequestedEvent` — never call coordinator directly
+- New features → new `NotchPlugin`. Never modify `PluginManager` for feature logic.
 
-**Domain purity rule:** Domain-layer files in `Core/` (NotchStateMachine, NotchPhase, settings protocols, MockNotchSettings) must compile without SwiftUI/AppKit — only `Foundation`, `Observation`, `Combine`, `Defaults`. Application-layer coordinators in `Core/` (WindowCoordinator, HoverZoneManager, etc.) may import SwiftUI/AppKit.
+## Code Standards
 
-**Value objects:** Use `struct` for types with no identity. Use `@Observable final class` only for entities with lifecycle and observable state.
+- **Max 300 lines** per file (hard limit). Target 200.
+- **`@Observable` + `@MainActor`** for all state. No `ObservableObject`/`@Published`.
+- **Protocol-based services** via `ServiceContainer`. No `.shared` singletons in views/services.
+- **No direct `Defaults[.]`** outside `DefaultsNotchSettings.swift`. Use `@Environment(\.bindableSettings)`.
+- **No service construction in views.** Views receive dependencies; never create them.
+- Allowed `.shared` exceptions: `NSWorkspace`, `NSApplication`, `URLSession`, `URLCache`, `XPCHelperClient`, `FullScreenMonitor`, `QLThumbnailGenerator`, `QLPreviewPanel`, `NSScreenUUIDCache`, `SkyLightOperator`, `DefaultsNotchSettings` (injection root only).
 
-## Architecture
+## Key Responsibilities
 
-```
-SwiftUI Views → PluginManager → NotchPlugin instances → Service Protocols → System APIs
-```
+| Component | Owns | Does NOT own |
+|-----------|------|-------------|
+| **BoringViewModel** | Per-screen state, notch open/close, sizing delegation | Shared UI state |
+| **BoringViewCoordinator** | Shared cross-screen state (sneakPeek, expandingView, helloAnimation) | Per-screen state |
+| **NotchSizeCalculator** | ALL closed-notch sizing via `ClosedNotchInput` struct | Service dependencies |
+| **NotchStateMachine** | Display state determination (pure domain) | UI, services |
+| **NotchContentRouter** | Which content to show for each display state | State determination |
 
-| Directory | Status | Purpose |
-|-----------|--------|---------|
-| `Plugins/Core/` | Modern | PluginManager, NotchPlugin, PluginEventBus, PluginSettings |
-| `Plugins/Services/` | Modern | ServiceContainer, 20+ service protocols + implementations |
-| `Plugins/BuiltIn/` | Modern | 12 plugin implementations |
-| `Core/` | Modern | Domain types (NotchStateMachine, NotchPhase) + Application coordinators (WindowCoordinator, NotchContentRouter) |
-| `models/` | Mixed | BoringViewModel + extracted controllers |
-| `components/` | Legacy | Views migrating into plugin views |
-| `managers/` | Legacy | Managers wrapping into services |
+## Sizing Subsystem
 
-## Key Files
-- `docs/PRD.md` — active implementation plan + migration status
-- `docs/ARCHITECTURE.md` — architecture reference
-- `docs/PLUGIN_DEVELOPMENT.md` — plugin development guide
-- `boringNotch/AppObjectGraph.swift` — DI root; constructs all services and coordinators
-- `boringNotch/Plugins/Core/PluginManager.swift` — central plugin orchestrator
-- `boringNotch/Plugins/Services/ServiceContainer.swift` — DI container
-- `boringNotch/BoringViewCoordinator.swift` — view coordinator (active, implements NotchAnimationStateProviding)
-- `boringNotch/Core/NotchStateMachine.swift` — pure, tested, stable state machine
+`NotchSizeCalculator` is the single source of truth for closed notch geometry. It receives a `ClosedNotchInput` value type (no service deps) and computes `effectiveClosedNotchSize`, `effectiveClosedNotchHeight`, `chinHeight`. BoringViewModel constructs the input and delegates.
 
 ## Files to Not Touch
-- `boringNotch/Plugins/Core/NotchPlugin.swift` — stable protocol
-- `boringNotch/Plugins/Core/PluginEventBus.swift` — stable; add new event types as new structs
-- `boringNotch/Core/NotchStateMachine.swift` — pure and tested; only modify if state logic changes
-- `boringNotch/private/CGSSpace.swift` — private API wrapper
+- `Plugins/Core/NotchPlugin.swift` — stable protocol
+- `Plugins/Core/PluginEventBus.swift` — stable; add new event types as new structs
+- `Core/NotchStateMachine.swift` — pure domain; only modify if state logic changes
+- `private/CGSSpace.swift` — private API wrapper
 - `mediaremote-adapter/` — pre-built framework, read-only
-
-## Build & Verify
-Always build after changes. Don't commit without a green build.

@@ -85,9 +85,9 @@ final class NowPlayingController: MediaControllerProtocol {
     private let MRMediaRemoteSetShuffleModeFunction: @convention(c) (Int) -> Void
     private let MRMediaRemoteSetRepeatModeFunction: @convention(c) (Int) -> Void
 
-    nonisolated(unsafe) private var process: Process?
-    nonisolated(unsafe) private var pipeHandler: JSONLinesPipeHandler?
-    nonisolated(unsafe) private var streamTask: Task<Void, Never>?
+    @ObservationIgnored nonisolated(unsafe) private var process: Process?
+    @ObservationIgnored nonisolated(unsafe) private var pipeHandler: JSONLinesPipeHandler?
+    @ObservationIgnored nonisolated(unsafe) private var streamTask: Task<Void, Never>?
 
     // MARK: - Initialization
     init?() {

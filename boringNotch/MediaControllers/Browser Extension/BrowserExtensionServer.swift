@@ -19,7 +19,7 @@ final class BrowserExtensionServer {
 
     let statePublisher = PassthroughSubject<BrowserMediaState, Never>()
 
-    private init() {}
+    init() {}
 
     func start() {
         guard listener == nil else { return }
@@ -89,7 +89,7 @@ final class BrowserExtensionServer {
                 if let data = data, !data.isEmpty {
                     // First read attempt: is it a WebSocket handshake?
                     if let requestStr = String(data: data, encoding: .utf8), requestStr.contains("Upgrade: websocket") {
-                        self.handleWebSocketHandshake(requestStr: requestStr, connection: connection, data: data)
+                        self.handleWebSocketHandshake(requestStr: requestStr, connection: connection)
                     } else {
                         // It's a WebSocket frame.
                         self.handleWebSocketFrame(data: data)
@@ -103,11 +103,12 @@ final class BrowserExtensionServer {
                 }
 
                 self.receiveMessage(on: connection, id: id)
+
             }
         }
     }
 
-    private func handleWebSocketHandshake(requestStr: String, connection: NWConnection, data: Data) {
+    private func handleWebSocketHandshake(requestStr: String, connection: NWConnection) {
         let lines = requestStr.components(separatedBy: "\r\n")
         var secWebSocketKey = ""
         for line in lines {
@@ -142,7 +143,7 @@ final class BrowserExtensionServer {
         let header1 = data[0]
         let header2 = data[1]
         
-        let _ = (header1 & 0x80) != 0 // isFinal — reserved for future fragmentation support
+        _ = (header1 & 0x80) != 0 // isFinal — reserved for future fragmentation support
         let opCode = header1 & 0x0F
         let isMasked = (header2 & 0x80) != 0
         var payloadLength = Int(header2 & 0x7F)
@@ -208,10 +209,6 @@ final class BrowserExtensionServer {
 
     private func websocketAccept(for key: String) -> String? {
         let magic = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-        guard let data = magic.data(using: .utf8) else { return nil }
-        // Simple SHA1 hash calculation is required here
-        // We will use CommonCrypto via a helper if needed, or rely on AppleScript logic for WS server
-        // For Swift 5, we can use Insecure.SHA1 from CryptoKit
         return insecureSHA1Base64(string: magic)
     }
 }

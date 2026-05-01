@@ -23,7 +23,7 @@ extension BoringViewModel {
 
     func configureHoverCallbacks() {
         hoverController.isShelfActive = { [weak self] in
-            self?.coordinator.currentView == .shelf
+            self?.currentView == .shelf
         }
         hoverController.onShouldOpen = { [weak self] in
             guard let self else { return }

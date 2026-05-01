@@ -31,10 +31,12 @@ class DownloadWatcher {
 struct DownloadArea: View {
     @Environment(DownloadWatcher.self) var watcher
 
+    private var currentDownload: DownloadFile? { watcher.downloadFiles.first }
+
     var body: some View {
         HStack(alignment: .center) {
             HStack {
-                if watcher.downloadFiles.first!.browser == .safari {
+                if currentDownload?.browser == .safari {
                     AppIcon(for: "com.apple.safari")
                 } else {
                     AppIcon(for: "com.google.Chrome")
@@ -47,8 +49,8 @@ struct DownloadArea: View {
             Spacer()
             HStack(spacing: 12) {
                 VStack(alignment: .trailing) {
-                    Text(watcher.downloadFiles.first!.formattedSize)
-                    Text(watcher.downloadFiles.first!.name).font(.caption2).foregroundStyle(.gray)
+                    Text(currentDownload?.formattedSize ?? "")
+                    Text(currentDownload?.name ?? "").font(.caption2).foregroundStyle(.gray)
                 }
             }
         }

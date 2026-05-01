@@ -259,4 +259,3 @@ final class ImageProcessingService: ImageProcessingServiceProtocol {
         return contentType.conforms(to: .image)
     }
 }
-

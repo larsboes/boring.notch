@@ -7,7 +7,6 @@
 //
 
 import AppKit
-import Combine
 import Defaults
 import SwiftUI
 
@@ -188,4 +187,3 @@ final class WindowCoordinator {
         return primaryViewModel
     }
 }
-

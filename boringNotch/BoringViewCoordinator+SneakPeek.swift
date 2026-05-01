@@ -45,13 +45,13 @@ extension BoringViewCoordinator {
                 return
             }
         }
-        Task { @MainActor in
-            withAnimation(.smooth) {
-                self.sneakPeek.show = status
-                self.sneakPeek.type = type
-                self.sneakPeek.value = value
-                self.sneakPeek.icon = icon
-            }
+        // Synchronous — no Task hop. This class is @MainActor so we're already on main.
+        // Wrapping in Task deferred the mutation by one tick, causing stale state reads.
+        withAnimation(.smooth) {
+            self.sneakPeek.show = status
+            self.sneakPeek.type = type
+            self.sneakPeek.value = value
+            self.sneakPeek.icon = icon
         }
 
         if type == .mic {
@@ -65,11 +65,9 @@ extension BoringViewCoordinator {
         sneakPeekTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(duration))
             guard let self = self, !Task.isCancelled else { return }
-            await MainActor.run {
-                withAnimation {
-                    self.toggleSneakPeek(status: false, type: .music)
-                    self.sneakPeekDuration = self.settings.sneakPeakDuration
-                }
+            withAnimation {
+                self.toggleSneakPeek(status: false, type: .music)
+                self.sneakPeekDuration = self.settings.sneakPeakDuration
             }
         }
     }
@@ -80,13 +78,12 @@ extension BoringViewCoordinator {
         value: CGFloat = 0,
         browser: BrowserType = .chromium
     ) {
-        Task { @MainActor in
-            withAnimation(.smooth) {
-                self.expandingView.show = status
-                self.expandingView.type = type
-                self.expandingView.value = value
-                self.expandingView.browser = browser
-            }
+        // Synchronous — no Task hop. Already on @MainActor.
+        withAnimation(.smooth) {
+            self.expandingView.show = status
+            self.expandingView.type = type
+            self.expandingView.value = value
+            self.expandingView.browser = browser
         }
     }
 }

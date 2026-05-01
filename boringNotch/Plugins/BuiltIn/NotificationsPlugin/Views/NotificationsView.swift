@@ -142,20 +142,29 @@ struct NotificationRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(notification.title)
-                        .font(.subheadline)
-                        .foregroundStyle(.white)
-                        .fontWeight(.semibold)
+                    if let app = notification.sourceApp {
+                        Text(app)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
                     Spacer()
                     Text(relativeDate)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
 
-                Text(notification.message)
+                Text(notification.title)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.leading)
+                    .foregroundStyle(.white)
+                    .fontWeight(.semibold)
+
+                if !notification.message.isEmpty {
+                    Text(notification.message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                }
             }
         }
         .padding(10)

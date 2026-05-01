@@ -148,4 +148,3 @@ final class ShelfFileHandler: ShelfFileHandlerProtocol {
         }
     }
 }
-

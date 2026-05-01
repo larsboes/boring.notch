@@ -290,4 +290,3 @@ struct Advanced: View {
         }
     }
 }
-

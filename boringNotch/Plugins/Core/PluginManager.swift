@@ -27,6 +27,10 @@ final class PluginManager {
     /// Service container for dependency injection
     let services: ServiceContainer
 
+    /// Incremented each time a plugin activates or deactivates.
+    /// ContentView observes this to re-evaluate the state machine after plugin lifecycle changes.
+    private(set) var pluginActivationGeneration: Int = 0
+
     /// Event bus for inter-plugin communication
     let eventBus: PluginEventBus
 
@@ -61,7 +65,6 @@ final class PluginManager {
             .compactMap { plugins[$0] }
             .filter { $0.isEnabled }
     }
-
 
     // MARK: - Initialization
 
@@ -133,6 +136,7 @@ final class PluginManager {
         do {
             try await plugin.activate(context: context)
             plugin.isEnabled = true
+            pluginActivationGeneration += 1
             eventBus.emit(.pluginActivated, from: id)
         } catch {
             throw PluginError.activationFailed(error.localizedDescription)
@@ -239,4 +243,3 @@ final class PluginManager {
         DisplayPrioritizer.highestPriority(among: activePlugins)
     }
 }
-

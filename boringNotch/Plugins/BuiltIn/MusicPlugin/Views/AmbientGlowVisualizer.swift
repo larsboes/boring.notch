@@ -117,8 +117,7 @@ struct AmbientGlowVisualizer: View {
                 let t = Double(j) / Double(steps) * arcLen
                 let px = cx + cos(t + rot) * rx
                 let py = cy + sin(t + rot) * ry
-                if j == 0 { path.move(to: CGPoint(x: px, y: py)) }
-                else { path.addLine(to: CGPoint(x: px, y: py)) }
+                if j == 0 { path.move(to: CGPoint(x: px, y: py)) } else { path.addLine(to: CGPoint(x: px, y: py)) }
             }
 
             let alpha = 0.1 + sin(time * 0.15 + seed) * 0.05 + (frequencyBands.isEmpty ? 0 : midEnergy * 0.12)

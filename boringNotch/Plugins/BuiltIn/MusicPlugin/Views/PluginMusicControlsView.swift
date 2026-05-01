@@ -239,7 +239,7 @@ struct IsolatedScrubberView: View {
                     ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
                 )
                 .monospacedDigit()
-                .frame(width: 36, alignment: .trailing)
+                .frame(width: 50, alignment: .trailing)
 
             CustomSlider(
                 value: $sliderValue,
@@ -263,7 +263,7 @@ struct IsolatedScrubberView: View {
                     ? Color(nsColor: service.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray
                 )
                 .monospacedDigit()
-                .frame(width: 36, alignment: .leading)
+                .frame(width: 50, alignment: .leading)
         }
         .onChange(of: date) {
             guard !dragging, service.timestampDate.timeIntervalSince(lastDragged) > -1 else { return }

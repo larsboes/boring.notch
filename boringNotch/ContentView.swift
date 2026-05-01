@@ -48,18 +48,20 @@ struct ContentView: View {
         let isPlaying: Bool
         let isPlayerIdle: Bool
         let activePluginId: String?
+        let pluginActivationGeneration: Int
     }
 
     private var currentStateSnapshot: StateSnapshot {
         StateSnapshot(
             helloAnimationRunning: coordinator.helloAnimationRunning,
             notchState: vm.notchState,
-            currentView: coordinator.currentView,
+            currentView: vm.currentView,
             sneakPeekShow: coordinator.sneakPeek.show,
             expandingViewShow: coordinator.expandingView.show,
             isPlaying: musicService.playbackState.isPlaying,
             isPlayerIdle: musicService.isPlayerIdle,
-            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin()
+            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin(),
+            pluginActivationGeneration: pluginManager?.pluginActivationGeneration ?? 0
         )
     }
 
@@ -96,9 +98,13 @@ struct ContentView: View {
                     .onChange(of: currentStateSnapshot) { _, _ in updateStateMachine() }
                     .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
                     .frame(width: computedChinWidth, alignment: .top)
+                    // Smooth width changes when closed (music ears, battery, face).
+                    // nil during transitions — those are driven by withAnimation in open()/close().
+                    .animation(vm.phase == .closed ? .smooth(duration: 0.3) : nil, value: computedChinWidth)
                     // Smoothly interpolate bottom padding based on animation progress
                     .padding(.bottom, lerp(0, 12, animationProgress))
                     .frame(height: isDisplayStateOpen ? vm.notchSize.height : nil, alignment: .top)
+                    .clipped()
                     .clipShape(currentNotchShape)
                     .background { notchBackground }
                     .overlay { glassOverlay }
@@ -154,7 +160,7 @@ struct ContentView: View {
 
             if isTargeted {
                 if vm.notchState == .closed {
-                    coordinator.currentView = .shelf
+                    vm.currentView = .shelf
                     doOpen()
                 }
                 return
@@ -189,7 +195,7 @@ struct ContentView: View {
 
         let input = NotchStateMachine.createInput(
             notchState: vm.notchState,
-            currentView: coordinator.currentView,
+            currentView: vm.currentView,
             coordinator: coordinator,
             musicService: musicService,
             pluginManager: pluginManager,

@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 @MainActor
 final class TeleprompterPlugin: NotchPlugin {
@@ -84,7 +83,7 @@ final class TeleprompterPlugin: NotchPlugin {
             return .json(APIResponseEnvelope.success(response))
         }
 
-        let aiService = context.services.ai
+        nonisolated(unsafe) let aiService = context.services.ai
         context.services.apiRouteRegistrar?.register(method: .post, path: "/api/v1/teleprompter/ai-assist") { [weak self] request in
             guard let self else { return .json(status: 500, APIResponseEnvelope<APIErrorData>.failure("Plugin unavailable")) }
 

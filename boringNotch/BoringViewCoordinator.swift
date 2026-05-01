@@ -48,14 +48,16 @@ import SwiftUI
 
     var expandingView: ExpandedItem = .init() {
         didSet {
+            guard expandingView.show != oldValue.show else { return }
             if expandingView.show {
                 expandingViewTask?.cancel()
                 let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
-                let currentType = expandingView.type
                 expandingViewTask = Task { [weak self] in
                     try? await Task.sleep(for: .seconds(duration))
-                    guard let self = self, !Task.isCancelled else { return }
-                    self.toggleExpandingView(status: false, type: currentType)
+                    guard let self, !Task.isCancelled else { return }
+                    withAnimation(.smooth) {
+                        self.expandingView.show = false
+                    }
                 }
             } else {
                 expandingViewTask?.cancel()
@@ -145,15 +147,12 @@ import SwiftUI
                 }
             }
 
-        // Observe changes to alwaysShowTabs
+        // Observe changes to alwaysShowTabs (settings mutation only;
+        // currentView reset is now per-screen in BoringViewModel.setupTabResetObserver)
         Task { @MainActor in
             for await value in Defaults.updates(.alwaysShowTabs) {
                 if !value {
                     self.settings.openLastTabByDefault = false
-                    let isShelfEmpty = self.shelfService?.isEmpty ?? true
-                    if isShelfEmpty || !self.settings.openShelfByDefault {
-                        currentView = .home
-                    }
                 }
             }
         }
@@ -222,7 +221,5 @@ import SwiftUI
         set { settings.preferredScreenUUID = newValue }
     }
 
-    func showEmpty() {
-        currentView = .home
-    }
+    // showEmpty() removed — currentView is now per-screen on BoringViewModel
 }

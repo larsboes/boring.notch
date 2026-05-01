@@ -5,7 +5,6 @@
 //  Extracted from BoringViewCoordinator — handles navigation state and tab settings observers.
 //
 
-import Combine
 // NOTE: Defaults.updates() is required because DefaultsNotchSettings uses @Observable with
 // computed properties. The @Observable macro only instruments stored properties, so
 // withObservationTracking won't fire for Defaults-backed computed properties.
@@ -45,7 +44,10 @@ final class NavigationState: NavigationStateProtocol {
         self.settings = settings
         self.isShelfEmpty = isShelfEmpty
 
-        setupSettingsObservers()
+        // NOTE: Do NOT auto-subscribe here. The coordinator already observes
+        // Defaults.updates(.alwaysShowTabs) and (.openLastTabByDefault).
+        // Call setupSettingsObservers() only when this service replaces the
+        // coordinator as the single owner of navigation state.
     }
 
     // MARK: - Public Methods

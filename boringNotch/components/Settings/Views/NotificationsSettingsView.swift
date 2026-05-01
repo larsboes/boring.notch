@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 struct NotificationsSettingsView: View {
     @Environment(\.pluginManager) var pluginManager
     @Environment(\.bindableSettings) var settings
@@ -84,6 +83,8 @@ struct NotificationsSettingsView: View {
             return "Provisional"
         case .ephemeral:
             return "Ephemeral"
+        case nil:
+            return "Unknown"
         @unknown default:
             return "Unknown"
         }

@@ -7,7 +7,6 @@
 
 import Foundation
 import CoreLocation
-import Combine
 
 /// Concrete implementation of WeatherServiceProtocol.
 /// Wraps the legacy WeatherManager to provide a modern, testable interface.
@@ -148,6 +147,11 @@ final class WeatherService: NSObject, WeatherServiceProtocol, CLLocationManagerD
 
 // MARK: - OpenWeatherMap Service
 
+private struct OpenWeatherErrorResponse: Codable {
+    let cod: Int?
+    let message: String?
+}
+
 private struct OpenWeatherResponse: Codable {
     let weather: [OpenWeatherCondition]
     let main: OpenWeatherMain
@@ -197,8 +201,23 @@ class OpenWeatherMapService {
 
         let (data, response) = try await URLSession.shared.data(from: url)
 
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw NSError(domain: "OpenWeatherMap", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch weather data"])
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            // Try to extract API error message
+            let apiMessage = (try? JSONDecoder().decode(OpenWeatherErrorResponse.self, from: data))?.message
+            let message: String
+            switch httpResponse.statusCode {
+            case 401:
+                message = apiMessage ?? "Invalid API key — check Settings > Weather"
+            case 429:
+                message = "API rate limit exceeded — try again later"
+            default:
+                message = apiMessage ?? "Weather API error (\(httpResponse.statusCode))"
+            }
+            throw NSError(domain: "OpenWeatherMap", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: message])
         }
 
         let decoded = try JSONDecoder().decode(OpenWeatherResponse.self, from: data)

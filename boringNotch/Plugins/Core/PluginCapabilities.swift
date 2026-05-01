@@ -281,13 +281,6 @@ struct NowPlayingInfo: Sendable, Equatable {
     let progress: Double
     let isPlaying: Bool
 
-    init(track: TrackInfo, artwork: NSImage?, progress: Double, isPlaying: Bool) {
-        self.track = track
-        self.artwork = artwork
-        self.progress = progress
-        self.isPlaying = isPlaying
-    }
-
     static func == (lhs: NowPlayingInfo, rhs: NowPlayingInfo) -> Bool {
         lhs.track == rhs.track &&
         lhs.progress == rhs.progress &&

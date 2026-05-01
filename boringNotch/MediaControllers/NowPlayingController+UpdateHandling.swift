@@ -26,7 +26,7 @@ extension NowPlayingController {
         } else if diff {
             if payload.playing == false {
                 let timeSinceLastUpdate = Date().timeIntervalSince(self.playbackState.lastUpdated)
-                self.currentTime = self.currentTime + (self.playbackState.playbackRate * timeSinceLastUpdate)
+                self.currentTime += (self.playbackState.playbackRate * timeSinceLastUpdate)
             } else {
                 self.currentTime = self.currentTime
             }

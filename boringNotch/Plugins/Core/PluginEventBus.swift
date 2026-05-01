@@ -40,16 +40,18 @@ final class PluginEventBus: Observable {
 
     // MARK: - Subscribing to Events
 
-    /// Subscribe to all events of a specific type
+    /// Subscribe to all events of a specific type.
+    /// Handler executes synchronously on MainActor (no Task hop) since
+    /// emit() is MainActor-isolated and PassthroughSubject delivers synchronously.
     func subscribe<T: PluginEvent>(
         to eventType: T.Type,
-        handler: @escaping (T) async -> Void
+        handler: @escaping @MainActor (T) -> Void
     ) -> AnyCancellable {
         events
             .compactMap { $0 as? T }
             .sink { event in
-                Task { @MainActor in
-                    await handler(event)
+                MainActor.assumeIsolated {
+                    handler(event)
                 }
             }
     }
@@ -57,13 +59,13 @@ final class PluginEventBus: Observable {
     /// Subscribe to events from a specific plugin
     func subscribe(
         from pluginId: String,
-        handler: @escaping (any PluginEvent) async -> Void
+        handler: @escaping @MainActor (any PluginEvent) -> Void
     ) -> AnyCancellable {
         events
             .filter { $0.sourcePluginId == pluginId }
             .sink { event in
-                Task { @MainActor in
-                    await handler(event)
+                MainActor.assumeIsolated {
+                    handler(event)
                 }
             }
     }
@@ -71,13 +73,13 @@ final class PluginEventBus: Observable {
     /// Subscribe to events of a specific type string
     func subscribe(
         toType type: PluginEventType,
-        handler: @escaping (any PluginEvent) async -> Void
+        handler: @escaping @MainActor (any PluginEvent) -> Void
     ) -> AnyCancellable {
         events
             .filter { $0.type == type }
             .sink { event in
-                Task { @MainActor in
-                    await handler(event)
+                MainActor.assumeIsolated {
+                    handler(event)
                 }
             }
     }

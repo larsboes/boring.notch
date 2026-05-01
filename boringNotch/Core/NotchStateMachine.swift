@@ -9,14 +9,6 @@
 import Foundation
 import Observation
 
-@MainActor protocol NotchAnimationStateProviding: AnyObject {
-    var helloAnimationRunning: Bool { get }
-    var sneakPeek: SneakPeekState { get }
-    var expandingView: ExpandedItem { get }
-    var shelfService: (any ShelfServiceProtocol)? { get set }
-}
-
-
 // MARK: - Display State Types
 
 /// Represents what the notch should display at any given moment.
@@ -147,7 +139,7 @@ class NotchStateMachine {
         // Checks if a plugin requested display and explicit sneak peek isn't overriding it
         if let pluginId = input.activePluginId,
            !input.hideOnClosed,
-           (!input.expandingView.show || input.expandingView.type == .music || input.expandingView.type == .battery) {
+           !input.expandingView.show || input.expandingView.type == .music || input.expandingView.type == .battery {
             return .closed(content: .plugin(pluginId))
         }
 
@@ -195,32 +187,6 @@ class NotchStateMachine {
         if displayState != newState {
             displayState = newState
         }
-    }
-
-    /// Create input from current app state (convenience method)
-    static func createInput(
-        notchState: NotchState,
-        currentView: NotchViews,
-        coordinator: any NotchAnimationStateProviding,
-        musicService: any MusicServiceProtocol,
-        pluginManager: PluginManager?,
-        hideOnClosed: Bool,
-        settings: NotchSettings
-    ) -> NotchStateInput {
-        NotchStateInput(
-            notchState: notchState,
-            currentView: currentView,
-            helloAnimationRunning: coordinator.helloAnimationRunning,
-            sneakPeek: coordinator.sneakPeek,
-            expandingView: coordinator.expandingView,
-            activePluginId: pluginManager?.highestPriorityClosedNotchPlugin(),
-            isPlayerIdle: musicService.isPlayerIdle,
-            isPlaying: musicService.playbackState.isPlaying,
-            hideOnClosed: hideOnClosed,
-            showInlineHUD: settings.inlineHUD,
-            showNotHumanFace: settings.showNotHumanFace,
-            sneakPeekStyle: settings.sneakPeekStyles
-        )
     }
 
     /// Determines what would be shown if the notch were forced to its closed state.

@@ -154,9 +154,9 @@ final class MusicPlugin: NotchPlugin, PlayablePlugin, PositionedPlugin, Exportab
     var displayRequest: DisplayRequest? {
         guard isEnabled, state.isActive,
               let service = musicService,
-              (service.playbackState.isPlaying || !service.isPlayerIdle),
+              service.playbackState.isPlaying || !service.isPlayerIdle,
               // Use settings to check if Live Activity is enabled
-              (settings?.get("showLiveActivity", default: true) ?? true)
+              settings?.get("showLiveActivity", default: true) ?? true
         else {
             return nil
         }

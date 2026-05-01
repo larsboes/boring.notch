@@ -47,8 +47,7 @@ struct NotchContentRouter: View {
                 expandingContent(type: type)
             }
         }
-        .opacity(vm.phase == .opening || vm.phase == .closing ? vm.contentRevealProgress : 1.0)
-    .environment(coordinator)
+        .environment(coordinator)
     .environment(\.displayClosedNotchHeight, closedNotchHeight)
     .environment(\.cornerRadiusScaleFactor, cornerRadiusScaleFactor)
     .environment(\.cornerRadiusInsets, cornerRadiusInsets)
@@ -100,8 +99,6 @@ struct NotchContentRouter: View {
         .fill(Color.clear)
         .frame(width: vm.closedNotchSize.width, height: closedNotchHeight)
     }
-
-
 
     @ViewBuilder
     private func inlineHUDContent(type: SneakContentType, value: CGFloat, icon: String) -> some View {
@@ -198,6 +195,11 @@ struct NotchContentRouter: View {
                         pluginManager.expandedPanelView(for: PluginID.clipboard)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
+                case .weather:
+                    if let pluginManager {
+                        pluginManager.expandedPanelView(for: PluginID.weather)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 case .notes:
                     if let pluginManager {
                         NotesView(manager: pluginManager.services.notesManager)
@@ -245,8 +247,6 @@ struct NotchContentRouter: View {
         EmptyView()
     }
 }
-
-
 
 // MARK: - Preview Provider
 

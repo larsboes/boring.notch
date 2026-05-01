@@ -1,6 +1,6 @@
 # Architecture Overview
 
-> **Note:** This document reflects the system architecture as of March 2026 (v1.0 Plugin System + SOLID/DDD hardening).
+> **Note:** This document reflects the system architecture as of March 2026 (v1.0 Plugin System + SOLID/DDD hardening + DDD directory restructure).
 
 Boring Notch is a macOS application designed to transform the static camera notch into a dynamic, interactive utility hub. The architecture is built on a **modular, plugin-first** foundation, ensuring extensibility, testability, and separation of concerns.
 
@@ -237,44 +237,77 @@ This prevents key collisions and facilitates resetting a specific plugin without
 
 ```
 boringNotch/
+├── Core/                          # Domain + Application Layer
+│   ├── NotchStateMachine.swift    #   Domain: pure state logic (no SwiftUI/AppKit)
+│   ├── NotchPhase.swift           #   Domain: phase enum
+│   ├── SneakPeekTypes.swift       #   Domain: value types
+│   ├── NotchSettingsSubProtocols  #   Domain: settings contracts
+│   ├── WindowCoordinator.swift    #   Application: window management
+│   ├── NotchContentRouter.swift   #   Application: view routing
+│   ├── NotchHoverController.swift #   Application: hover state machine
+│   ├── NotchSizeCalculator.swift  #   Application: sizing (ClosedNotchInput → CGSize)
+│   ├── DefaultsNotchSettings.swift#   Infrastructure: settings implementation
+│   ├── Constants.swift            #   Infrastructure: paths, notification names
+│   └── SettingsTypes.swift        #   Infrastructure: Defaults.Serializable enums
+│
+├── ViewModel/                     # BoringViewModel + Extensions
+│   ├── BoringViewModel.swift      #   Per-screen orchestrator
+│   ├── +Camera, +Hover, +Observers, +OpenClose
+│
+├── models/                        # Pure Data Models Only
+│   ├── CalendarModel, EventModel, PlaybackState, WeatherData, etc.
+│
 ├── Plugins/
-│   ├── Core/                 # Framework Definitions
-│   │   ├── NotchPlugin.swift           # The Protocol
-│   │   ├── PluginManager.swift         # The Registry
-│   │   ├── PluginEventBus.swift        # Inter-plugin communication
-│   │   ├── PluginID.swift              # Centralized plugin identifiers
-│   │   └── DisplayPrioritizer.swift    # Closed notch priority arbitration
+│   ├── Core/                      # Plugin Framework
+│   │   ├── NotchPlugin.swift      #   The Protocol
+│   │   ├── PluginManager.swift    #   Registry + lifecycle
+│   │   ├── PluginEventBus.swift   #   Inter-plugin communication
+│   │   ├── PluginID.swift         #   Centralized identifiers
+│   │   └── DisplayPrioritizer.swift
 │   │
-│   ├── Services/             # System Integrations
-│   │   ├── ServiceContainer.swift      # DI Container
-│   │   ├── MusicService.swift          # Media Player API
-│   │   ├── BatteryService.swift        # IOKit Wrapper
+│   ├── Services/                  # ALL Infrastructure (61 files)
+│   │   ├── ServiceContainer.swift #   DI Container
+│   │   ├── *Protocol.swift        #   Service contracts
+│   │   ├── *Service.swift         #   Service implementations
+│   │   ├── *Manager.swift         #   System integrations (Volume, Bluetooth, etc.)
 │   │   └── ...
 │   │
-│   └── BuiltIn/              # Feature Implementations
-│       ├── MusicPlugin/
-│       ├── BatteryPlugin/
-│       ├── CalendarPlugin/
+│   └── BuiltIn/                   # Feature Plugins (bounded contexts)
+│       ├── MusicPlugin/           #   Plugin + Views/
+│       ├── ShelfPlugin/           #   Plugin + Models/ + Services/ + ViewModels/ + Views/
+│       ├── CalendarPlugin/        #   Plugin + Views/
+│       ├── WeatherPlugin/         #   Plugin + Views/
+│       ├── TeleprompterPlugin/    #   Plugin + Views/ + state files
 │       └── ...
 │
-├── Core/                     # App Lifecycle & Windowing
-│   ├── NotchStateMachine.swift
-│   ├── NotchContentRouter.swift
-│   └── ...
+├── components/                    # Shared UI Only (not feature-specific)
+│   ├── Notch/                     #   Notch chrome, shape, window
+│   ├── Settings/                  #   Settings views
+│   ├── Onboarding/                #   First-run flow
+│   ├── Effects/                   #   LiquidGlass, MetalBlur
+│   ├── Live activities/           #   HUD views (cross-plugin)
+│   └── Tabs/                      #   Tab navigation
+│
+├── BoringViewCoordinator.swift    # Shared cross-screen state
+├── AppObjectGraph.swift           # DI root
+├── ContentView.swift              # + Appearance, SubViews
+├── MediaControllers/              # NowPlaying, Spotify, AppleMusic, YouTube, Browser
+└── sizing/matters.swift           # Pure sizing utility functions
 ```
 
 ---
 
 ## ⚠️ Known Architecture Debt
 
-Tracked violations from comprehensive SOLID/DDD review (2026-03-08). See PRD for full details and fix triggers.
+Last reviewed: 2026-03-21 (post DDD restructure).
 
-| Issue | Principle | Severity | Fix Trigger |
-|-------|-----------|----------|-------------|
-| `BoringViewModel` depends on concrete `BoringViewCoordinator` (22 files) | DIP | Medium | When coordinator needs mocking or second impl |
-| `NotchServiceProvider` has 28 properties — plugins over-depend | ISP | Medium | Phase 9 (third-party plugins) |
-| `CoordinatorSettings` composes 6 sub-protocols but uses ~5 props | ISP | Low | Next settings refactor |
+| Issue | Principle | Severity | Notes |
+|-------|-----------|----------|-------|
+| `ShelfItem` referenced by `PluginEventBus` | Bounded Context | Medium | Event bus carries domain type from shelf context. Fix: type-erased event payload. |
+| `ShelfSelectionModel` in `ShelfServiceProtocol` | DDD Layers | Medium | ViewModel type exposed through service protocol. Fix: expose selection as ID set. |
+| `BoringViewModel` dependency in all plugin views | DIP | Medium | Plugin views use `@Environment(BoringViewModel.self)`. Not fully self-contained. |
 | `NotchContentRouter.openContent()` switches on `NotchViews` enum | OCP | Low | When adding plugin-provided views dynamically |
+| `Constants.swift` imports SwiftUI for `CGFloat` | Domain Purity | Low | Could extract `spacing` to avoid SwiftUI import in Core/ |
 
 ---
 

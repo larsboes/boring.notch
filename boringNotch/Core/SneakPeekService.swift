@@ -69,7 +69,10 @@ final class SneakPeekService: SneakPeekServiceProtocol {
         self.sneakPeekDuration = settings.sneakPeakDuration
         self.onMicStatusChange = onMicStatusChange
 
-        subscribeToSneakPeekEvents()
+        // NOTE: Do NOT auto-subscribe here. The coordinator already subscribes
+        // to SneakPeekRequestedEvent in BoringViewCoordinator+Plugins.swift.
+        // Call subscribeToSneakPeekEvents() only when this service replaces the
+        // coordinator as the single source of truth for sneak peek state.
     }
 
     nonisolated deinit {

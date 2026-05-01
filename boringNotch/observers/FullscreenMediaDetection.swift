@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 import MacroVisionKit
 
 @MainActor
@@ -22,8 +21,6 @@ import MacroVisionKit
         self.settings = settings
         startMonitoring()
     }
-    
-
     
     private func startMonitoring() {
         monitorTask = Task { @MainActor in

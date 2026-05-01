@@ -20,7 +20,7 @@ final class NotchStateMachineTests: XCTestCase {
             notchState: .closed,
             currentView: .home,
             helloAnimationRunning: false,
-            sneakPeek: SneakPeek(show: false, type: .music, value: 0.0, icon: ""),
+            sneakPeek: SneakPeekState(show: false, type: .music, value: 0.0, icon: ""),
             expandingView: ExpandedItem(show: false, type: .battery, value: 0),
             activePluginId: nil,
             isPlayerIdle: true,
@@ -49,7 +49,7 @@ final class NotchStateMachineTests: XCTestCase {
         input.notchState = .open
         input.isPlaying = true
         input.activePluginId = "com.boringnotch.music"
-        input.sneakPeek = SneakPeek(show: true, type: .volume, value: 0.5, icon: "speaker")
+        input.sneakPeek = SneakPeekState(show: true, type: .volume, value: 0.5, icon: "speaker")
         
         let state = stateMachine.computeDisplayState(from: input)
 
@@ -89,7 +89,7 @@ final class NotchStateMachineTests: XCTestCase {
 
         var input = makeDefaultInput()
         input.notchState = .closed
-        input.sneakPeek = SneakPeek(show: true, type: .volume, value: 0.75, icon: "speaker.wave.3")
+        input.sneakPeek = SneakPeekState(show: true, type: .volume, value: 0.75, icon: "speaker.wave.3")
         input.showInlineHUD = true
 
         let state = stateMachine.computeDisplayState(from: input)
@@ -209,7 +209,7 @@ final class NotchStateMachineTests: XCTestCase {
 
         var input = makeDefaultInput()
         input.notchState = .closed
-        input.sneakPeek = SneakPeek(show: true, type: .brightness, value: 0.7, icon: "sun.max")
+        input.sneakPeek = SneakPeekState(show: true, type: .brightness, value: 0.7, icon: "sun.max")
         input.showInlineHUD = false  // Inline HUD disabled
 
         let state = stateMachine.computeDisplayState(from: input)
@@ -231,7 +231,7 @@ final class NotchStateMachineTests: XCTestCase {
 
         var input = makeDefaultInput()
         input.notchState = .closed
-        input.sneakPeek = SneakPeek(show: true, type: .music, value: 0, icon: "music.note")
+        input.sneakPeek = SneakPeekState(show: true, type: .music, value: 0, icon: "music.note")
         input.hideOnClosed = false
         input.sneakPeekStyle = .standard
         input.activePluginId = nil // Ensure regular plugin view isn't active

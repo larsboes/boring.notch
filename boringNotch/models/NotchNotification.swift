@@ -8,6 +8,7 @@ enum NotchNotificationCategory: String, Codable, CaseIterable {
     case shelf
     case system
     case info
+    case app
 
     var icon: String {
         switch self {
@@ -21,6 +22,8 @@ enum NotchNotificationCategory: String, Codable, CaseIterable {
             return "gear"
         case .info:
             return "info.circle.fill"
+        case .app:
+            return "app.badge"
         }
     }
 
@@ -36,6 +39,8 @@ enum NotchNotificationCategory: String, Codable, CaseIterable {
             return "System"
         case .info:
             return "Info"
+        case .app:
+            return "App"
         }
     }
 }
@@ -46,6 +51,7 @@ struct NotchNotification: Identifiable, Codable, Hashable, Defaults.Serializable
     let message: String
     let date: Date
     let category: NotchNotificationCategory
+    let sourceApp: String?
     var isRead: Bool
 
     init(
@@ -54,6 +60,7 @@ struct NotchNotification: Identifiable, Codable, Hashable, Defaults.Serializable
         message: String,
         date: Date = Date(),
         category: NotchNotificationCategory,
+        sourceApp: String? = nil,
         isRead: Bool = false
     ) {
         self.id = id
@@ -61,6 +68,7 @@ struct NotchNotification: Identifiable, Codable, Hashable, Defaults.Serializable
         self.message = message
         self.date = date
         self.category = category
+        self.sourceApp = sourceApp
         self.isRead = isRead
     }
 }

@@ -6,7 +6,6 @@
 //  Modified by Harsh Vardhan Goswami & Richard Kunkli & Mustafa Ramadan & Arsh Anwar
 //
 
-import Combine
 import Defaults
 import SwiftUI
 
@@ -38,14 +37,9 @@ struct NotchHomeView: View {
         settings.showCalendar
     }
     
-    private var shouldShowWeather: Bool {
-        settings.showWeather
-    }
-    
     private var additionalItemsCount: Int {
         var count = 0
         if shouldShowCalendar { count += 1 }
-        if shouldShowWeather { count += 1 }
         if shouldShowCamera { count += 1 }
         return count
     }
@@ -59,7 +53,7 @@ struct NotchHomeView: View {
         
         // Base width, clamped to ensure it doesn't get too small or too large
         let calculatedWidth = maxAvailableWidth / CGFloat(additionalItemsCount)
-        return min(max(calculatedWidth - 10, 80), 215)
+        return min(max(calculatedWidth - 10, 80), 300)
     }
 
     private var mainContent: some View {
@@ -74,6 +68,7 @@ struct NotchHomeView: View {
                 if let pluginManager {
                     pluginManager.expandedPanelView(for: PluginID.calendar)
                         .frame(width: itemWidth)
+                        .clipped()
                         .onHover { isHovering in
                             vm.isHoveringCalendar = isHovering
                         }
@@ -82,20 +77,11 @@ struct NotchHomeView: View {
                 }
             }
 
-            if shouldShowWeather {
-                if let pluginManager {
-                    pluginManager.expandedPanelView(for: PluginID.weather)
-                        .frame(width: itemWidth)
-                        .environment(vm)
-                        .contentReveal(progress: contentProgress, staggerIndex: 2)
-                }
-            }
-
             if shouldShowCamera {
                 if let pluginManager {
                     pluginManager.expandedPanelView(for: PluginID.webcam)
                         .scaledToFit()
-                        .contentReveal(progress: contentProgress, staggerIndex: 3, useBlur: false)
+                        .contentReveal(progress: contentProgress, staggerIndex: 2, useBlur: false)
                 }
             }
         }

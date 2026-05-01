@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import Combine
 import CoreAudio
 import Foundation
 
@@ -157,13 +156,13 @@ import Foundation
             self.fetchCurrentVolume()
         }
 
-        var masterAddr = AudioObjectPropertyAddress(
+        var primaryAddr = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyVolumeScalar,
             mScope: kAudioDevicePropertyScopeOutput,
             mElement: kAudioObjectPropertyElementMain
         )
-        if AudioObjectHasProperty(deviceID, &masterAddr) {
-            AudioObjectAddPropertyListenerBlock(deviceID, &masterAddr, nil) { _, _ in
+        if AudioObjectHasProperty(deviceID, &primaryAddr) {
+            AudioObjectAddPropertyListenerBlock(deviceID, &primaryAddr, nil) { _, _ in
                 self.fetchCurrentVolume()
             }
         } else {

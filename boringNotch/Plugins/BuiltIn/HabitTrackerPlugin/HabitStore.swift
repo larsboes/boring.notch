@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 import SwiftUI
 
 @MainActor
@@ -161,7 +160,7 @@ final class HabitStore {
             }
             
             // Best streak (O(n) approach using sorted array)
-            if habitCompletions.count > 0 {
+            if !habitCompletions.isEmpty {
                 var previousDate = habitCompletions.last!
                 tempStreak = 1
                 bestStreak = 1

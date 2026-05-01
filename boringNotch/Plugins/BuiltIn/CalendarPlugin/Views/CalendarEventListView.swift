@@ -107,9 +107,6 @@ struct EventListView: View {
                         Text(event.title)
                             .font(.callout)
                             .foregroundColor(.white)
-                        Text(event.title)
-                            .font(.callout)
-                            .foregroundColor(.white)
                             .lineLimit(settings.showFullEventTitles ? nil : 1)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: 4) {
@@ -144,10 +141,6 @@ struct EventListView: View {
                         .cornerRadius(1.5)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(event.title)
-                            .font(.callout)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
                         Text(event.title)
                             .font(.callout)
                             .fontWeight(.medium)

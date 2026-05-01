@@ -1,36 +1,12 @@
 //
-//  Constants.swift
+//  SettingsTypes.swift
 //  boringNotch
 //
-//  Created by Richard Kunkli on 2024. 10. 17..
-//  Modified by Arsh Anwar
+//  Settings value types — all Defaults.Serializable enums used in user preferences.
 //
 
 import SwiftUI
 import Defaults
-
-// MARK: - File System Paths
-private let availableDirectories = FileManager
-    .default
-    .urls(for: .documentDirectory, in: .userDomainMask)
-let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-let bundleIdentifier = Bundle.main.bundleIdentifier!
-let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""))"
-
-let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-let spacing: CGFloat = 16
-
-struct BluetoothDeviceIconMapping: Codable, Defaults.Serializable {
-    let UUID: UUID
-    let deviceName: String
-    var sfSymbolName: String
-
-    init(UUID: Foundation.UUID = Foundation.UUID(), deviceName: String, sfSymbolName: String) {
-        self.UUID = UUID
-        self.deviceName = deviceName
-        self.sfSymbolName = sfSymbolName
-    }
-}
 
 enum CalendarSelectionState: Codable, Defaults.Serializable, Sendable {
     case all
@@ -41,19 +17,6 @@ enum HideNotchOption: String, Defaults.Serializable {
     case always
     case nowPlayingOnly
     case never
-}
-
-// Define notification names at file scope
-extension Notification.Name {
-    static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
-    static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
-    static let notchHeightChanged = Notification.Name("NotchHeightChanged")
-    static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
-    static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
-    static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
-    static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
-    static let sharingDidFinish = Notification.Name("com.boringNotch.sharingDidFinish")
-    static let accentColorChanged = Notification.Name("AccentColorChanged")
 }
 
 enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializable {

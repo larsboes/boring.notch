@@ -8,7 +8,6 @@
 
 import AppKit
 import ScreenCaptureKit
-import Combine
 
 /// A Swift actor that manages ScreenCaptureKit streaming for thread-safe desktop capture.
 /// Captures the desktop region behind the notch, excluding the notch window itself.

@@ -57,7 +57,7 @@ struct BatteryView: View {
                 )
                 .padding(.leading, 2)
 
-            if iconStatus != "" && (isForNotification || settings.showPowerStatusIcons) {
+            if !iconStatus.isEmpty && (isForNotification || settings.showPowerStatusIcons) {
                 ZStack {
                     Image(iconStatus)
                         .resizable()

@@ -234,7 +234,7 @@ class MockBatteryService: BatteryServiceProtocol {
     var isCharging: Bool = false
     var isPluggedIn: Bool = false
     var isInLowPowerMode: Bool = false
-    var timeRemaining: TimeInterval? = nil
+    var timeRemaining: TimeInterval?
     var statusText: String = "80%"
     var levelBattery: Float = 80.0
     var timeToFullCharge: Int = 0

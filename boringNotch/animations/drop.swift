@@ -83,21 +83,12 @@ enum StandardAnimations {
     }
 }
 
-@Observable
-@MainActor
-public final class BoringAnimations {
-    var notchStyle: Style = .notch
-    
-    init() {
-        self.notchStyle = .notch
-    }
-    
-    var animation: Animation {
-        if #available(macOS 14.0, *), notchStyle == .notch {
+enum BoringAnimations {
+    static var animation: Animation {
+        if #available(macOS 14.0, *) {
             StandardAnimations.bouncy
         } else {
             StandardAnimations.timingCurve
         }
     }
-
 }

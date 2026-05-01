@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 
 private let _shelfTypeAnchor: Bool = {
     _ = String(describing: ShelfItem.self)
@@ -24,8 +23,6 @@ private let _shelfTypeAnchor: Bool = {
     func isSelected(_ id: UUID) -> Bool { selectedIDs.contains(id) }
 
     var hasSelection: Bool { !selectedIDs.isEmpty }
-
-
 
     func selectedItems(in allItems: [ShelfItem]) -> [ShelfItem] {
         allItems.filter { selectedIDs.contains($0.id) }

@@ -1,4 +1,3 @@
-import Combine
 import SwiftUI
 import UserNotifications
 
@@ -11,7 +10,7 @@ class NotificationCenterManager: NSObject, NotificationServiceProtocol, UNUserNo
     private let center = UNUserNotificationCenter.current()
     private var settings: any NotificationSettings
     // Cached for nonisolated delegate callback
-    nonisolated(unsafe) private var cachedDeliveryStyle: NotificationDeliveryStyle = .banner
+    @ObservationIgnored nonisolated(unsafe) private var cachedDeliveryStyle: NotificationDeliveryStyle = .banner
     private var retentionObservation: Task<Void, Never>?
 
     init(settings: any NotificationSettings) {

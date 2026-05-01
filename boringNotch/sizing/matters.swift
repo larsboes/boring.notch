@@ -30,18 +30,13 @@ enum MusicPlayerImageSizes {
     static let size = (opened: CGSize(width: 90, height: 90), closed: CGSize(width: 20, height: 20))
 }
 
+@MainActor func resolveScreen(_ screenUUID: String? = nil) -> NSScreen? {
+    if let uuid = screenUUID { return NSScreen.screen(withUUID: uuid) }
+    return .main
+}
+
 @MainActor func getScreenFrame(_ screenUUID: String? = nil) -> CGRect? {
-    var selectedScreen = NSScreen.main
-
-    if let uuid = screenUUID {
-        selectedScreen = NSScreen.screen(withUUID: uuid)
-    }
-
-    if let screen = selectedScreen {
-        return screen.frame
-    }
-
-    return nil
+    resolveScreen(screenUUID)?.frame
 }
 
 @MainActor func getRealNotchHeight() -> CGFloat {
@@ -86,80 +81,56 @@ enum MusicPlayerImageSizes {
     }
 }
 
+/// Physical notch width derived from screen auxiliary areas. Falls back to 220px.
+@MainActor func physicalNotchWidth(screen: NSScreen?) -> CGFloat {
+    guard let screen,
+          let left = screen.auxiliaryTopLeftArea?.width,
+          let right = screen.auxiliaryTopRightArea?.width,
+          left > 100, right > 100 else { return 220 }
+    return min(860, max(220, screen.frame.width - left - right + 12))
+}
+
 @MainActor func getClosedNotchSize(settings: any DisplaySettings, screenUUID: String? = nil, hasLiveActivity: Bool = false) -> CGSize {
-    var notchHeight: CGFloat = settings.nonNotchHeight
-    var notchWidth: CGFloat = 220
-
-    var selectedScreen = NSScreen.main
-
-    if let uuid = screenUUID {
-        selectedScreen = NSScreen.screen(withUUID: uuid)
-    }
-
-    // Check if the screen is available
-    if let screen = selectedScreen {
-        // Calculate and set the exact width of the notch
-        if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
-           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width,
-           topLeftNotchpadding > 100, topRightNotchpadding > 100 { // Ensure reasonable padding
-            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 12
-        } else {
-            // Fallback for screens where auxiliary area is not reported correctly
-            // or for screens without a notch
-            notchWidth = 220
-        }
-
-        // Check if the Mac has a notch
-        if screen.safeAreaInsets.top > 0 {
-            // This is a display WITH a notch - use notch height settings
-            if !hasLiveActivity {
-                // When idle, strictly match the physical notch height if possible
-                // This fixes the "never as tiny as normal" issue
-                notchHeight = screen.safeAreaInsets.top
-            } else {
-                notchHeight = settings.notchHeight
-                if settings.notchHeightMode == .matchRealNotchSize {
-                    notchHeight = screen.safeAreaInsets.top
-                } else if settings.notchHeightMode == .matchMenuBar {
-                    notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
-                }
-            }
-        } else {
-            // This is a display WITHOUT a notch - use non-notch height settings
-            if !hasLiveActivity && settings.nonNotchHeightMode == .custom {
-                notchHeight = settings.nonNotchHeight
-            } else if settings.nonNotchHeightMode == .matchMenuBar {
-                notchHeight = screen.frame.maxY - screen.visibleFrame.maxY
-            } else if settings.nonNotchHeightMode == .matchRealNotchSize {
-                notchHeight = 32
-            } else {
-                notchHeight = 32
-            }
-        }
-    }
-
-    // Safety Clamp: Never allow a "closed" notch or Live Activity to be wider than the fully open notch.
-    // This prevents full-screen horizontal explosions if system auxiliary measurements fail.
-    let finalWidth = min(860, max(220, notchWidth))
-    return .init(width: finalWidth, height: notchHeight)
+    let screen = resolveScreen(screenUUID)
+    let width = physicalNotchWidth(screen: screen)
+    let height = closedNotchHeight(screen: screen, settings: settings, hasLiveActivity: hasLiveActivity)
+    return CGSize(width: width, height: height)
 }
 
 @MainActor func getInactiveNotchSize(settings: any DisplaySettings, screenUUID: String? = nil) -> CGSize {
-    let notchHeight: CGFloat = settings.inactiveNotchHeight
-    var notchWidth: CGFloat = 220
+    let screen = resolveScreen(screenUUID)
+    return CGSize(width: physicalNotchWidth(screen: screen), height: settings.inactiveNotchHeight)
+}
 
-    var selectedScreen = NSScreen.main
+// MARK: - Height Calculation
 
-    if let uuid = screenUUID {
-        selectedScreen = NSScreen.screen(withUUID: uuid)
+@MainActor private func closedNotchHeight(screen: NSScreen?, settings: any DisplaySettings, hasLiveActivity: Bool) -> CGFloat {
+    guard let screen else { return settings.nonNotchHeight }
+
+    let hasPhysicalNotch = screen.safeAreaInsets.top > 0
+
+    if hasPhysicalNotch {
+        return notchScreenHeight(screen: screen, settings: settings, hasLiveActivity: hasLiveActivity)
+    } else {
+        return nonNotchScreenHeight(screen: screen, settings: settings, hasLiveActivity: hasLiveActivity)
     }
+}
 
-    if let screen = selectedScreen {
-        if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
-           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
-            notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 12
-        }
+@MainActor private func notchScreenHeight(screen: NSScreen, settings: any DisplaySettings, hasLiveActivity: Bool) -> CGFloat {
+    // When idle, strictly match the physical notch to blend in
+    guard hasLiveActivity else { return screen.safeAreaInsets.top }
+
+    switch settings.notchHeightMode {
+    case .matchRealNotchSize: return screen.safeAreaInsets.top
+    case .matchMenuBar:       return screen.frame.maxY - screen.visibleFrame.maxY
+    case .custom:             return settings.notchHeight
     }
+}
 
-    return .init(width: notchWidth, height: notchHeight)
+@MainActor private func nonNotchScreenHeight(screen: NSScreen, settings: any DisplaySettings, hasLiveActivity: Bool) -> CGFloat {
+    switch settings.nonNotchHeightMode {
+    case .matchMenuBar:       return screen.frame.maxY - screen.visibleFrame.maxY
+    case .matchRealNotchSize: return 32
+    case .custom:             return !hasLiveActivity ? settings.nonNotchHeight : 32
+    }
 }

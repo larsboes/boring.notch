@@ -10,7 +10,7 @@ struct HabitExpandedView: View {
     let plugin: HabitTrackerPlugin
     private var store: HabitStore { plugin.store }
     
-    @State private var hoveredHabitId: UUID? = nil
+    @State private var hoveredHabitId: UUID?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {

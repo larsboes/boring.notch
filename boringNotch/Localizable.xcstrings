@@ -703,6 +703,16 @@
         }
       }
     },
+    "%@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        }
+      }
+    },
     "%d%%" : {
       "localizations" : {
         "ar" : {
@@ -3561,6 +3571,16 @@
         }
       }
     },
+    "Battery: %lld%%%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Battery: %1$lld%%%2$@"
+          }
+        }
+      }
+    },
     "Behavior" : {
 
     },
@@ -5600,7 +5620,7 @@
         }
       }
     },
-    "Closes the boringNotch." : {
+    "Closes the boringNotch panel." : {
 
     },
     "Color" : {
@@ -7633,6 +7653,9 @@
           }
         }
       }
+    },
+    "Drag to reorder how plugins appear in the notch tab bar. Disabled plugins are hidden but retain their settings." : {
+
     },
     "Drop files here" : {
       "localizations" : {
@@ -9984,6 +10007,9 @@
 
     },
     "Glass Style" : {
+
+    },
+    "Goes back to the previous track via boringNotch." : {
 
     },
     "Got it!" : {
@@ -14361,6 +14387,9 @@
         }
       }
     },
+    "Next Track" : {
+
+    },
     "No active habits" : {
 
     },
@@ -15701,7 +15730,10 @@
         }
       }
     },
-    "Opens the boringNotch." : {
+    "Opens the boringNotch panel." : {
+
+    },
+    "Opens the notch if closed, closes it if open." : {
 
     },
     "OpenWeatherMap API Key" : {
@@ -15813,6 +15845,9 @@
     "Paste from clipboard" : {
 
     },
+    "Pause" : {
+
+    },
     "Pause at paragraph breaks" : {
 
     },
@@ -15921,6 +15956,15 @@
           }
         }
       }
+    },
+    "Play" : {
+
+    },
+    "Play / Pause" : {
+
+    },
+    "Play / Pause Music" : {
+
     },
     "Play sound" : {
 
@@ -16031,6 +16075,9 @@
     "Plugin Manager unavailable" : {
 
     },
+    "Plugins" : {
+
+    },
     "Pomodoro" : {
 
     },
@@ -16136,6 +16183,9 @@
           }
         }
       }
+    },
+    "Previous Track" : {
+
     },
     "Progress bar style" : {
       "localizations" : {
@@ -20068,6 +20118,9 @@
     "Size" : {
 
     },
+    "Skips to the next track via boringNotch." : {
+
+    },
     "Slider color" : {
       "localizations" : {
         "ar" : {
@@ -21202,6 +21255,9 @@
     "Title" : {
 
     },
+    "Toggle Notch" : {
+
+    },
     "Toggle Notch Open:" : {
       "localizations" : {
         "ar" : {
@@ -21401,6 +21457,9 @@
           }
         }
       }
+    },
+    "Toggles playback of the current track in boringNotch." : {
+
     },
     "Total Completions: %lld" : {
 

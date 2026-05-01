@@ -8,7 +8,6 @@
 
 import Foundation
 import AppKit
-import Combine
 import Observation
 
 @MainActor
@@ -33,8 +32,6 @@ final class FaceService: FaceServiceProtocol {
         // Better pattern: Start when the service is initialized by the container.
         startMonitoring()
     }
-    
-
     
     // MARK: - Methods
     

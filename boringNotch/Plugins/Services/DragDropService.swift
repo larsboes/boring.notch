@@ -36,8 +36,6 @@ final class DragDropService: DragDropServiceProtocol {
 
     init() {}
 
-
-
     // MARK: - Methods
 
     func updateNotchRegion(_ region: CGRect) {

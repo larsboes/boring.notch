@@ -13,7 +13,7 @@ final class MockHoverZoneChecker: HoverZoneChecking {
 
 struct MockNotchViewModelSettings: NotchViewModelSettings {
     var shelfHoverDelay: Double = 4.0
-    var backgroundImageURL: URL? = nil
+    var backgroundImageURL: URL?
     var hideNotchOption: HideNotchOption = .never
     var showNotHumanFace: Bool = false
     var hideTitleBar: Bool = false

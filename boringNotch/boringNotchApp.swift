@@ -202,7 +202,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         graph.localAPIServerController.stop()
 
-        NotificationCenter.default.removeObserver(self)
         if let observer = screenLockedObserver {
             DistributedNotificationCenter.default().removeObserver(observer)
             screenLockedObserver = nil

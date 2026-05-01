@@ -47,7 +47,7 @@ final class MockNotchSettings: NotchSettings {
     var liquidGlassEffect: Bool = false
     var liquidGlassStyle: LiquidGlassStyle = .default
     var liquidGlassBlurRadius: Double = 10.0
-    var backgroundImageURL: URL? = nil
+    var backgroundImageURL: URL?
     var enableShadow: Bool = true
     var cornerRadiusScaling: Bool = true
     var settingsIconInNotch: Bool = true
@@ -69,7 +69,7 @@ final class MockNotchSettings: NotchSettings {
     var mediaController: MediaControllerType = .nowPlaying
     var mirrorShape: MirrorShapeEnum = .circle
     var musicControlSlots: [MusicControlButton] = MusicControlButton.defaultLayout
-    var selectedVisualizerURL: URL? = nil
+    var selectedVisualizerURL: URL?
     var selectedVisualizerSpeed: Double = 1.0
     var ambientVisualizerEnabled: Bool = false
     var ambientVisualizerHeight: CGFloat = 110
@@ -97,7 +97,7 @@ final class MockNotchSettings: NotchSettings {
 
     // MARK: - Display Settings
     var openLastTabByDefault: Bool = false
-    var preferredScreenUUID: String? = nil
+    var preferredScreenUUID: String?
     var showOnAllDisplays: Bool = false
     var automaticallySwitchDisplay: Bool = true
     var hideTitleBar: Bool = false
@@ -106,7 +106,7 @@ final class MockNotchSettings: NotchSettings {
     var hideFromScreenRecording: Bool = false
     var hideNonNotchedFromMissionControl: Bool = true
     var useCustomAccentColor: Bool = false
-    var customAccentColorData: Data? = nil
+    var customAccentColorData: Data?
     var releaseName: String = "Boring Notch"
     var nonNotchHeight: Double = 23.0
     var nonNotchHeightMode: WindowHeightMode = .matchMenuBar

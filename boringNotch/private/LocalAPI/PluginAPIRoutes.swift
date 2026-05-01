@@ -58,6 +58,7 @@ enum PluginAPIRoutes {
     }
 
     static func registerMusic(on registrar: APIRouteRegistrar, musicService: any MusicServiceProtocol) {
+        nonisolated(unsafe) let musicService = musicService
         // GET /api/v1/music/now-playing
         registrar.register(method: .get, path: "/api/v1/music/now-playing") { _ in
             let info = await MainActor.run { musicService.currentTrack }

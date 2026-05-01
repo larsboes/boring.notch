@@ -13,8 +13,9 @@ import SwiftUI
 protocol NotificationServiceProtocol: Observable {
     var notifications: [NotchNotification] { get }
     var authorizationStatus: UNAuthorizationStatus { get }
-    
+
     func requestAuthorization()
+    func addNotification(_ notification: NotchNotification)
     func markAllAsRead()
     func clearAll()
     func removeNotification(_ notification: NotchNotification)

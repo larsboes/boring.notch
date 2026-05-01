@@ -105,12 +105,12 @@ final class DragDetectionCoordinator {
         if settings.showOnAllDisplays {
             if let viewModel = windowCoordinator.viewModels[uuid] {
                 viewModel.open()
-                coordinator.currentView = .shelf
+                viewModel.currentView = .shelf
             }
         } else {
             if let windowScreen = windowCoordinator.window?.screen, screen == windowScreen {
                 windowCoordinator.primaryViewModel.open()
-                coordinator.currentView = .shelf
+                windowCoordinator.primaryViewModel.currentView = .shelf
             }
         }
     }

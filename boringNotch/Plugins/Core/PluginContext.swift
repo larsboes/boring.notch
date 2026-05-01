@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Combine
 
 // MARK: - Plugin Context
 
@@ -47,8 +46,6 @@ final class PluginContext {
 
 // MARK: - App State Protocol
 
-
-
 /// Provides access to app-wide state
 
 /// Note: Kept minimal for MVP - expand as features migrate to plugin system
@@ -63,13 +60,8 @@ protocol AppStateProviding: AnyObject {
 
 }
 
-
-
 // MARK: - Service Protocols
 
 // Note: Service protocols are defined in Plugins/Services/
 
-
 // MARK: - Environment Keys
-
-

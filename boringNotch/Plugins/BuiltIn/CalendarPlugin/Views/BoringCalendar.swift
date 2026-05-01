@@ -85,19 +85,17 @@ struct CalendarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .top, spacing: 4) {
+                VStack(alignment: .leading, spacing: 1) {
                     Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.white)
                     Text(selectedDate.formatted(.dateTime.year()))
-                        .font(.caption)
-                        .fontWeight(.light)
+                        .font(.system(size: 10, weight: .light))
                         .foregroundColor(Color(white: 0.65))
                 }
+                .frame(width: 34, alignment: .leading)
                 WeekDayPicker(selectedDate: $selectedDate)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .padding(.horizontal, 8)
 
@@ -111,6 +109,7 @@ struct CalendarView: View {
                     Spacer(minLength: 0)
                 } else {
                     EventListView(events: calendarService.events)
+                        .padding(.leading, 46)
                 }
             } else {
                 EmptyEventsView(selectedDate: selectedDate)

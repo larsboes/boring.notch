@@ -46,7 +46,7 @@ final class BrowserMediaController: MediaControllerProtocol {
 
     private let server: BrowserExtensionServer
 
-    init(server: BrowserExtensionServer = .shared) {
+    init(server: BrowserExtensionServer) {
         self.server = server
         server.start()
 
