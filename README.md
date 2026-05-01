@@ -1,3 +1,5 @@
+> ⚠️ **This fork has moved.** Active development continues in [larsboes/mach-mono](https://github.com/larsboes/mach-mono) — a monorepo of focused macOS utilities built on a hardened plugin-first architecture. This repo is archived for reference only.
+
 <h1 align="center">
   <br>
   <a href="http://theboring.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Boring Notch" width="150"></a>
